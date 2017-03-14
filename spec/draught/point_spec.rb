@@ -11,5 +11,9 @@ module Draught
     it "returns its y" do
       expect(subject.y).to eq(2)
     end
+
+    it "can return itself as an array of points" do
+      expect(subject.points).to eq([subject])
+    end
   end
 end

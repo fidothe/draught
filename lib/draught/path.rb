@@ -4,19 +4,31 @@ module Draught
   class Path
     extend Forwardable
 
-    def_delegators :@points, :empty?, :[]
+    def self.build
+      p = []
+      yield(p)
+      new.append(*p)
+    end
+
+    def_delegators :@points, :empty?
 
     def initialize(points = [])
       @points = points.dup.freeze
     end
 
-    def to_a
-      @points.dup
+    def points
+      @points
     end
 
     def <<(point)
-      add_points([point])
+      append(point)
     end
+
+    def append(*points)
+      points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
+    end
+
+    protected
 
     def add_points(points)
       self.class.new(@points + points)
