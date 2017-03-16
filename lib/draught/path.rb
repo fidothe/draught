@@ -4,20 +4,12 @@ module Draught
   class Path
     extend Forwardable
 
-    def self.build
-      p = []
-      yield(p)
-      new.append(*p)
-    end
+    attr_reader :points
 
-    def_delegators :@points, :empty?
+    def_delegators :points, :empty?, :length, :last
 
     def initialize(points = [])
       @points = points.dup.freeze
-    end
-
-    def points
-      @points
     end
 
     def <<(point)
@@ -26,6 +18,15 @@ module Draught
 
     def append(*points)
       points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
+    end
+
+    def ==(other)
+      return false if length != other.length
+      points.zip(other.points).all? { |a, b| a == b }
+    end
+
+    def translate(point)
+      Path.new(points.map { |p| p.translate(point) })
     end
 
     protected
