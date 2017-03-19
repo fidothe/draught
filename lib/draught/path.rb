@@ -20,6 +20,14 @@ module Draught
       points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
     end
 
+    def lower_left
+      @lower_left ||= Point.new(x_min, y_min)
+    end
+
+    def upper_right
+      @upper_right ||= Point.new(x_max, y_max)
+    end
+
     def ==(other)
       return false if length != other.length
       points.zip(other.points).all? { |a, b| a == b }
@@ -33,6 +41,24 @@ module Draught
 
     def add_points(points)
       self.class.new(@points + points)
+    end
+
+    private
+
+    def x_max
+      @x_max ||= points.map(&:x).max || 0
+    end
+
+    def x_min
+      @x_min ||= points.map(&:x).min || 0
+    end
+
+    def y_max
+      @y_max ||= points.map(&:y).max || 0
+    end
+
+    def y_min
+      @y_min ||= points.map(&:y).min || 0
     end
   end
 end
