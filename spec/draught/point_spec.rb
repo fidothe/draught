@@ -16,6 +16,10 @@ module Draught
       expect(subject.points).to eq([subject])
     end
 
+    specify "provides a (0,0) point via a constant" do
+      expect(Point::ZERO).to eq(Point.new(0,0))
+    end
+
     describe "equality" do
       let(:p1) { Point.new(1,1) }
       let(:p2) { Point.new(1,1) }
@@ -35,6 +39,10 @@ module Draught
         translation = Point.new(1,2)
 
         expect(subject.translate(translation)).to eq(Point.new(2,4))
+      end
+
+      specify "a Point can report the difference between itself and a second Point as a Point which could be used to translate itself to the other" do
+        expect(subject.difference(Point.new(0,0))).to eq(Point.new(-1, -2))
       end
     end
   end

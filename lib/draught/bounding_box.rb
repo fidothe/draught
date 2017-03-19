@@ -20,6 +20,16 @@ module Draught
       self.class.new(*paths.map { |path| path.translate(point) })
     end
 
+    def zero_origin
+      difference = lower_left.difference(Point::ZERO)
+      return self if difference == Point::ZERO
+      translate(difference)
+    end
+
+    def ==(other)
+      paths == other.paths
+    end
+
     private
 
     def x_max
@@ -36,6 +46,14 @@ module Draught
 
     def y_min
       @y_min ||= lower_lefts.map(&:y).min
+    end
+
+    def lower_left
+      @lower_left ||= Point.new(x_min, y_min)
+    end
+
+    def upper_right
+      @upper_right ||= Point.new(x_max, y_max)
     end
 
     def lower_lefts

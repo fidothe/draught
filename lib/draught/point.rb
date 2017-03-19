@@ -17,5 +17,11 @@ module Draught
     def translate(point)
       Point.new(x + point.x, y + point.y)
     end
+
+    def difference(point)
+      Point.new(point.x - x, point.y - y)
+    end
+
+    ZERO = new(0, 0)
   end
 end
