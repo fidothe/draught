@@ -120,6 +120,13 @@ module Draught
 
         expect(subject.translate(p3)).to eq(expected)
       end
+
+      specify "transforming a Path generates a new Path by applying the transformation to every Point in the Path" do
+        transformation = ->(x, y) { [x * 2, y * 2] }
+        expected = Path.new([Point.new(2,2), Point.new(2,4)])
+
+        expect(subject.transform(transformation)).to eq(expected)
+      end
     end
   end
 end

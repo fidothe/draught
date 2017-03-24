@@ -20,6 +20,10 @@ module Draught
       self.class.new(*paths.map { |path| path.translate(point) })
     end
 
+    def transform(transformation)
+      self.class.new(*paths.map { |path| path.transform(transformation) })
+    end
+
     def zero_origin
       difference = lower_left.difference(Point::ZERO)
       return self if difference == Point::ZERO

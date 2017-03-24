@@ -20,6 +20,14 @@ module Draught
       points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
     end
 
+    def translate(point)
+      Path.new(points.map { |p| p.translate(point) })
+    end
+
+    def transform(transformation)
+      Path.new(points.map { |p| p.transform(transformation) })
+    end
+
     def lower_left
       @lower_left ||= Point.new(x_min, y_min)
     end
@@ -31,10 +39,6 @@ module Draught
     def ==(other)
       return false if length != other.length
       points.zip(other.points).all? { |a, b| a == b }
-    end
-
-    def translate(point)
-      Path.new(points.map { |p| p.translate(point) })
     end
 
     protected

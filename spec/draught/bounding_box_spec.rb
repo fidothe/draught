@@ -20,13 +20,6 @@ module Draught
       expect(subject.paths).to eq([input_path])
     end
 
-    it "can be translated" do
-      translated = subject.translate(Point.new(1,0))
-      expected = [Path.new([Point.new(0,-1), Point.new(4,3)])]
-
-      expect(translated.paths).to eq(expected)
-    end
-
     describe "equality" do
       it "compares equal if the other box has the same paths in the same order" do
         expect(BoundingBox.new(input_path)).to eq(subject)
@@ -44,6 +37,28 @@ module Draught
         truncated = BoundingBox.new(truncated_path)
 
         expect(truncated).to_not eq(subject)
+      end
+    end
+
+    describe "manipulations in space" do
+      let(:input_path) { Path.new([Point.new(-1, -1), Point.new(3,3)]) }
+      subject { BoundingBox.new(input_path) }
+
+      it "can be translated" do
+        expected = BoundingBox.new(Path.new([Point.new(0,-1), Point.new(4,3)]))
+
+        translated = subject.translate(Point.new(1,0))
+
+        expect(translated).to eq(expected)
+      end
+
+      it "can be transformed" do
+        transformation = ->(x, y) { [x * 2, y * 2] }
+        expected = BoundingBox.new(Path.new([Point.new(-2,-2), Point.new(6,6)]))
+
+        transformed = subject.transform(transformation)
+
+        expect(transformed).to eq(expected)
       end
     end
 

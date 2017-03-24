@@ -44,6 +44,13 @@ module Draught
       specify "a Point can report the difference between itself and a second Point as a Point which could be used to translate itself to the other" do
         expect(subject.difference(Point.new(0,0))).to eq(Point.new(-1, -2))
       end
+
+      specify "a Point can be transformed by generating a new Point from the result of calling the lambda arg with the point's x and y values" do
+        transformation = ->(x, y) {
+          [x * 2, y * 2]
+        }
+        expect(subject.transform(transformation)).to eq(Point.new(2,4))
+      end
     end
   end
 end
