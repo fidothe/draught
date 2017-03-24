@@ -1,3 +1,4 @@
+require 'draught/boxlike_examples'
 require 'draught/bounding_box'
 require 'draught/path'
 
@@ -8,13 +9,7 @@ module Draught
     let(:zeroed) { BoundingBox.new(zeroed_path) }
     subject { BoundingBox.new(input_path) }
 
-    it "returns the width of the path" do
-      expect(subject.width).to eq(4)
-    end
-
-    it "returns the height of the path" do
-      expect(subject.height).to eq(4)
-    end
+    it_should_behave_like "a basic rectangular box-like thing"
 
     it "can return its paths" do
       expect(subject.paths).to eq([input_path])

@@ -20,17 +20,19 @@ module Draught
       expect(Point::ZERO).to eq(Point.new(0,0))
     end
 
-    describe "equality" do
-      let(:p1) { Point.new(1,1) }
-      let(:p2) { Point.new(1,1) }
-      let(:p3) { Point.new(1,2) }
+    describe "comparisons" do
+      context "equality" do
+        let(:p1) { Point.new(1,1) }
+        let(:p2) { Point.new(1,1) }
+        let(:p3) { Point.new(1,2) }
 
-      specify "a Point is equal to another point if they have the same x,y co-ordinates" do
-        expect(p1 == p2).to be(true)
-      end
+        specify "a Point is equal to another point if they have the same x,y co-ordinates" do
+          expect(p1 == p2).to be(true)
+        end
 
-      specify "a Point is not equal to another point if their co-ordinates differ" do
-        expect(p1 == p3).to be(false)
+        specify "a Point is not equal to another point if their co-ordinates differ" do
+          expect(p1 == p3).to be(false)
+        end
       end
     end
 
@@ -41,8 +43,13 @@ module Draught
         expect(subject.translate(translation)).to eq(Point.new(2,4))
       end
 
-      specify "a Point can report the difference between itself and a second Point as a Point which could be used to translate itself to the other" do
-        expect(subject.difference(Point.new(0,0))).to eq(Point.new(-1, -2))
+      specify "a Point can report the translation needed to relocate itself to a second Point" do
+        expect(subject.translation_to(Point.new(0,0))).to eq(Point.new(-1, -2))
+      end
+
+      specify "a Point can be transformed by a block passed x, y as args and returning [x1,y1]" do
+        transformer = ->(x, y) { [2 * x, 2 * y] }
+        expect(subject.transform(transformer)).to eq(Point.new(2,4))
       end
 
       specify "a Point can be transformed by generating a new Point from the result of calling the lambda arg with the point's x and y values" do

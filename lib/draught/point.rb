@@ -15,11 +15,15 @@ module Draught
     end
 
     def translate(point)
-      Point.new(x + point.x, y + point.y)
+      self.class.new(x + point.x, y + point.y)
     end
 
-    def difference(point)
-      Point.new(point.x - x, point.y - y)
+    def translation_to(point)
+      self.class.new(point.x - x, point.y - y)
+    end
+
+    def transform(transformer)
+      self.class.new(*transformer.call(x, y))
     end
 
     def transform(transformer)

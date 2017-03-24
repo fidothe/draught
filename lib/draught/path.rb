@@ -1,8 +1,10 @@
 require 'forwardable'
+require_relative 'boxlike'
 
 module Draught
   class Path
     extend Forwardable
+    include Boxlike
 
     attr_reader :points
 
@@ -20,25 +22,29 @@ module Draught
       points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
     end
 
-    def translate(point)
-      Path.new(points.map { |p| p.translate(point) })
-    end
-
-    def transform(transformation)
-      Path.new(points.map { |p| p.transform(transformation) })
-    end
-
     def lower_left
       @lower_left ||= Point.new(x_min, y_min)
     end
 
-    def upper_right
-      @upper_right ||= Point.new(x_max, y_max)
+    def width
+      @width ||= x_max - x_min
+    end
+
+    def height
+      @height ||= y_max - y_min
     end
 
     def ==(other)
       return false if length != other.length
       points.zip(other.points).all? { |a, b| a == b }
+    end
+
+    def translate(point)
+      self.class.new(points.map { |p| p.translate(point) })
+    end
+
+    def transform(transformer)
+      self.class.new(points.map { |p| p.transform(transformer) })
     end
 
     protected
