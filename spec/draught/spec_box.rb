@@ -37,5 +37,9 @@ module Draught
         min_gap: min_gap
       })
     end
+
+    def ==(other)
+      lower_left == other.lower_left && width == other.width && height == other.height && min_gap == other.min_gap
+    end
   end
 end

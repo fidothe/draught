@@ -98,8 +98,8 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
     end
 
     context "equality" do
-      it "compares equal to itself, at least" do
-        expect(subject).to eq(subject)
+      it "compares equal to a (0,0) translation of itself" do
+        expect(subject.translate(Draught::Point::ZERO)).to eq(subject)
       end
     end
   end
