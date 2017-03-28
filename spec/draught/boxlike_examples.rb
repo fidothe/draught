@@ -88,8 +88,8 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
       end
 
       specify "the dimensions of the translated box are unaffected" do
-        expect(subject.width).to eq(moved.width)
-        expect(subject.height).to eq(moved.height)
+        expect(moved.width).to eq(subject.width)
+        expect(moved.height).to eq(subject.height)
       end
 
       specify "returns itself when moving the box would have no effect" do
