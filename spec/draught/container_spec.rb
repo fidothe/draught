@@ -20,5 +20,17 @@ module Draught
         expect(transformed.min_gap).to eq(100)
       end
     end
+
+    context "paths and containers" do
+      it "delegates #paths to its box" do
+        allow(box).to receive(:paths) { [:path] }
+        expect(subject.paths).to eq([:path])
+      end
+
+      it "delegates #containers to its box" do
+        allow(box).to receive(:containers) { [:container] }
+        expect(subject.containers).to eq([:container])
+      end
+    end
   end
 end

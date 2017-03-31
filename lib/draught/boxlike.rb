@@ -44,6 +44,14 @@ module Draught
       raise NotImplementedError
     end
 
+    def paths
+      raise NotImplementedError
+    end
+
+    def containers
+      raise NotImplementedError
+    end
+
     def overlaps?(other_box)
       !disjoint?(other_box)
     end
@@ -66,6 +74,10 @@ module Draught
 
     def include_point?(point)
       horizontal_extent.include?(point.x) && vertical_extent.include?(point.y)
+    end
+
+    def min_gap
+      0
     end
 
     private

@@ -39,6 +39,10 @@ module Draught
       paths == other.paths
     end
 
+    def containers
+      []
+    end
+
     private
 
     def x_max

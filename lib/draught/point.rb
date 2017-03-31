@@ -24,10 +24,7 @@ module Draught
 
     def transform(transformer)
       self.class.new(*transformer.call(x, y))
-    end
 
-    def transform(transformer)
-      Point.new(*transformer.call(x, y))
     end
 
     ZERO = new(0, 0)

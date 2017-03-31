@@ -112,5 +112,20 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
         expect(subject.method(:overlaps?).arity).to eq(1)
       end
     end
+
+    it "returns an iterable value for #paths without raising" do
+      expect { subject.paths }.not_to raise_error
+      expect(subject.paths).to respond_to(:each)
+    end
+
+    it "returns an iterable value for #containers without raising" do
+      expect { subject.containers }.not_to raise_error
+      expect(subject.containers).to respond_to(:each)
+    end
+
+    it "returns a numeric value for #min_gap" do
+      expect { subject.min_gap }.not_to raise_error
+      expect(subject.min_gap).to be_a(Integer)
+    end
   end
 end

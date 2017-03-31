@@ -47,6 +47,14 @@ module Draught
       self.class.new(points.map { |p| p.transform(transformer) })
     end
 
+    def paths
+      [self]
+    end
+
+    def containers
+      []
+    end
+
     protected
 
     def add_points(points)

@@ -123,5 +123,13 @@ module Draught
         expect(subject.transform(transformation)).to eq(expected)
       end
     end
+
+    it "returns an Array of itself for #paths" do
+      expect(subject.paths).to eq([subject])
+    end
+
+    it "returns an empty Array for #containers" do
+      expect(subject.containers).to eq([])
+    end
   end
 end

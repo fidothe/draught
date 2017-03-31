@@ -41,5 +41,13 @@ module Draught
     def ==(other)
       lower_left == other.lower_left && width == other.width && height == other.height && min_gap == other.min_gap
     end
+
+    def paths
+      []
+    end
+
+    def containers
+      []
+    end
   end
 end
