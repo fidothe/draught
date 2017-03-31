@@ -48,7 +48,7 @@ module Draught
       end
 
       it "can be transformed" do
-        transformation = ->(x, y) { [x * 2, y * 2] }
+        transformation = Matrix[[2,0,0],[0,2,0],[0,0,1]]
         expected = BoundingBox.new(Path.new([Point.new(-2,-2), Point.new(6,6)]))
 
         transformed = subject.transform(transformation)

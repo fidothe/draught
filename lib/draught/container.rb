@@ -20,7 +20,7 @@ module Draught
     end
 
     def transform(transformer)
-      transformed_min_gap, _ = transformer.call(min_gap,0)
+      transformed_min_gap = Point.new(min_gap,0).transform(transformer).x
       self.class.new(box.transform(transformer), {min_gap: transformed_min_gap})
     end
 

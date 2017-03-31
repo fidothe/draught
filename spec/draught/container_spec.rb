@@ -16,7 +16,7 @@ module Draught
 
     context "min_gap and transformation" do
       specify "we assume transformations are simply uniform and the min_gap gets scaled as if it were an x co-ord" do
-        transformed = subject.transform(->(x,y) { [2 * x, 2 * y] })
+        transformed = subject.transform(Matrix[[2,0,0],[0,2,0],[0,0,1]])
         expect(transformed.min_gap).to eq(100)
       end
     end

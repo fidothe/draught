@@ -1,13 +1,27 @@
 require 'draught/transformations'
+require 'draught/point'
 
 module Draught
   RSpec.describe Transformations do
     describe "units" do
       it "can convert mm to Postscript pts" do
-        expect(Transformations.mm_to_pt.call(1, 1)).to eq([
-          2.8346456692913,
-          2.8346456692913
-        ])
+        expect(Point.new(1,1).transform(Transformations.mm_to_pt)).
+          to eq(Point.new(2.8346456692913, 2.8346456692913))
+      end
+
+      it "can reflect around the x axis" do
+        expect(Point.new(1,1).transform(Transformations.x_axis_reflect)).
+          to eq(Point.new(1, -1))
+      end
+
+      it "can reflect around the y axis" do
+        expect(Point.new(1,1).transform(Transformations.y_axis_reflect)).
+          to eq(Point.new(-1, 1))
+      end
+
+      it "can reflect around the x and y axis" do
+        expect(Point.new(1,1).transform(Transformations.xy_axis_reflect)).
+          to eq(Point.new(-1, -1))
       end
     end
   end

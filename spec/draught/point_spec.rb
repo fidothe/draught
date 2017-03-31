@@ -47,16 +47,21 @@ module Draught
         expect(subject.translation_to(Point.new(0,0))).to eq(Point.new(-1, -2))
       end
 
-      specify "a Point can be transformed by a block passed x, y as args and returning [x1,y1]" do
-        transformer = ->(x, y) { [2 * x, 2 * y] }
-        expect(subject.transform(transformer)).to eq(Point.new(2,4))
-      end
+      context "Affine transformations with Matrices" do
+        subject { Point.new(1,2) }
 
-      specify "a Point can be transformed by generating a new Point from the result of calling the lambda arg with the point's x and y values" do
-        transformation = ->(x, y) {
-          [x * 2, y * 2]
-        }
-        expect(subject.transform(transformation)).to eq(Point.new(2,4))
+        specify "a Point can return a suitable 1-column Matrix representation of itself" do
+          expect(subject.to_matrix).to eq(Matrix[[1],[2],[1]])
+        end
+
+        specify "a Point can be transformed by a 3x3 affine transformation matrix" do
+          reflect_around_x_axis = Matrix[
+            [1,  0, 0],
+            [0, -1, 0],
+            [0,  0, 1]
+          ]
+          expect(subject.transform(reflect_around_x_axis)).to eq(Point.new(1,-2))
+        end
       end
     end
   end
