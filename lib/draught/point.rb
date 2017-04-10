@@ -33,10 +33,8 @@ module Draught
       @matrix ||= Matrix[[x],[y],[1]].freeze
     end
 
-    def transform(transformation_matrix)
-      result = transformation_matrix * to_matrix
-      new_x, new_y = result.to_a.flatten
-      self.class.new(new_x, new_y)
+    def transform(transformation)
+      transformation.call(self)
     end
 
     ZERO = new(0, 0)

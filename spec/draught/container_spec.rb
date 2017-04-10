@@ -2,6 +2,7 @@ require 'draught/container'
 require 'draught/boxlike_examples'
 require 'draught/spec_box'
 require 'draught/point'
+require 'draught/transformations'
 
 module Draught
   RSpec.describe Container do
@@ -16,7 +17,10 @@ module Draught
 
     context "min_gap and transformation" do
       specify "we assume transformations are simply uniform and the min_gap gets scaled as if it were an x co-ord" do
-        transformed = subject.transform(Matrix[[2,0,0],[0,2,0],[0,0,1]])
+        transformation = Draught::Transformations::Affine.new(
+          Matrix[[2,0,0],[0,2,0],[0,0,1]]
+        )
+        transformed = subject.transform(transformation)
         expect(transformed.min_gap).to eq(100)
       end
     end

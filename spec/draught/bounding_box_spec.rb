@@ -1,5 +1,6 @@
 require 'draught/boxlike_examples'
 require 'draught/bounding_box'
+require 'draught/transformations'
 require 'draught/path'
 
 module Draught
@@ -21,7 +22,7 @@ module Draught
       end
 
       it "does not compare equal if the other box has the same paths in a different order" do
-        reversed_path = Path.new(input_path.points.reverse)
+       reversed_path = Path.new(input_path.points.reverse)
         reversed = BoundingBox.new(reversed_path)
 
         expect(reversed).to_not eq(subject)
@@ -48,7 +49,9 @@ module Draught
       end
 
       it "can be transformed" do
-        transformation = Matrix[[2,0,0],[0,2,0],[0,0,1]]
+        transformation = Draught::Transformations::Affine.new(
+          Matrix[[2,0,0],[0,2,0],[0,0,1]]
+        )
         expected = BoundingBox.new(Path.new([Point.new(-2,-2), Point.new(6,6)]))
 
         transformed = subject.transform(transformation)

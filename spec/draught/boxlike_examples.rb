@@ -1,4 +1,5 @@
 require 'draught/point'
+require 'draught/transformations/affine'
 
 RSpec.shared_examples "a basic rectangular box-like thing" do
   context "the box's dimensions" do
@@ -58,7 +59,9 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
     end
 
     context "transformation" do
-      let(:transformer) { Matrix[[2,0,0],[0,2,0],[0,0,1]] }
+      let(:transformer) {
+        Draught::Transformations::Affine.new(Matrix[[2,0,0],[0,2,0],[0,0,1]])
+      }
       let(:transformed) { subject.transform(transformer) }
 
       specify "moves the origin of the box correctly" do
