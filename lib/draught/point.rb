@@ -2,6 +2,11 @@ require 'matrix'
 
 module Draught
   class Point
+    def self.from_matrix(matrix)
+      x, y = matrix.to_a.flatten
+      Point.new(x, y)
+    end
+
     attr_reader :x, :y
 
     def initialize(x, y)
