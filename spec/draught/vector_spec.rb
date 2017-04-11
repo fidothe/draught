@@ -67,7 +67,7 @@ module Draught
       let(:expected_point) { Point.new(4, 6) }
       subject { Vector.new(1, 2) }
 
-      include_examples "producing a transform-compatible verison of itself"
+      include_examples "producing a transform-compatible version of itself"
     end
   end
 end

@@ -1,5 +1,3 @@
-require_relative './composer'
-
 module Draught
   module Transformations
     module Common
@@ -15,12 +13,8 @@ module Draught
         self
       end
 
-      def flattened_transforms
+      def transforms
         [self]
-      end
-
-      def compose(other)
-        Composer.coalesced(other, self)
       end
     end
   end

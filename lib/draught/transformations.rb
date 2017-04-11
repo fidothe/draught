@@ -2,6 +2,7 @@ require 'matrix'
 require_relative 'point'
 require_relative 'transformations/affine'
 require_relative 'transformations/proclike'
+require_relative 'transformations/composer'
 
 module Draught
   module Transformations
@@ -34,7 +35,7 @@ module Draught
     end
 
     def xy_axis_reflect
-      x_axis_reflect.compose(y_axis_reflect)
+      Composer.compose(x_axis_reflect, y_axis_reflect)
     end
 
     def round_to_n_decimal_places(n)

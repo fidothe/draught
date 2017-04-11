@@ -12,7 +12,8 @@ module Draught::Transformations
     subject { Proclike.new(point_return_transformer) }
 
     include_examples "transformation object fundamentals"
-    include_examples "producing a transform-compatible verison of itself"
+    include_examples "single-transform transformation object"
+    include_examples "producing a transform-compatible version of itself"
 
     describe "running the transformation with #call() and passing in a Point" do
       it "returns the result as a Point if the block returns an [x,y] tuple" do
@@ -27,13 +28,6 @@ module Draught::Transformations
 
     specify "Proclike transforms cannot be coalesced, so raise TypeError if asked to" do
       expect { subject.coalesce(subject) }.to raise_error(TypeError)
-    end
-
-    context "composition" do
-      let(:other_transform) { Proclike.new(array_return_transformer) }
-      let(:expected_point) { Draught::Point.new(12,14) }
-
-      include_examples "composable with another transform"
     end
   end
 end

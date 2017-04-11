@@ -14,7 +14,8 @@ module Draught::Transformations
     subject { Affine.new(transformation_matrix) }
 
     include_examples "transformation object fundamentals"
-    include_examples "producing a transform-compatible verison of itself"
+    include_examples "single-transform transformation object"
+    include_examples "producing a transform-compatible version of itself"
 
     it "claims to be affine" do
       expect(Affine.new(transformation_matrix).affine?).to be true
@@ -41,16 +42,6 @@ module Draught::Transformations
 
         expect { subject.coalesce(other) }.to raise_error(TypeError)
       end
-    end
-
-    context "composition" do
-      let(:other_transform) { Affine.new(Matrix[[1, 0, 0],[0, -1, 0],[0, 0, 1]]) }
-      subject { Affine.new(Matrix[[-1, 0, 0],[0, 1, 0],[0, 0, 1]]) }
-
-      let(:input_point) { Draught::Point.new(1,2) }
-      let(:expected_point) { Draught::Point.new(-1,-2) }
-
-      include_examples "composable with another transform"
     end
   end
 end

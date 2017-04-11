@@ -1,38 +1,20 @@
+require_relative './composition'
+
 module Draught
   module Transformations
     class Composer
-      def self.coalesced(*transforms)
-        new(*transforms).coalesce
+      def self.compose(*transforms)
+        new(transforms).composition
       end
 
       attr_reader :transforms
 
-      def initialize(*transforms)
+      def initialize(transforms)
         @transforms = transforms
       end
 
-      def call(point)
-        transforms.inject(point) { |point, transform| transform.call(point) }
-      end
-
-      def affine?
-        false
-      end
-
-      def compose(other)
-        self.class.coalesced(other, self)
-      end
-
-      def coalesce
-        self.class.new(*coalesced_transforms)
-      end
-
-      def to_transform
-        self
-      end
-
-      def ==(other)
-        other.respond_to?(:coalesce) && other.transforms == transforms
+      def composition
+        Composition.new(coalesced_transforms)
       end
 
       def coalesced_transforms
@@ -51,7 +33,7 @@ module Draught
 
       def flattened_transforms
         transforms.flat_map { |transform|
-          transform.flattened_transforms
+          transform.to_transform.transforms
         }
       end
 
