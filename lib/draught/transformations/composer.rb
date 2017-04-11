@@ -15,12 +15,24 @@ module Draught
         transforms.inject(point) { |point, transform| transform.call(point) }
       end
 
-      def ==(other)
-        other.respond_to?(:coalesce) && other.transforms == transforms
+      def affine?
+        false
+      end
+
+      def compose(other)
+        self.class.coalesced(other, self)
       end
 
       def coalesce
         self.class.new(*coalesced_transforms)
+      end
+
+      def to_transform
+        self
+      end
+
+      def ==(other)
+        other.respond_to?(:coalesce) && other.transforms == transforms
       end
 
       def coalesced_transforms

@@ -2,6 +2,7 @@ require 'draught/transformations/composer'
 require 'draught/transformations/affine'
 require 'draught/transformations/proclike'
 require 'draught/point'
+require 'draught/transformations/shared_examples'
 
 module Draught::Transformations
   RSpec.describe Composer do
@@ -16,13 +17,12 @@ module Draught::Transformations
       expect(Composer.new(t2, t1)).to eq(Composer.new(t2, t1))
     end
 
-    context "being #call()ed" do
+    context "behaving like a transform" do
+      let(:input_point) { Draught::Point.new(1,2) }
+      let(:expected_point) { Draught::Point.new(-1,-2) }
       subject { Composer.new(t1, t2) }
 
-      it "returns the Point that results from passing its argument through all its transforms in the correct order" do
-        input = Draught::Point.new(1,2)
-        expected = Draught::Point.new(-1,-2)
-      end
+      include_examples "transformation object fundamentals"
     end
 
     context "optimisations" do

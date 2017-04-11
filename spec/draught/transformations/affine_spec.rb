@@ -9,11 +9,12 @@ module Draught::Transformations
       Matrix[[-1, 0, 0],[0, -1, 0],[0,0,1]]
     }
     let(:input_point) { Draught::Point.new(1,2) }
-    let(:result_point) { Draught::Point.new(-1,-2) }
+    let(:expected_point) { Draught::Point.new(-1,-2) }
 
     subject { Affine.new(transformation_matrix) }
 
-    it_should_behave_like "a well-behaved transformation class"
+    include_examples "transformation object fundamentals"
+    include_examples "producing a transform-compatible verison of itself"
 
     it "claims to be affine" do
       expect(Affine.new(transformation_matrix).affine?).to be true
@@ -42,18 +43,14 @@ module Draught::Transformations
       end
     end
 
-    specify "two Affine transforms can be composed into a single one" do
-      t1 = Affine.new(Matrix[[-1, 0, 0],[0, 1, 0],[0, 0, 1]])
-      t2 = Affine.new(Matrix[[1, 0, 0],[0, -1, 0],[0, 0, 1]])
+    context "composition" do
+      let(:other_transform) { Affine.new(Matrix[[1, 0, 0],[0, -1, 0],[0, 0, 1]]) }
+      subject { Affine.new(Matrix[[-1, 0, 0],[0, 1, 0],[0, 0, 1]]) }
 
-      expect(t2.compose(t1).call(input_point)).to eq(Draught::Point.new(-1,-2))
-    end
+      let(:input_point) { Draught::Point.new(1,2) }
+      let(:expected_point) { Draught::Point.new(-1,-2) }
 
-    specify "an Affine transform can be composed with a Proclike" do
-      t1 = Proclike.new(->(p) { [p.x + 2, p.y + 2] })
-      t2 = Affine.new(Matrix[[1, 0, 0],[0, -1, 0],[0, 0, 1]])
-
-      expect(t2.compose(t1).call(input_point)).to eq(Draught::Point.new(3,-4))
+      include_examples "composable with another transform"
     end
   end
 end

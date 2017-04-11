@@ -1,9 +1,9 @@
 require 'draught/transformations/composer'
 
-RSpec.shared_examples "a well-behaved transformation class" do
+RSpec.shared_examples "transformation object fundamentals" do
   it "responds to #call(), taking a single Point argument and returning the Point result of applying the transform" do
     expect(subject.call(input_point)).
-      to eq(result_point)
+      to eq(expected_point)
   end
 
   it "compares equal to a dup of itself" do
@@ -16,13 +16,22 @@ RSpec.shared_examples "a well-behaved transformation class" do
     end
   end
 
-  context "composition" do
-    it "returns a correctly instantiated composed transform in response to #compose" do
-      expect(subject.compose(subject)).to eq(Draught::Transformations::Composer.coalesced(subject, subject))
+  context "transform-ness" do
+    it "returns itself in response to #to_transform" do
+      expect(subject.to_transform).to be(subject)
     end
+  end
+end
 
-    it "returns an array consisting of itself in response to #flattened_transforms" do
-      expect(subject.flattened_transforms).to eq([subject])
-    end
+RSpec.shared_examples "composable with another transform" do
+  it "produces the transformation result when composed with another transform" do
+    composed = subject.compose(other_transform)
+    expect(composed.call(input_point)).to eq(expected_point)
+  end
+end
+
+RSpec.shared_examples "producing a transform-compatible verison of itself" do
+  it "produces a correctly functioning transform in response to #to_transform" do
+    expect(subject.to_transform.call(input_point)).to eq(expected_point)
   end
 end
