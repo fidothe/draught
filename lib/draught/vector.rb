@@ -18,6 +18,10 @@ module Draught
       new(x, y)
     end
 
+    def self.translation_between(point_1, point_2)
+      from_xy(point_2.x - point_1.x, point_2.y - point_1.y)
+    end
+
     attr_reader :x, :y
 
     def initialize(x, y)
@@ -33,5 +37,7 @@ module Draught
         Matrix[[1, 0, x], [0, 1, y], [0, 0, 1]]
       )
     end
+
+    NULL = new(0,0)
   end
 end
