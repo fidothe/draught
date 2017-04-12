@@ -98,9 +98,9 @@ module Draught
     def offset_translation(gap, reference_point_method)
       case reference_point_method
       when :lower_right
-        Point.new(gap, 0)
+        Vector.new(gap, 0)
       when :upper_left
-        Point.new(0, gap)
+        Vector.new(0, gap)
       end
     end
 
@@ -128,7 +128,7 @@ module Draught
     end
 
     def origin_offset
-      Point.new(outer_gap, outer_gap)
+      Vector.new(outer_gap, outer_gap)
     end
   end
 end

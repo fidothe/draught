@@ -1,3 +1,4 @@
+require_relative './vector'
 require 'matrix'
 
 module Draught
@@ -21,12 +22,12 @@ module Draught
       other.x == x && other.y == y
     end
 
-    def translate(point)
-      self.class.new(x + point.x, y + point.y)
+    def translate(vector)
+      transform(vector.to_transform)
     end
 
     def translation_to(point)
-      self.class.new(point.x - x, point.y - y)
+      Vector.new(point.x - x, point.y - y)
     end
 
     def to_matrix

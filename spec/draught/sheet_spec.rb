@@ -2,6 +2,7 @@ require 'draught/sheet'
 require 'draught/boxlike_examples'
 require 'draught/spec_box'
 require 'draught/point'
+require 'draught/vector'
 
 module Draught
   RSpec.describe Sheet do
@@ -16,9 +17,12 @@ module Draught
     end
 
     context "translation" do
+      let(:point) { Point.new(100,100) }
+      let(:translation) { Vector.translation_between(Point::ZERO, point) }
+
       it "correctly translates its boxes" do
-        translated = subject.translate(Point.new(100,100))
-        expect(translated.containers).to eq([box.translate(Point.new(100,100))])
+        translated = subject.translate(translation)
+        expect(translated.containers).to eq([box.translate(translation)])
       end
     end
   end

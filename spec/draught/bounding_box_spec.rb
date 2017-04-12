@@ -2,6 +2,7 @@ require 'draught/boxlike_examples'
 require 'draught/bounding_box'
 require 'draught/transformations'
 require 'draught/path'
+require 'draught/vector'
 
 module Draught
   RSpec.describe BoundingBox do
@@ -43,7 +44,7 @@ module Draught
       it "can be translated" do
         expected = BoundingBox.new(Path.new([Point.new(0,-1), Point.new(4,3)]))
 
-        translated = subject.translate(Point.new(1,0))
+        translated = subject.translate(Vector.new(1,0))
 
         expect(translated).to eq(expected)
       end

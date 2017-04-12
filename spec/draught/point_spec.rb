@@ -1,4 +1,5 @@
 require 'draught/point'
+require 'draught/vector'
 
 module Draught
   RSpec.describe Point do
@@ -38,18 +39,18 @@ module Draught
 
     describe "manipulations in space" do
       specify "a Point can be translated using a second Point to produce a new Point" do
-        translation = Point.new(1,2)
+        translation = Vector.new(1,2)
 
         expect(subject.translate(translation)).to eq(Point.new(2,4))
       end
 
       specify "a Point can report the translation needed to relocate itself to a second Point" do
-        expect(subject.translation_to(Point.new(0,0))).to eq(Point.new(-1, -2))
+        expect(subject.translation_to(Point.new(0,0))).to eq(Vector.new(-1, -2))
       end
 
       specify "a Point can be transformed by a lambda-like object which takes the point and returns a new one" do
         transformer = ->(point) {
-          point.translate(Point.new(1,1))
+          point.translate(Vector.new(1,1))
         }
 
         expect(subject.transform(transformer)).to eq(Point.new(2,3))

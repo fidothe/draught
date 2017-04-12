@@ -41,11 +41,11 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
 
   context "manipulation in space" do
     context "translation" do
-      let(:point) { Draught::Point.new(5,5) }
-      let(:translated) { subject.translate(point) }
+      let(:translation) { Draught::Vector.new(5,5) }
+      let(:translated) { subject.translate(translation) }
 
       specify "moves the origin of the box correctly" do
-        expect(translated.lower_left).to eq(point.translate(subject.lower_left))
+        expect(translated.lower_left).to eq(subject.lower_left.translate(translation))
       end
 
       specify "generates a new instance and does not change the original" do
@@ -79,11 +79,11 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
     end
 
     context "relocation" do
-      let(:point) { Draught::Point.new(-10, -10) }
-      let(:moved) { subject.move_to(point) }
+      let(:relocation_point) { subject.lower_left.translate(Draught::Vector.new(-10, -10)) }
+      let(:moved) { subject.move_to(relocation_point) }
 
       specify "moves the origin of the box correctly" do
-        expect(moved.lower_left).to eq(point)
+        expect(moved.lower_left).to eq(relocation_point)
       end
 
       specify "generates a new instance and does not change the original" do
@@ -102,7 +102,7 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
 
     context "equality" do
       it "compares equal to a (0,0) translation of itself" do
-        expect(subject.translate(Draught::Point::ZERO)).to eq(subject)
+        expect(subject.translate(Draught::Vector.new(0,0))).to eq(subject)
       end
     end
   end

@@ -8,7 +8,7 @@ module Draught
 
     attr_reader :points
 
-    def_delegators :points, :empty?, :length, :last
+    def_delegators :points, :empty?, :length, :first, :last
 
     def initialize(points = [])
       @points = points.dup.freeze

@@ -1,5 +1,6 @@
 require 'draught/boxlike_examples'
 require 'draught/point'
+require 'draught/vector'
 require 'draught/transformations'
 require 'draught/path'
 
@@ -46,6 +47,12 @@ module Draught
       path = first_path << other_path
 
       expect(path.points).to eq([point, other_point])
+    end
+
+    it "can return the first point in the path" do
+      path = Path.new([point])
+
+      expect(path.first).to be(point)
     end
 
     it "can return the last point in the path" do
@@ -107,14 +114,14 @@ module Draught
     describe "translation and transformation" do
       let(:p1) { Point.new(1,1) }
       let(:p2) { Point.new(1,2) }
-      let(:p3) { Point.new(2,1) }
+      let(:vector) { Vector.new(2,1) }
 
       subject { Path.new([p1, p2]) }
 
       specify "translating a Path using a Point produces a new Path with appropriately translated Points" do
         expected = Path.new([Point.new(3,2), Point.new(3,3)])
 
-        expect(subject.translate(p3)).to eq(expected)
+        expect(subject.translate(vector)).to eq(expected)
       end
 
       specify "transforming a Path generates a new Path by applying the transformation to every Point in the Path" do

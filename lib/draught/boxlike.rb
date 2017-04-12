@@ -1,4 +1,5 @@
 require_relative 'point'
+require_relative 'vector'
 
 module Draught
   module Boxlike
@@ -15,15 +16,15 @@ module Draught
     end
 
     def lower_right
-      @lower_right ||= lower_left.translate(Point.new(width, 0))
+      @lower_right ||= lower_left.translate(Draught::Vector.new(width, 0))
     end
 
     def upper_left
-      @upper_left ||= lower_left.translate(Point.new(0, height))
+      @upper_left ||= lower_left.translate(Draught::Vector.new(0, height))
     end
 
     def upper_right
-      @upper_right ||= lower_left.translate(Point.new(width, height))
+      @upper_right ||= lower_left.translate(Draught::Vector.new(width, height))
     end
 
     def corners
@@ -31,8 +32,8 @@ module Draught
     end
 
     def move_to(point)
-      translation = lower_left.translation_to(point)
-      return self if translation == Point::ZERO
+      translation = Draught::Vector.translation_between(lower_left, point)
+      return self if translation == Draught::Vector::NULL
       translate(translation)
     end
 

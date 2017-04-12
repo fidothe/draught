@@ -8,11 +8,12 @@ module Draught
       builder.send(:path)
     end
 
-    def self.connect(*paths_and_points)
+    def self.connect(*paths)
       build { |p|
-        p << paths_and_points[0]
-        paths_and_points[1..-1].inject(p.last) { |point, path_or_point|
-          p << path_or_point.translate(point)
+        p << paths[0]
+        paths[1..-1].inject(p.last) { |point, path|
+          translation = Vector.translation_between(path.first, point)
+          p << path.translate(translation)
           p.last
         }
       }
