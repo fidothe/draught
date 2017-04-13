@@ -38,7 +38,7 @@ module Draught
     end
 
     describe "manipulations in space" do
-      specify "a Point can be translated using a second Point to produce a new Point" do
+      specify "a Point can be translated using a Vector to produce a new Point" do
         translation = Vector.new(1,2)
 
         expect(subject.translate(translation)).to eq(Point.new(2,4))
@@ -50,7 +50,7 @@ module Draught
 
       specify "a Point can be transformed by a lambda-like object which takes the point and returns a new one" do
         transformer = ->(point) {
-          point.translate(Vector.new(1,1))
+          Point.new(point.x + 1, point.y + 1)
         }
 
         expect(subject.transform(transformer)).to eq(Point.new(2,3))

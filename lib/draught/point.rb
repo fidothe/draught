@@ -27,7 +27,7 @@ module Draught
     end
 
     def translation_to(point)
-      Vector.new(point.x - x, point.y - y)
+      Vector.translation_between(self, point)
     end
 
     def to_matrix
