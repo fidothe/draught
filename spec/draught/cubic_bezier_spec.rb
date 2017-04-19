@@ -44,6 +44,15 @@ module Draught
           expect(curve_1 == curve).to be(false)
         end
       end
+
+      context "approximation" do
+        specify "a CubicBezier approximates another points if their co-ordinates are within the specified delta" do
+          nudge = Vector.new(0.000001, 0.000001)
+          approx_curve_opts = Hash[curve_opts.map { |opt, point| [opt, point.translate(nudge)] }]
+          approx_curve = CubicBezier.new(approx_curve_opts)
+          expect(subject.approximates?(approx_curve, 0.00001)).to be(true)
+        end
+      end
     end
 
     describe "manipulations in space" do

@@ -10,8 +10,24 @@ module Draught
       @control_point_2 = args.fetch(:control_point_2)
     end
 
+    def x
+      end_point.x
+    end
+
+    def y
+      end_point.y
+    end
+
     def ==(other)
-      other.end_point == end_point && other.control_point_1 == control_point_1 && other.control_point_2 == control_point_2
+      comparison_array(other).all? { |a, b|
+        a == b
+      }
+    end
+
+    def approximates?(other, delta)
+      comparison_array(other).all? { |a, b|
+        a.approximates?(b, delta)
+      }
     end
 
     def translate(vector)
@@ -29,6 +45,12 @@ module Draught
 
     def args_hash
       {end_point: end_point, control_point_1: control_point_1, control_point_2: control_point_2}
+    end
+
+    def comparison_array(other)
+      args_hash.map { |arg, point|
+        [other.send(arg), point]
+      }
     end
   end
 end

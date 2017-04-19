@@ -49,47 +49,40 @@ module Draught
       expect(path.points).to eq([point, other_point])
     end
 
-    it "can return the first point in the path" do
-      path = Path.new([point])
-
-      expect(path.first).to be(point)
-    end
-
-    it "can return the last point in the path" do
-      path = Path.new([point])
-
-      expect(path.last).to be(point)
-    end
-
-    it "can return the number of points in the path" do
-      path = Path.new([point])
-
-      expect(path.length).to eq(1)
-    end
-
-    describe "equality" do
+    describe "comparison" do
       let(:p1) { Point.new(1,1) }
       let(:p2) { Point.new(1,2) }
       let(:p3) { Point.new(2,1) }
 
       subject { Path.new([p1, p2]) }
 
-      it "compares two Paths equal if all their Points are equal" do
-        path = Path.new([p1, p2])
+      context "equality" do
+        it "compares two Paths equal if all their Points are equal" do
+          path = Path.new([p1, p2])
 
-        expect(subject == path).to be(true)
+          expect(subject == path).to be(true)
+        end
+
+        it "compares two Paths unequal if one has a different number of Points" do
+          path = subject << p3
+
+          expect(subject == path).to be(false)
+        end
+
+        it "compares two Paths unequal if one or more of their Points are not equal" do
+          path = Path.new([p1, p3])
+
+          expect(subject == path).to be(false)
+        end
+
+        it "compares equal to a (0,0) translation of itself" do
+          expect(subject.translate(Draught::Vector.new(0,0))).to eq(subject)
+        end
       end
 
-      it "compares two Paths unequal if one has a different number of Points" do
-        path = subject << p3
-
-        expect(subject == path).to be(false)
-      end
-
-      it "compares two Paths unequal if one or more of their Points are not equal" do
-        path = Path.new([p1, p3])
-
-        expect(subject == path).to be(false)
+      it "compares two Paths approximately equal if all their Points are approximately equal" do
+        approx_path = subject.translate(Vector.new(0.000001, 0.000001))
+        expect(subject.approximates?(approx_path, 0.00001)).to be(true)
       end
     end
 

@@ -22,6 +22,11 @@ module Draught
       other.x == x && other.y == y
     end
 
+    def approximates?(other, delta)
+      ((other.x - x).abs <= delta) &&
+        ((other.y - y).abs <= delta)
+    end
+
     def translate(vector)
       transform(vector.to_transform)
     end

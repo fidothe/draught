@@ -12,3 +12,15 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+RSpec::Matchers.define :approximate do |expected|
+  match do |actual|
+    actual.approximates?(expected, @delta)
+  end
+
+  chain :within do |delta|
+    @delta = delta
+  end
+
+  diffable
+end

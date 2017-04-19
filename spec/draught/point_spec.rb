@@ -34,6 +34,11 @@ module Draught
         specify "a Point is not equal to another point if their co-ordinates differ" do
           expect(p1 == p3).to be(false)
         end
+
+        specify "a Point approximates another if their co-ordinates are within the specified delta" do
+          approx_point = Point.new(1.000001, 1.000001)
+          expect(p1.approximates?(approx_point, 0.00001)).to be(true)
+        end
       end
     end
 

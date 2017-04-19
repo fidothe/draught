@@ -39,6 +39,11 @@ module Draught
       points.zip(other.points).all? { |a, b| a == b }
     end
 
+    def approximates?(other, delta)
+      return false if length != other.length
+      points.zip(other.points).all? { |a, b| a.approximates?(b, delta) }
+    end
+
     def translate(point)
       self.class.new(points.map { |p| p.translate(point) })
     end
