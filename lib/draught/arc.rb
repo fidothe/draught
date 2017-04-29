@@ -11,8 +11,20 @@ module Draught
 
     attr_reader :radius, :starting_angle, :radians
 
-    def self.radians(degrees)
+    def self.deg_to_rad(degrees)
       degrees * (Math::PI / 180)
+    end
+
+    def self.radians(args = {})
+      new_args = args.merge(radians: args[:angle])
+      new(new_args)
+    end
+
+    def self.degrees(args = {})
+      new_args = {radius: args[:radius]}
+      new_args[:radians] = deg_to_rad(args.fetch(:angle))
+      new_args[:starting_angle] = deg_to_rad(args.fetch(:starting_angle, 0))
+      new(new_args)
     end
 
     def self.build(args = {})

@@ -141,5 +141,21 @@ module Draught
         expect(arc.path).to approximate(path).within(0.00001)
       end
     end
+
+    context "convenience creators" do
+      specify "Arc.degrees() provides a simple degrees-based angle and starting_angle creator" do
+        arc = Arc.degrees(angle: 180, starting_angle: 90, radius: 1)
+        expect(arc.radians).to eq(Math::PI)
+        expect(arc.starting_angle).to eq(Math::PI/2)
+        expect(arc.radius).to eq(1)
+      end
+
+      specify "Arc.radians() provides a radians-only constructor" do
+        arc = Arc.radians(angle: Math::PI, starting_angle: Math::PI/2, radius: 1)
+        expect(arc.radians).to eq(Math::PI)
+        expect(arc.starting_angle).to eq(Math::PI/2)
+        expect(arc.radius).to eq(1)
+      end
+    end
   end
 end
