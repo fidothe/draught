@@ -22,7 +22,17 @@ module Draught
           self.line_width = 0.003
           move_to first_point.x, first_point.y
           points.each do |point|
-            line_to point.x, point.y
+            case point
+            when Draught::CubicBezier
+              curve_to([point.end_point.x, point.end_point.y], {
+                bounds: [
+                  [point.control_point_1.x, point.control_point_1.y],
+                  [point.control_point_2.x, point.control_point_2.y]
+                ]
+              })
+            else
+              line_to point.x, point.y
+            end
           end
           line_to first_point.x, first_point.y
         end
