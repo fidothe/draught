@@ -43,6 +43,10 @@ module Draught
           }))
           expect(curve_1 == curve).to be(false)
         end
+
+        specify "a CubicBezier is not equal to a Point, even if they share the same x,y" do
+          expect(curve_1 == curve_1.end_point).to be(false)
+        end
       end
 
       context "approximation" do

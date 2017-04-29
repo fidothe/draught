@@ -19,9 +19,12 @@ module Draught
     end
 
     def ==(other)
-      comparison_array(other).all? { |a, b|
-        a == b
-      }
+      other.point_type == point_type &&
+        comparison_array(other).all? { |a, b| a == b }
+    end
+
+    def point_type
+      :cubic_bezier
     end
 
     def approximates?(other, delta)

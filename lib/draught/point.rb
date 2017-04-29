@@ -18,8 +18,13 @@ module Draught
       [self]
     end
 
+    def point_type
+      :point
+    end
+
     def ==(other)
-      other.x == x && other.y == y
+      other.point_type == point_type &&
+        other.x == x && other.y == y
     end
 
     def approximates?(other, delta)
