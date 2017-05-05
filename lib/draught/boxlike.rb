@@ -19,12 +19,32 @@ module Draught
       @lower_right ||= lower_left.translate(Draught::Vector.new(width, 0))
     end
 
+    def upper_right
+      @upper_right ||= lower_left.translate(Draught::Vector.new(width, height))
+    end
+
     def upper_left
       @upper_left ||= lower_left.translate(Draught::Vector.new(0, height))
     end
 
-    def upper_right
-      @upper_right ||= lower_left.translate(Draught::Vector.new(width, height))
+    def centre_left
+      @centre_left ||= lower_left.translate(Draught::Vector.new(0, height/2.0))
+    end
+
+    def lower_centre
+      @lower_centre ||= lower_left.translate(Draught::Vector.new(width/2.0, 0))
+    end
+
+    def centre_right
+      @centre_right ||= lower_right.translate(Draught::Vector.new(0, height / 2.0))
+    end
+
+    def upper_centre
+      @upper_centre ||= upper_left.translate(Draught::Vector.new(width/2.0, 0))
+    end
+
+    def centre
+      @centre ||= lower_left.translate(Draught::Vector.new(width/2.0, height/2.0))
     end
 
     def corners

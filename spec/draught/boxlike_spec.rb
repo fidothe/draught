@@ -11,6 +11,46 @@ module Draught
 
     it_should_behave_like "a basic rectangular box-like thing"
 
+    context "reporting the edges of the box" do
+      specify "lower-left corner" do
+        expect(subject.lower_left).to eq(Point.new(10, 10))
+      end
+
+      specify "lower-right corner" do
+        expect(subject.lower_right).to eq(Point.new(30,10))
+      end
+
+      specify "upper-right corner" do
+        expect(subject.upper_right).to eq(Point.new(30,20))
+      end
+
+      specify "upper-left corner" do
+        expect(subject.upper_left).to eq(Point.new(10,20))
+      end
+    end
+
+    context "centre points of the box" do
+      specify "centre-left" do
+        expect(subject.centre_left).to eq(Point.new(10, 15))
+      end
+
+      specify "lower-centre" do
+        expect(subject.lower_centre).to eq(Point.new(20, 10))
+      end
+
+      specify "centre-right" do
+        expect(subject.centre_right).to eq(Point.new(30, 15))
+      end
+
+      specify "upper-centre" do
+        expect(subject.upper_centre).to eq(Point.new(20, 20))
+      end
+
+      specify "centre" do
+        expect(subject.centre).to eq(Point.new(20, 15))
+      end
+    end
+
     context "interaction with other geometric objects" do
      context "working out if a Point is included within this Boxlike" do
       let(:in_point) { Point.new(15,15) }
