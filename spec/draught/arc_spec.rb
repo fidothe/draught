@@ -157,5 +157,13 @@ module Draught
         expect(arc.radius).to eq(1)
       end
     end
+
+    describe "being a tiny bit pathlike" do
+      subject { Arc.degrees(radius: 10, angle: 90) }
+
+      it "returns the start point and itself when asked for #points" do
+        expect(subject.points).to eq([Point.new(10, 0), subject])
+      end
+    end
   end
 end
