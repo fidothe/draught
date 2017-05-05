@@ -22,6 +22,21 @@ module Draught
       points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
     end
 
+    def [](index_start_or_range, length = nil)
+      if length.nil?
+        case index_start_or_range
+        when Range
+          self.class.new(points[index_start_or_range])
+        when Numeric
+          points[index_start_or_range]
+        else
+          raise TypeError, "requires a Range or Numeric in single-arg form"
+        end
+      else
+        self.class.new(points[index_start_or_range, length])
+      end
+    end
+
     def lower_left
       @lower_left ||= Point.new(x_min, y_min)
     end

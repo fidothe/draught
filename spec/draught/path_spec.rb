@@ -49,6 +49,34 @@ module Draught
       expect(path.points).to eq([point, other_point])
     end
 
+    describe "being enumerable enough" do
+      let(:p1) { Point.new(1,1) }
+      let(:p2) { Point.new(1,2) }
+      let(:p3) { Point.new(2,1) }
+
+      subject { Path.new([p1, p2, p3]) }
+
+      context "[] access" do
+        it "can retrieve a single item from itself" do
+          expect(subject[1]).to eq(p2)
+        end
+
+        it "can retrieve a slice via range" do
+          expect(subject[0..1]).to eq(Path.new([p1, p2]))
+        end
+
+        it "can retrieve a slice via (n,n) args" do
+          expect(subject[1,2]).to eq(Path.new([p2, p3]))
+        end
+      end
+
+      context "first and last readers" do
+        specify { expect(subject.first).to eq(p1) }
+
+        specify { expect(subject.last).to eq(p3) }
+      end
+    end
+
     describe "comparison" do
       let(:p1) { Point.new(1,1) }
       let(:p2) { Point.new(1,2) }
