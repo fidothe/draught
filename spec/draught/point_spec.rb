@@ -1,10 +1,13 @@
 require 'draught/point'
+require 'draught/pointlike_examples'
 require 'draught/cubic_bezier'
 require 'draught/vector'
 
 module Draught
   RSpec.describe Point do
     subject { Point.new(1, 2) }
+
+    it_behaves_like "a point-like thing"
 
     it "returns its x" do
       expect(subject.x).to eq(1)
@@ -14,38 +17,8 @@ module Draught
       expect(subject.y).to eq(2)
     end
 
-    it "can return itself as an array of points" do
-      expect(subject.points).to eq([subject])
-    end
-
     specify "provides a (0,0) point via a constant" do
       expect(Point::ZERO).to eq(Point.new(0,0))
-    end
-
-    describe "comparisons" do
-      context "equality" do
-        let(:p1) { Point.new(1,1) }
-        let(:p2) { Point.new(1,1) }
-        let(:p3) { Point.new(1,2) }
-
-        specify "a Point is equal to another point if they have the same x,y co-ordinates" do
-          expect(p1 == p2).to be(true)
-        end
-
-        specify "a Point is not equal to another point if their co-ordinates differ" do
-          expect(p1 == p3).to be(false)
-        end
-
-        specify "a Point is not equal to a CubicBezier, even if they share the same x,y" do
-          cb = CubicBezier.new(end_point: p1, control_point_1: p3, control_point_2: p1)
-          expect(p1 == cb).to be(false)
-        end
-
-        specify "a Point approximates another if their co-ordinates are within the specified delta" do
-          approx_point = Point.new(1.000001, 1.000001)
-          expect(p1.approximates?(approx_point, 0.00001)).to be(true)
-        end
-      end
     end
 
     describe "manipulations in space" do

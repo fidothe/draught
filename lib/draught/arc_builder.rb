@@ -5,7 +5,7 @@ require_relative './path'
 require_relative './transformations'
 
 module Draught
-  class Arc
+  class ArcBuilder
     LARGEST_SEGMENT_RADIANS = Math::PI / 2.0
     CIRCLE_RADIANS = Math::PI * 2
 

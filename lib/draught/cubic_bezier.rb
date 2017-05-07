@@ -1,7 +1,9 @@
-require_relative './point'
+require_relative './pointlike'
 
 module Draught
   class CubicBezier
+    include Pointlike
+
     attr_reader :end_point, :control_point_1, :control_point_2
 
     def initialize(args = {})
@@ -28,9 +30,10 @@ module Draught
     end
 
     def approximates?(other, delta)
-      comparison_array(other).all? { |a, b|
-        a.approximates?(b, delta)
-      }
+      other.point_type == point_type &&
+        comparison_array(other).all? { |a, b|
+          a.approximates?(b, delta)
+        }
     end
 
     def translate(vector)

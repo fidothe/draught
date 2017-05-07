@@ -1,4 +1,5 @@
 require 'draught/cubic_bezier'
+require 'draught/pointlike_examples'
 
 module Draught
   RSpec.describe CubicBezier do
@@ -10,6 +11,8 @@ module Draught
     }
 
     subject { CubicBezier.new(curve_opts) }
+
+    it_behaves_like "a point-like thing"
 
     it "has an end point" do
       expect(subject.end_point).to eq(end_point)
