@@ -18,8 +18,14 @@ module Draught
       append(point)
     end
 
-    def append(*points)
-      points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
+    def append(*paths_or_points)
+      paths_or_points.inject(self) { |path, point_or_path| path.add_points(point_or_path.points) }
+    end
+
+    def prepend(*paths_or_points)
+      paths_or_points.inject(Path.new) { |path, point_or_path|
+        path.add_points(point_or_path.points)
+      }.add_points(self.points)
     end
 
     def [](index_start_or_range, length = nil)
