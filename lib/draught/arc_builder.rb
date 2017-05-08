@@ -1,6 +1,7 @@
 require_relative './point'
 require_relative './vector'
 require_relative './cubic_bezier'
+require_relative './curve'
 require_relative './path'
 require_relative './transformations'
 
@@ -41,42 +42,58 @@ module Draught
     end
 
     def path
-      @path ||= begin
-        remaining_angle = positive_radians
-        start = starting_angle
-        points = []
-        while remaining_angle > LARGEST_SEGMENT_RADIANS
-          remaining_angle = remaining_angle - LARGEST_SEGMENT_RADIANS
-          generate_segment(LARGEST_SEGMENT_RADIANS, start, points)
-          start = radians + starting_angle - remaining_angle
-        end
-        generate_segment(remaining_angle, start, points)
-        generate_path(points)
-      end
+      @path ||= Path.new([start_point, curve])
     end
 
-    def points
-      [path.first, self]
+    def start_point
+      @start_point ||= untranslated_start_point.transform(transformer)
+    end
+
+    def curve
+      @curve ||= Curve.new({
+        point: segments.last.end_point,
+        cubic_beziers: segments.map { |s| s.cubic_bezier }
+      }).transform(transformer)
     end
 
     private
+
+    def untranslated_start_point
+      segments.first.first_point
+    end
+
+    def segments
+      @segments ||= begin
+        remaining_angle = positive_radians
+        start = starting_angle
+        segments = []
+        while remaining_angle > LARGEST_SEGMENT_RADIANS
+          remaining_angle = remaining_angle - LARGEST_SEGMENT_RADIANS
+          segments << SegmentBuilder.new(LARGEST_SEGMENT_RADIANS, start, radius)
+          start = radians + starting_angle - remaining_angle
+        end
+        segments << SegmentBuilder.new(remaining_angle, start, radius)
+      end
+    end
 
     def positive_radians
       radians.abs
     end
 
-    def generate_segment(sweep, start, points)
-      segment = SegmentBuilder.new(sweep, start, radius)
-      points << segment.first_point if points.empty?
-      points << segment.cubic_bezier
+    def transformer
+      @transformer ||= begin
+        transformations = [translation_transformer]
+        transformations << Transformations.x_axis_reflect if negative?
+        Transformations::Composer.compose(*transformations)
+      end
     end
 
-    def generate_path(points)
-      if positive?
-        Path.new(points)
-      else
-        Path.new(points).transform(Transformations.x_axis_reflect)
-      end
+    def translation_transformer
+      @translation_transformer ||= Vector.translation_between(untranslated_start_point, Point::ZERO).to_transform
+    end
+
+    def negative?
+      !positive?
     end
 
     def positive?
@@ -94,13 +111,27 @@ module Draught
       end
 
       def first_point
-        Point.new(x0, -y0).transform(transform)
+        @first_point ||= Point.new(x0, -y0).transform(transform)
+      end
+
+      def end_point
+        @end_point ||= Point.new(x0, y0).transform(transform)
       end
 
       def cubic_bezier
-        CubicBezier.new({
+        @cubic_bezier ||= CubicBezier.new({
           end_point: end_point, control_point_1: control_point_1, control_point_2: control_point_2
-        }).transform(transform)
+        })
+      end
+
+      private
+
+      def control_point_1
+        Point.new(x1, -y1).transform(transform)
+      end
+
+      def control_point_2
+        Point.new(x1, y1).transform(transform)
       end
 
       def transform
@@ -111,18 +142,6 @@ module Draught
 
       def sweep_offset
         @sweep_offset ||= sweep / 2.0
-      end
-
-      def end_point
-        Point.new(x0, y0)
-      end
-
-      def control_point_1
-        Point.new(x1, -y1)
-      end
-
-      def control_point_2
-        Point.new(x1, y1)
       end
 
       def x0
