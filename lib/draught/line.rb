@@ -11,11 +11,11 @@ module Draught
 
     class << self
       def horizontal(width)
-        build(end_point: Point.new(width, 0)).path
+        build(end_point: Point.new(width, 0))
       end
 
       def vertical(height)
-        build(end_point: Point.new(0, height)).path
+        build(end_point: Point.new(0, height))
       end
 
       def build(args = {})
@@ -25,34 +25,66 @@ module Draught
       end
     end
 
-    attr_reader :end_point, :length, :radians
+    attr_reader :start_point, :end_point, :length, :radians
 
     def initialize(args)
+      @start_point = args.fetch(:start_point, Point::ZERO)
       @end_point = args.fetch(:end_point)
       @length = args.fetch(:length)
       @radians = args.fetch(:radians)
     end
 
     def path
-      @path ||= Path.new([Point::ZERO, end_point])
+      @path ||= Path.new([start_point, end_point])
+    end
+
+    def shorten(amount, direction = :towards_start)
+      new_line = self.class.build({
+        start_point: start_point, length: length - amount, radians: radians
+      })
+      direction == :towards_end ? shift_line(new_line) : new_line
+    end
+
+    def lengthen(amount, direction = :from_end)
+      new_line = self.class.build({
+        start_point: start_point, length: length + amount, radians: radians
+      })
+      direction == :from_start ? shift_line(new_line) : new_line
+    end
+
+    private
+
+    def shift_line(new_line)
+      translation = Vector.translation_between(new_line.end_point, end_point)
+      self.class.new({
+        start_point: start_point.translate(translation),
+        end_point: new_line.end_point.translate(translation),
+        length: new_line.length,
+        radians: radians
+      })
     end
 
     class LineBuilderFromAngles
-      attr_reader :length, :radians
-      private :length, :radians
+      attr_reader :start_point, :length, :radians
+      private :start_point, :length, :radians
 
       def initialize(args)
+        @start_point = args.fetch(:start_point, Point::ZERO)
         @length = args.fetch(:length)
         @radians = args.fetch(:radians)
       end
 
       def line_args
-        {length: length, radians: radians, end_point: end_point}
+        {length: length, radians: radians, start_point: start_point, end_point: end_point}
       end
 
       private
 
       def end_point
+        end_point_from_zero.translate(Vector.translation_between(Point::ZERO, start_point))
+      end
+
+      def end_point_from_zero
         hardwired_end_points.fetch(restricted_radians) {
           single_quadrant_end_point.transform(Transformations.rotate(remaining_angle))
         }
@@ -102,18 +134,24 @@ module Draught
     end
 
     class LineBuilderFromPoint
-      attr_reader :end_point
-      private :end_point
+      attr_reader :start_point, :end_point
+      private :start_point, :end_point
 
       def initialize(args)
+        @start_point = args.fetch(:start_point, Point::ZERO)
         @end_point = args.fetch(:end_point)
       end
 
       def line_args
-        {length: length, radians: radians, end_point: end_point}
+        {length: length, radians: radians, start_point: start_point, end_point: end_point}
       end
 
       private
+
+      def end_point_from_zero
+        @end_point_from_zero ||= end_point.translate(Vector.translation_between(start_point, Point::ZERO))
+      end
+
 
       def length
         @length ||= Math.sqrt(x_length ** 2 + y_length ** 2)
@@ -124,16 +162,16 @@ module Draught
       end
 
       def x_length
-        @x_length = end_point.x.abs
+        @x_length = end_point_from_zero.x.abs
       end
 
       def y_length
-        @y_length ||= end_point.y.abs
+        @y_length ||= end_point_from_zero.y.abs
       end
 
       def angle_to_start_of_quadrant
-        which_side_of_x = end_point.x <=> 0
-        which_side_of_y = end_point.y <=> 0
+        which_side_of_x = end_point_from_zero.x <=> 0
+        which_side_of_y = end_point_from_zero.y <=> 0
 
         case [which_side_of_x, which_side_of_y]
         when [1,0], [1, 1] # 0-90º

@@ -72,7 +72,7 @@ module Draught
       specify "a line of width N is a Path with points at (0,0) and (N,0)" do
         expected = PathBuilder.build { |p| p << Point::ZERO << Point.new(10, 0) }
 
-        expect(Line.horizontal(10)).to eq(expected)
+        expect(Line.horizontal(10).path).to eq(expected)
       end
     end
 
@@ -80,7 +80,7 @@ module Draught
       specify "a line of height N is a Path with points at (0,0) and (0,N)" do
         expected = PathBuilder.build { |p| p << Point::ZERO << Point.new(0, 10) }
 
-        expect(Line.vertical(10)).to eq(expected)
+        expect(Line.vertical(10).path).to eq(expected)
       end
     end
 
@@ -168,6 +168,57 @@ module Draught
           line = Line.build(length: length, radians: deg_to_rad(630))
 
           expect(line.path).to eq(path(Point.new(0,-length)))
+        end
+      end
+    end
+
+    describe "generating Lines that don't start at 0,0" do
+      it "can generate a line from points" do
+        line = Line.build(start_point: Point.new(1,1), end_point: Point.new(5,5))
+
+        expect(line.radians).to be_within(0.00001).of(Math::PI/4)
+        expect(line.length).to be_within(0.01).of(5.66)
+      end
+
+      it "can generate a line from angle/length and start point" do
+        line = Line.build(start_point: Point.new(1,1), radians: Math::PI/4, length: 5.656854)
+
+        expect(line.path).to approximate(Path.new([Point.new(1,1), Point.new(5,5)])).within(0.00001)
+      end
+    end
+
+    describe "manipulating lines" do
+      let(:radians) { deg_to_rad(45) }
+      let(:length) { 10 }
+      subject { Line.build(length: length, radians: radians) }
+
+      context "shortening makes a new line" do
+        it "by moving the end point in" do
+          expected = Line.build(length: 8, radians: radians).path
+
+          expect(subject.shorten(2).path).to approximate(expected).within(0.00001)
+        end
+
+        it "by moving the start point out" do
+          line_path = Line.build(length: 8, radians: radians).path
+          expected = line_path.translate(Vector.translation_between(line_path.last, subject.path.last))
+
+          expect(subject.shorten(2, :towards_end).path).to approximate(expected).within(0.00001)
+        end
+      end
+
+      context "lengthening makes a new line" do
+        it "by moving the end point out" do
+          expected = Line.build(length: 12, radians: radians).path
+
+          expect(subject.lengthen(2).path).to approximate(expected).within(0.00001)
+        end
+
+        it "by moving the start point out" do
+          line_path = Line.build(length: 12, radians: radians).path
+          expected = line_path.translate(Vector.translation_between(line_path.last, subject.path.last))
+
+          expect(subject.lengthen(2, :from_start).path).to approximate(expected).within(0.00001)
         end
       end
     end
