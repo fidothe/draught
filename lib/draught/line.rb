@@ -1,4 +1,5 @@
 require_relative './path'
+require_relative './pathlike'
 require_relative './point'
 require_relative './transformations'
 
@@ -8,6 +9,8 @@ module Draught
     DEGREES_180 = Math::PI
     DEGREES_270 = Math::PI * 1.5
     DEGREES_360 = Math::PI * 2
+
+    include Pathlike
 
     class << self
       def horizontal(width)
@@ -34,8 +37,12 @@ module Draught
       @radians = args.fetch(:radians)
     end
 
+    def points
+      @points ||= [start_point, end_point]
+    end
+
     def path
-      @path ||= Path.new([start_point, end_point])
+      @path ||= Path.new(points)
     end
 
     def shorten(amount, direction = :towards_start)
@@ -52,6 +59,27 @@ module Draught
       direction == :from_start ? shift_line(new_line) : new_line
     end
 
+    def [](index)
+      case index
+      when Numeric
+        points[index]
+      else
+        raise TypeError, "requires a Numeric for access to a Line's Points"
+      end
+    end
+
+    def translate(vector)
+      self.class.build(Hash[
+        transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }
+      ])
+    end
+
+    def transform(transformation)
+      self.class.build(Hash[
+        transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }
+      ])
+    end
+
     private
 
     def shift_line(new_line)
@@ -62,6 +90,10 @@ module Draught
         length: new_line.length,
         radians: radians
       })
+    end
+
+    def transform_args_hash
+      {start_point: start_point, end_point: end_point}
     end
 
     class LineBuilderFromAngles

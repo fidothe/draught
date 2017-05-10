@@ -1,4 +1,5 @@
 require 'draught/path_builder'
+require 'draught/pathlike_examples'
 require 'draught/line'
 
 module Draught
@@ -17,10 +18,6 @@ module Draught
 
       it "knows what angle (in radians) it's at" do
         expect(subject.radians).to be_within(0.0001).of(deg_to_rad(45))
-      end
-
-      it "can output a Path representing itself" do
-        expect(subject.path).to eq(Path.new([Point::ZERO, finish]))
       end
 
       context "angles >= 90º" do
@@ -69,18 +66,18 @@ module Draught
     end
 
     describe "generating horizontal lines" do
-      specify "a line of width N is a Path with points at (0,0) and (N,0)" do
+      specify "a line of width N is like a Path with points at (0,0) and (N,0)" do
         expected = PathBuilder.build { |p| p << Point::ZERO << Point.new(10, 0) }
 
-        expect(Line.horizontal(10).path).to eq(expected)
+        expect(Line.horizontal(10)).to eq(expected)
       end
     end
 
     describe "generating vertical lines" do
-      specify "a line of height N is a Path with points at (0,0) and (0,N)" do
+      specify "a line of height N is like a Path with points at (0,0) and (0,N)" do
         expected = PathBuilder.build { |p| p << Point::ZERO << Point.new(0, 10) }
 
-        expect(Line.vertical(10).path).to eq(expected)
+        expect(Line.vertical(10)).to eq(expected)
       end
     end
 
@@ -221,6 +218,12 @@ module Draught
           expect(subject.lengthen(2, :from_start).path).to approximate(expected).within(0.00001)
         end
       end
+    end
+
+    it_should_behave_like "a pathlike thing" do
+      let(:end_point) { Point.new(4,4) }
+      let(:points) { [Point::ZERO, end_point] }
+      subject { Line.build(end_point: end_point) }
     end
   end
 end

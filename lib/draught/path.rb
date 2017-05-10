@@ -1,14 +1,13 @@
 require 'forwardable'
-require_relative 'boxlike'
+require_relative './boxlike'
+require_relative './pathlike'
 
 module Draught
   class Path
-    extend Forwardable
     include Boxlike
+    include Pathlike
 
     attr_reader :points
-
-    def_delegators :points, :empty?, :length, :first, :last
 
     def initialize(points = [])
       @points = points.dup.freeze
@@ -55,30 +54,12 @@ module Draught
       @height ||= y_max - y_min
     end
 
-    def ==(other)
-      return false if length != other.length
-      points.zip(other.points).all? { |a, b| a == b }
-    end
-
-    def approximates?(other, delta)
-      return false if length != other.length
-      points.zip(other.points).all? { |a, b| a.approximates?(b, delta) }
-    end
-
-    def translate(point)
-      self.class.new(points.map { |p| p.translate(point) })
+    def translate(vector)
+      self.class.new(points.map { |p| p.translate(vector) })
     end
 
     def transform(transformer)
       self.class.new(points.map { |p| p.transform(transformer) })
-    end
-
-    def paths
-      [self]
-    end
-
-    def containers
-      []
     end
 
     protected
