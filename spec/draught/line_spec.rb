@@ -247,5 +247,29 @@ module Draught
       let(:points) { [Point::ZERO, end_point] }
       subject { Line.build(end_point: end_point) }
     end
+
+    context "building a line from a two-item Path" do
+      it "generates the Line correctly" do
+        path = Path.new([Point::ZERO, Point.new(4,4)])
+
+        expect(Line.from_path(path)).to eq(path)
+      end
+
+      it "blows up for a > 2-item Path" do
+        path = Path.new([Point::ZERO, Point.new(4,4), Point.new(6,6)])
+
+        expect {
+          Line.from_path(path)
+        }.to raise_error(ArgumentError)
+      end
+
+      it "blows up for a < 2-item Path" do
+        path = Path.new([Point::ZERO])
+
+        expect {
+          Line.from_path(path)
+        }.to raise_error(ArgumentError)
+      end
+    end
   end
 end

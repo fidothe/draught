@@ -26,6 +26,13 @@ module Draught
         line_args = builder_class.new(args).line_args
         new(line_args)
       end
+
+      def from_path(path)
+        if path.number_of_points != 2
+          raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
+        end
+        build(start_point: path.first, end_point: path.last)
+      end
     end
 
     attr_reader :start_point, :end_point, :length, :radians
