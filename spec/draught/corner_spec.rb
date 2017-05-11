@@ -7,9 +7,9 @@ module Draught
   RSpec.describe Corner do
     describe "rounded corners" do
       context "joining two paths at right-angles returns a new path containing the incoming path up to the point the arc starts, the arc, and the rest of the outgoing path" do
-        let(:horizontal) { Line.horizontal(10).path }
-        let(:up) { Line.vertical(10).path }
-        let(:down) { Line.vertical(-10).path }
+        let(:horizontal) { Line.horizontal(10) }
+        let(:up) { Line.vertical(10) }
+        let(:down) { Line.vertical(-10) }
 
         specify "when the incoming line is left-right and the outgoing line is bottom-to-top" do
           expected = PathBuilder.build { |p|

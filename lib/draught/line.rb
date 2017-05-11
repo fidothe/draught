@@ -41,10 +41,6 @@ module Draught
       @points ||= [start_point, end_point]
     end
 
-    def path
-      @path ||= Path.new(points)
-    end
-
     def shorten(amount, direction = :towards_start)
       new_line = self.class.build({
         start_point: start_point, length: length - amount, radians: radians
