@@ -59,12 +59,18 @@ module Draught
       direction == :from_start ? shift_line(new_line) : new_line
     end
 
-    def [](index)
-      case index
-      when Numeric
-        points[index]
+    def [](index_start_or_range, length = nil)
+      if length.nil?
+        case index_start_or_range
+        when Range
+          Path.new(points[index_start_or_range])
+        when Numeric
+          points[index_start_or_range]
+        else
+          raise TypeError, "requires a Range or Numeric in single-arg form"
+        end
       else
-        raise TypeError, "requires a Numeric for access to a Line's Points"
+        Path.new(points[index_start_or_range, length])
       end
     end
 

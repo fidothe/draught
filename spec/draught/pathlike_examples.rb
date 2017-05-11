@@ -8,8 +8,20 @@ RSpec.shared_examples "a pathlike thing" do
   end
 
   describe "being enumerable enough" do
-    it "provides [] access to its points" do
+    it "provides []-index access to its points" do
       expect(subject[0]).to eq(subject.points.first)
+    end
+
+    it "provides meaningful [Range] access" do
+      expect {
+        subject[0..1]
+      }.not_to raise_error
+    end
+
+    it "provides meaningful [start, length] access" do
+      expect {
+        subject[0, 1]
+      }.not_to raise_error
     end
 
     context "provides first and last readers" do

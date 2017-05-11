@@ -230,6 +230,18 @@ module Draught
       end
     end
 
+    describe "[] access" do
+      subject { Line.build(end_point: Point.new(2,2)) }
+
+      it "returns a Path when [Range]-style access is used" do
+        expect(subject[0..0]).to eq(Path.new([Point::ZERO]))
+      end
+
+      it "returns a Path when [start, length]-style access is used" do
+        expect(subject[1,1]).to eq(Path.new([Point.new(2,2)]))
+      end
+    end
+
     it_should_behave_like "a pathlike thing" do
       let(:end_point) { Point.new(4,4) }
       let(:points) { [Point::ZERO, end_point] }
