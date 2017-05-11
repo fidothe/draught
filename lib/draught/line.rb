@@ -48,18 +48,14 @@ module Draught
       @points ||= [start_point, end_point]
     end
 
-    def shorten(amount, direction = :towards_start)
+    def extend(args = {})
+      default_args = {at: :end}
+      args = default_args.merge(args)
+      new_length = args[:to] || length + args[:by]
       new_line = self.class.build({
-        start_point: start_point, length: length - amount, radians: radians
+        start_point: start_point, length: new_length, radians: radians
       })
-      direction == :towards_end ? shift_line(new_line) : new_line
-    end
-
-    def lengthen(amount, direction = :from_end)
-      new_line = self.class.build({
-        start_point: start_point, length: length + amount, radians: radians
-      })
-      direction == :from_start ? shift_line(new_line) : new_line
+      args[:at] == :start ? shift_line(new_line) : new_line
     end
 
     def [](index_start_or_range, length = nil)

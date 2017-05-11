@@ -203,14 +203,14 @@ module Draught
         it "by moving the end point in" do
           expected = Line.build(length: 8, radians: radians)
 
-          expect(subject.shorten(2)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: -2, at: :end)).to approximate(expected).within(0.00001)
         end
 
         it "by moving the start point out" do
           line = Line.build(length: 8, radians: radians)
           expected = line.translate(Vector.translation_between(line.last, subject.last))
 
-          expect(subject.shorten(2, :towards_end)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: -2, at: :start)).to approximate(expected).within(0.00001)
         end
       end
 
@@ -218,14 +218,35 @@ module Draught
         it "by moving the end point out" do
           expected = Line.build(length: 12, radians: radians)
 
-          expect(subject.lengthen(2)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: 2, at: :end)).to approximate(expected).within(0.00001)
         end
 
         it "by moving the start point out" do
           line = Line.build(length: 12, radians: radians)
           expected = line.translate(Vector.translation_between(line.last, subject.last))
 
-          expect(subject.lengthen(2, :from_start)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: 2, at: :start)).to approximate(expected).within(0.00001)
+        end
+      end
+
+      it "defaults to moving the end point" do
+        expected = Line.build(length: 12, radians: radians)
+
+        expect(subject.extend(by: 2)).to approximate(expected).within(0.00001)
+      end
+
+      context "altering length by specifying explicitly" do
+        it "by moving the end point" do
+          expected = Line.build(length: 20, radians: radians)
+
+          expect(subject.extend(to: 20, at: :end)).to approximate(expected).within(0.00001)
+        end
+
+        it "by moving the start point out" do
+          line = Line.build(length: 5, radians: radians)
+          expected = line.translate(Vector.translation_between(line.last, subject.last))
+
+          expect(subject.extend(to: 5, at: :start)).to approximate(expected).within(0.00001)
         end
       end
     end
