@@ -82,89 +82,99 @@ module Draught
     end
 
     describe "generating lines of a given length and angle" do
-      def path(end_point)
-        Path.new([Point::ZERO, end_point])
-      end
-
       let(:length) { 5.656854 }
 
       it "copes with a line of angle 0º" do
-        line = Line.build(length: length, radians: 0)
+        expected = Line.build(end_point: Point.new(length,0))
 
-        expect(line.path).to eq(path(Point.new(length,0)))
+        expect(Line.build(length: length, radians: 0)).to eq(expected)
       end
 
       it "copes with a line of angle 45º" do
-        line = Line.build(length: length, radians: deg_to_rad(45))
+        expected = Line.build(end_point: Point.new(4,4))
 
-        expect(line.path).to approximate(path(Point.new(4,4))).within(0.00001)
+        expect(Line.build({
+          length: length, radians: deg_to_rad(45)
+        })).to approximate(expected).within(0.00001)
       end
 
       it "copes with a line of angle 90º" do
-        line = Line.build(length: length, radians: deg_to_rad(90))
+        expected = Line.build(end_point: Point.new(0,length))
 
-        expect(line.path).to eq(path(Point.new(0,length)))
+        expect(Line.build(length: length, radians: deg_to_rad(90))).to eq(expected)
       end
 
       it "copes with a line of angle < 180º" do
-        line = Line.build(length: length, radians: deg_to_rad(135))
+        expected = Line.build(end_point: Point.new(-4,4))
 
-        expect(line.path).to approximate(path(Point.new(-4,4))).within(0.00001)
+        expect(Line.build({
+          length: length, radians: deg_to_rad(135)
+        })).to approximate(expected).within(0.00001)
       end
 
       it "copes with a line of angle 180º" do
-        line = Line.build(length: length, radians: deg_to_rad(180))
+        expected = Line.build(end_point: Point.new(-length,0))
 
-        expect(line.path).to eq(path(Point.new(-length,0)))
+        expect(Line.build(length: length, radians: deg_to_rad(180))).to eq(expected)
       end
 
       it "copes with a line of angle < 270º" do
-        line = Line.build(length: length, radians: deg_to_rad(225))
+        expected = Line.build(end_point: Point.new(-4,-4))
 
-        expect(line.path).to approximate(path(Point.new(-4,-4))).within(0.00001)
+        expect(Line.build({
+          length: length, radians: deg_to_rad(225)
+        })).to approximate(expected).within(0.00001)
       end
 
       it "copes with a line of angle 270º" do
-        line = Line.build(length: length, radians: deg_to_rad(270))
+        expected = Line.build(end_point: Point.new(0,-length))
 
-        expect(line.path).to eq(path(Point.new(0,-length)))
+        expect(Line.build({
+          length: length, radians: deg_to_rad(270)
+        })).to eq(expected)
       end
 
       it "copes with a line of angle < 360º" do
-        line = Line.build(length: length, radians: deg_to_rad(315))
+        expected = Line.build(end_point: Point.new(4,-4))
 
-        expect(line.path).to approximate(path(Point.new(4,-4))).within(0.00001)
+        expect(Line.build({
+          length: length, radians: deg_to_rad(315)
+        })).to approximate(expected).within(0.00001)
       end
 
       context "ludicrous angles" do
         it "treats a 360º angle as 0º" do
-          line = Line.build(length: length, radians: deg_to_rad(360))
+          expected = Line.build(end_point: Point.new(length,0))
 
-          expect(line.path).to eq(path(Point.new(length,0)))
+          expect(Line.build(length: length, radians: deg_to_rad(360))).to eq(expected)
         end
 
         it "treats a > 360º angle properly" do
-          line = Line.build(length: length, radians: deg_to_rad(495))
+          expected = Line.build(end_point: Point.new(-4,4))
 
-          expect(line.path).to approximate(path(Point.new(-4,4))).within(0.00001)
+          expect(Line.build({
+            length: length, radians: deg_to_rad(495)
+          })).to approximate(expected).within(0.00001)
         end
 
         it "treats a > 360º right-angle properly" do
-          line = Line.build(length: length, radians: deg_to_rad(450))
+          expected = Line.build(end_point: Point.new(0,length))
 
-          expect(line.path).to eq(path(Point.new(0,length)))
+          expect(Line.build(length: length, radians: deg_to_rad(450))).to eq(expected)
         end
 
         it "treats a > 720º angle properly" do
-          line = Line.build(length: length, radians: deg_to_rad(1035))
+          expected = Line.build(end_point: Point.new(4,-4))
 
-          expect(line.path).to approximate(path(Point.new(4,-4))).within(0.00001)
+          expect(Line.build({
+            length: length, radians: deg_to_rad(1035)
+          })).to approximate(expected).within(0.00001)
         end
 
         it "treats a > 720º right-angle properly" do
-          line = Line.build(length: length, radians: deg_to_rad(630))
+          expected = Line.build(end_point: Point.new(0,-length))
 
-          expect(line.path).to eq(path(Point.new(0,-length)))
+          expect(Line.build(length: length, radians: deg_to_rad(630))).to eq(expected)
         end
       end
     end
@@ -180,7 +190,7 @@ module Draught
       it "can generate a line from angle/length and start point" do
         line = Line.build(start_point: Point.new(1,1), radians: Math::PI/4, length: 5.656854)
 
-        expect(line.path).to approximate(Path.new([Point.new(1,1), Point.new(5,5)])).within(0.00001)
+        expect(line).to approximate(Path.new([Point.new(1,1), Point.new(5,5)])).within(0.00001)
       end
     end
 
@@ -191,31 +201,31 @@ module Draught
 
       context "shortening makes a new line" do
         it "by moving the end point in" do
-          expected = Line.build(length: 8, radians: radians).path
+          expected = Line.build(length: 8, radians: radians)
 
-          expect(subject.shorten(2).path).to approximate(expected).within(0.00001)
+          expect(subject.shorten(2)).to approximate(expected).within(0.00001)
         end
 
         it "by moving the start point out" do
-          line_path = Line.build(length: 8, radians: radians).path
-          expected = line_path.translate(Vector.translation_between(line_path.last, subject.path.last))
+          line = Line.build(length: 8, radians: radians)
+          expected = line.translate(Vector.translation_between(line.last, subject.last))
 
-          expect(subject.shorten(2, :towards_end).path).to approximate(expected).within(0.00001)
+          expect(subject.shorten(2, :towards_end)).to approximate(expected).within(0.00001)
         end
       end
 
       context "lengthening makes a new line" do
         it "by moving the end point out" do
-          expected = Line.build(length: 12, radians: radians).path
+          expected = Line.build(length: 12, radians: radians)
 
-          expect(subject.lengthen(2).path).to approximate(expected).within(0.00001)
+          expect(subject.lengthen(2)).to approximate(expected).within(0.00001)
         end
 
         it "by moving the start point out" do
-          line_path = Line.build(length: 12, radians: radians).path
-          expected = line_path.translate(Vector.translation_between(line_path.last, subject.path.last))
+          line = Line.build(length: 12, radians: radians)
+          expected = line.translate(Vector.translation_between(line.last, subject.last))
 
-          expect(subject.lengthen(2, :from_start).path).to approximate(expected).within(0.00001)
+          expect(subject.lengthen(2, :from_start)).to approximate(expected).within(0.00001)
         end
       end
     end
