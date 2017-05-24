@@ -65,8 +65,12 @@ RSpec.shared_examples "a pathlike thing" do
   end
 
   context "renderer methods" do
-    it "returns an Array of itself for #paths" do
-      expect(subject.paths).to eq([subject])
+    it "returns an array including :path for #box_type" do
+      expect(subject.box_type).to include(:path)
+    end
+
+    it "returns an empty Array #paths" do
+      expect(subject.paths).to eq([])
     end
 
     it "returns an empty Array for #containers" do

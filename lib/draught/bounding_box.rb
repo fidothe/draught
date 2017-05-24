@@ -43,6 +43,10 @@ module Draught
       []
     end
 
+    def box_type
+      [:container]
+    end
+
     private
 
     def x_max

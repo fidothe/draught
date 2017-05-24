@@ -17,7 +17,8 @@ module Draught
 
     specify "Boxes in the sheet are passed to the render_container method with the render context" do
       context = subject.context
-      sheet.containers.each do |box|
+      expect(subject).to receive(:render_container).with(sheet, context)
+      sheet.paths.each do |box|
         expect(subject).to receive(:render_container).with(box, context)
       end
 
@@ -26,7 +27,7 @@ module Draught
 
     specify "Paths in a container are passed to the render_path method with the render context" do
       context = subject.context
-      sheet.containers.flat_map { |box| box.paths }.each  do |path|
+      sheet.paths.flat_map { |box| box.paths }.each  do |path|
         expect(subject).to receive(:render_path).with(path, context)
       end
 

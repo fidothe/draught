@@ -4,15 +4,19 @@ require_relative 'vector'
 module Draught
   module Boxlike
     def lower_left
-      raise NotImplementedError, "includers of Boxlike must implement lower_left"
+      raise NotImplementedError, "includers of Boxlike must implement #lower_left"
     end
 
     def width
-      raise NotImplementedError, "includers of Boxlike must implement width"
+      raise NotImplementedError, "includers of Boxlike must implement #width"
     end
 
     def height
-      raise NotImplementedError, "includers of Boxlike must implement height"
+      raise NotImplementedError, "includers of Boxlike must implement #height"
+    end
+
+    def box_type
+      raise NotImplementedError, "includers of Boxlike must implement #box_type"
     end
 
     def lower_right

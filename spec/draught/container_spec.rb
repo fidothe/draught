@@ -11,6 +11,10 @@ module Draught
 
     it_should_behave_like "a basic rectangular box-like thing"
 
+    it "returns [:container] for #box_type" do
+      expect(subject.box_type).to eq([:container])
+    end
+
     it "reports the minimum gap it should have between it and any other Container" do
       expect(subject.min_gap).to eq(50)
     end
@@ -26,9 +30,8 @@ module Draught
     end
 
     context "paths and containers" do
-      it "delegates #paths to its box" do
-        allow(box).to receive(:paths) { [:path] }
-        expect(subject.paths).to eq([:path])
+      it "returns a list containing its box for #paths" do
+        expect(subject.paths).to eq([box])
       end
 
       it "delegates #containers to its box" do

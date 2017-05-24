@@ -130,5 +130,9 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
       expect { subject.min_gap }.not_to raise_error
       expect(subject.min_gap).to be_a(Integer)
     end
+
+    it "returns an array of box types for #box_type" do
+      expect(subject.box_type).to be_a(Array)
+    end
   end
 end

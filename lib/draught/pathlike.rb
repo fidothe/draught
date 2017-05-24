@@ -43,11 +43,15 @@ module Draught
     end
 
     def paths
-      [self]
+      []
     end
 
     def containers
       []
+    end
+
+    def box_type
+      [:path]
     end
   end
 end

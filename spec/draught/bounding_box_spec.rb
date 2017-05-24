@@ -17,6 +17,10 @@ module Draught
       expect(subject.paths).to eq([input_path])
     end
 
+    it "returns [:container] for #box_type" do
+      expect(subject.box_type).to eq([:container])
+    end
+
     describe "equality" do
       it "compares equal if the other box has the same paths in the same order" do
         expect(BoundingBox.new(input_path)).to eq(subject)

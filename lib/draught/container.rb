@@ -8,7 +8,7 @@ module Draught
 
     attr_reader :box, :min_gap
 
-    def_delegators :box, :lower_left, :width, :height, :paths, :containers
+    def_delegators :box, :lower_left, :width, :height, :containers
 
     def initialize(box, opts = {})
       @box = box
@@ -26,6 +26,14 @@ module Draught
 
     def ==(other)
       min_gap == other.min_gap && box == other.box
+    end
+
+    def box_type
+      [:container]
+    end
+
+    def paths
+      [box]
     end
   end
 end

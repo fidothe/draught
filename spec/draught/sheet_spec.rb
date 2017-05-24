@@ -12,8 +12,16 @@ module Draught
 
     it_should_behave_like "a basic rectangular box-like thing"
 
+    it "returns [:container] for #box_type" do
+      expect(subject.box_type).to eq([:container])
+    end
+
     it "has its origin at 0,0 by default" do
       expect(subject.lower_left).to eq(Point::ZERO)
+    end
+
+    it "returns its containers for #paths" do
+      expect(subject.paths).to eq(containers)
     end
 
     context "translation" do

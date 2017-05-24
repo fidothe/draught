@@ -15,7 +15,7 @@ module Draught
       }
 
       specify "fills it with the correct number of containers" do
-        expect(subject.containers.size).to eq(8)
+        expect(subject.paths.size).to eq(8)
       end
 
       specify "the sheet is the minimum needed width" do
