@@ -56,11 +56,19 @@ module Draught
         p << Point.new(2,0) << Point.new(3,0)
       } }
 
-      it "connects by translating the first point of the next path onto the last point of the previous" do
+      it "connects by translating the first point of the next path onto the last point of the previous and eliminating duplicates" do
         path = PathBuilder.connect(horizontal, diagonal, spaced_horizontal)
 
         expect(path.points).to eq([
-          Point.new(0,0), Point.new(1,0), Point.new(1,0), Point.new(2,1), Point.new(2,1), Point.new(3,1)
+          Point.new(0,0), Point.new(1,0), Point.new(2,1), Point.new(3,1)
+        ])
+      end
+
+      it "copes if one or more of the paths to connect are empty" do
+        path = PathBuilder.connect(Path.new, horizontal, diagonal, Path.new, spaced_horizontal, Path.new)
+
+        expect(path.points).to eq([
+          Point.new(0,0), Point.new(1,0), Point.new(2,1), Point.new(3,1)
         ])
       end
     end

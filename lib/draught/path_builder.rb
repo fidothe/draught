@@ -9,11 +9,12 @@ module Draught
     end
 
     def self.connect(*paths)
+      paths = paths.reject(&:empty?)
       build { |p|
-        p << paths[0]
-        paths[1..-1].inject(p.last) { |point, path|
+        p << paths.shift
+        paths.inject(p.last) { |point, path|
           translation = Vector.translation_between(path.first, point)
-          p << path.translate(translation)
+          p << path.translate(translation)[1..-1]
           p.last
         }
       }
