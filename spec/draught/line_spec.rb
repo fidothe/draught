@@ -20,12 +20,18 @@ module Draught
         expect(subject.radians).to be_within(0.0001).of(deg_to_rad(45))
       end
 
+      specify "a line at 0º should have radians == 0", focus: true do
+        line = Line.build(end_point: Point.new(10,0))
+
+        expect(line.radians).to be_within(0.0001).of(0)
+      end
+
       context "angles >= 90º" do
         it "copes with a line of angle 90º" do
           line = Line.build(end_point: Point.new(0,4))
 
           expect(line.length).to be_within(0.01).of(4)
-          expect(line.radians).to be_within(0.0001).of(deg_to_rad(90))
+          expect(line.radians).to eq(deg_to_rad(90))
         end
 
         it "copes with a line of angle < 180º" do
@@ -39,7 +45,7 @@ module Draught
           line = Line.build(end_point: Point.new(-4,0))
 
           expect(line.length).to be_within(0.01).of(4)
-          expect(line.radians).to be_within(0.0001).of(deg_to_rad(180))
+          expect(line.radians).to eq(deg_to_rad(180))
         end
 
         it "copes with a line of angle < 270º" do
@@ -53,7 +59,7 @@ module Draught
           line = Line.build(end_point: Point.new(0,-4))
 
           expect(line.length).to be_within(0.01).of(4)
-          expect(line.radians).to be_within(0.0001).of(deg_to_rad(270))
+          expect(line.radians).to eq(deg_to_rad(270))
         end
 
         it "copes with a line of angle < 360º" do

@@ -191,11 +191,23 @@ module Draught
 
 
       def length
-        @length ||= Math.sqrt(x_length ** 2 + y_length ** 2)
+        @length ||= begin
+          if x_length == 0 || y_length == 0
+            x_length + y_length
+          else
+            Math.sqrt(x_length ** 2 + y_length ** 2)
+          end
+        end
       end
 
       def radians
-        @radians ||= angle_to_start_of_quadrant + angle_ignoring_quadrant
+        @radians ||= begin
+          if x_length == 0 || y_length == 0
+            angle_to_start_of_quadrant
+          else
+            angle_to_start_of_quadrant + angle_ignoring_quadrant
+          end
+        end
       end
 
       def x_length
@@ -213,9 +225,9 @@ module Draught
         case [which_side_of_x, which_side_of_y]
         when [1,0], [1, 1] # 0-90º
           0
-        when [0,1], [-1, 1], [-1, 0] # 90-180º
+        when [0,1], [-1, 1] # 90-180º
           DEGREES_90
-        when [-1, -1] # 180-270º
+        when [-1, 0], [-1, -1] # 180-270º
           DEGREES_180
         when [0, -1], [1, -1] # 270-360º
           DEGREES_270
