@@ -1,5 +1,6 @@
 require 'matrix'
 require_relative './transformations/affine'
+require_relative './point'
 
 module Draught
   class Vector
@@ -16,6 +17,10 @@ module Draught
       x = Math.cos(radians) * magnitude
       y = Math.sin(radians) * magnitude
       new(x, y)
+    end
+
+    def self.translation_to_zero(point)
+      translation_between(point, Point::ZERO)
     end
 
     def self.translation_between(point_1, point_2)

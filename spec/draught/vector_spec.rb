@@ -81,6 +81,10 @@ module Draught
 
         expect(Vector.translation_between(p1, p2)).to eq(Vector.new(2,-1))
       end
+
+      it "can construct a vector representing the translation between a point and (0,0)" do
+        expect(Vector.translation_to_zero(Point.new(1,2))).to eq(Vector.new(-1,-2))
+      end
     end
   end
 end
