@@ -33,6 +33,22 @@ module Draught
       expect(subject.as_cubic_beziers).to eq([cubic_bezier])
     end
 
+    context "comparison" do
+      it "doesn't compare approximately equal to a curve with more cubic segments" do
+        comparison_curve = Curve.new({
+          point: end_point, cubic_beziers: [cubic_bezier, cubic_bezier]
+        })
+        expect(subject).not_to approximate(comparison_curve).within(1)
+      end
+
+      it "doesn't compare approximately equal to a curve with fewer cubic segments" do
+        comparison_curve = Curve.new({
+          point: end_point, cubic_beziers: [cubic_bezier, cubic_bezier]
+        })
+        expect(comparison_curve).not_to approximate(subject).within(1)
+      end
+    end
+
     describe "manipulation in space" do
       it "translates correctly" do
         t = Vector.new(1,2)

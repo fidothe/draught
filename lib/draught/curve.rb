@@ -38,10 +38,16 @@ module Draught
     def approximates?(other, delta)
       other.point_type == point_type &&
         point.approximates?(other.point, delta) &&
+        number_of_segments == other.number_of_segments &&
         as_cubic_beziers.zip(other.as_cubic_beziers).all? { |a, b|
           a.approximates?(b, delta)
         }
     end
+
+    def number_of_segments
+      @cubic_beziers.length
+    end
+    protected :number_of_segments
 
     def translate(vector)
       self.class.new({
