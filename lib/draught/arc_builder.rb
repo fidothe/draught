@@ -7,7 +7,11 @@ require_relative './transformations'
 
 module Draught
   class ArcBuilder
-    LARGEST_SEGMENT_RADIANS = Math::PI / 2.0
+    # Largest arc segment representable by a single Cubic Bézier is 90º
+    # There's enough jitter in floating point maths that we round the result
+    # to 12 d.p. which means we avoid requiring two segments to represent an
+    # arc of 90.000000000000000001º
+    LARGEST_SEGMENT_RADIANS = (Math::PI / 2.0).round(12)
     CIRCLE_RADIANS = Math::PI * 2
 
     attr_reader :radius, :starting_angle, :radians
@@ -26,13 +30,6 @@ module Draught
       new_args[:radians] = deg_to_rad(args.fetch(:angle))
       new_args[:starting_angle] = deg_to_rad(args.fetch(:starting_angle, 0))
       new(new_args)
-    end
-
-    def self.build(args = {})
-      if args.has_key?(:degrees)
-        args = args.merge({radians: radians(args[:degrees])})
-      end
-      new(args)
     end
 
     def initialize(args = {})
@@ -70,7 +67,7 @@ module Draught
         while remaining_angle > LARGEST_SEGMENT_RADIANS
           remaining_angle = remaining_angle - LARGEST_SEGMENT_RADIANS
           segments << SegmentBuilder.new(LARGEST_SEGMENT_RADIANS, start, radius)
-          start = radians + starting_angle - remaining_angle
+          start = positive_radians + starting_angle - remaining_angle
         end
         segments << SegmentBuilder.new(remaining_angle, start, radius)
       end
@@ -89,7 +86,7 @@ module Draught
     end
 
     def translation_transformer
-      @translation_transformer ||= Vector.translation_between(untranslated_start_point, Point::ZERO).to_transform
+      @translation_transformer ||= Vector.translation_to_zero(untranslated_start_point).to_transform
     end
 
     def negative?

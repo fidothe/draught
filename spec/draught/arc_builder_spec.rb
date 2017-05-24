@@ -48,13 +48,22 @@ module Draught
         })
       }
 
-      it "generates a one-segment curve for a 90º arc" do
-        path = Path.new([
+      context "generating a one-segment curve for a 90º arc" do
+        let(:expected) { Path.new([
           Point::ZERO,
           Curve.new(point: Point.new(-100,100), cubic_beziers: [first_90])
-        ])
+        ]) }
 
-        expect(subject.path).to approximate(path).within(0.00001)
+        it "creates the expected curve" do
+          expect(subject.path).to approximate(expected).within(0.00001)
+        end
+
+        it "doesn't create a two segment-curve when the arc is a floating-point precision-wobble greater than 90º" do
+          a_hair_greater_than_90_degrees = Math::PI/1.999999999999999
+          builder = ArcBuilder.new(radius: 100, radians: a_hair_greater_than_90_degrees)
+
+          expect(builder.path).to approximate(expected).within(0.00001)
+        end
       end
 
       it "generates a two-segment curve for a 180º arc" do
@@ -107,32 +116,57 @@ module Draught
         expect(builder.path).to approximate(path).within(0.00001)
       end
 
-      it "generates a clockwise arc if a negative angle is used" do
-        cubic_beziers = [
-          CubicBezier.new({
-            end_point: Point.new(-100, -100), control_point_1: Point.new(0, -55.22847),
-            control_point_2: Point.new(-44.77153, -100)
-          }),
-          CubicBezier.new({
-            end_point: Point.new(-200, 0), control_point_1: Point.new(-155.22847, -100),
-            control_point_2: Point.new(-200, -55.22847)
-          }),
-          CubicBezier.new({
-            end_point: Point.new(-100, 100), control_point_1: Point.new(-200, 55.22847),
-            control_point_2: Point.new(-155.22847, 100)
-          }),
-          CubicBezier.new({
-            end_point: Point.new(0, 0), control_point_1: Point.new(-44.77153, 100),
-            control_point_2: Point.new(0, 55.22847)
-          })
-        ]
-        path = Path.new([
-          Point::ZERO,
-          Curve.new(point: Point::ZERO, cubic_beziers: cubic_beziers)
-        ])
-        builder = ArcBuilder.new(radius: 100, radians: deg_to_rad(-360))
+      context "negative angles" do
+        it "generates a clockwise arc if a negative angle is used" do
+          cubic_beziers = [
+            CubicBezier.new({
+              end_point: Point.new(-100, -100), control_point_1: Point.new(0, -55.22847),
+              control_point_2: Point.new(-44.77153, -100)
+            }),
+            CubicBezier.new({
+              end_point: Point.new(-200, 0), control_point_1: Point.new(-155.22847, -100),
+              control_point_2: Point.new(-200, -55.22847)
+            }),
+            CubicBezier.new({
+              end_point: Point.new(-100, 100), control_point_1: Point.new(-200, 55.22847),
+              control_point_2: Point.new(-155.22847, 100)
+            }),
+            CubicBezier.new({
+              end_point: Point.new(0, 0), control_point_1: Point.new(-44.77153, 100),
+              control_point_2: Point.new(0, 55.22847)
+            })
+          ]
+          path = Path.new([
+            Point::ZERO,
+            Curve.new(point: Point::ZERO, cubic_beziers: cubic_beziers)
+          ])
+          builder = ArcBuilder.new(radius: 100, radians: deg_to_rad(-360))
 
-        expect(builder.path).to approximate(path).within(0.00001)
+          expect(builder.path).to approximate(path).within(0.00001)
+        end
+
+        it "generates correct clockwise arcs when the angle is not a clean right-angle" do
+          path = Path.new([
+            Point::ZERO,
+            Curve.new({
+              point: Point.new(-117.36482, -98.48078),
+              cubic_beziers: [
+                CubicBezier.new({
+                  end_point: Point.new(-100, -100), control_point_1: Point.new(0, -55.22847),
+                  control_point_2: Point.new(-44.77153, -100)
+                }),
+                CubicBezier.new({
+                  end_point: Point.new(-117.36482, -98.48078),
+                  control_point_1: Point.new( -105.82146, -100),
+                  control_point_2: Point.new(-111.63179, -99.49166)
+                })
+              ]
+            })
+          ])
+          builder = ArcBuilder.new(radius: 100, radians: deg_to_rad(-100))
+
+          expect(builder.path).to approximate(path).within(0.00001)
+        end
       end
 
       it "always generates paths whose first point is at 0,0 even with a non-zero starting angle" do
