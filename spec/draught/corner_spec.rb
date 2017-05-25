@@ -59,7 +59,7 @@ module Draught
             p << Point.new(100,100)
           }
 
-          joined = Corner::Rounded.join(radius: 10, paths: [horizontal, up])
+          joined = Corner.join_rounded(radius: 10, paths: [horizontal, up])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -71,7 +71,7 @@ module Draught
             p << Point.new(100,-100)
           }
 
-          joined = Corner::Rounded.join(radius: 10, paths: [horizontal, down])
+          joined = Corner.join_rounded(radius: 10, paths: [horizontal, down])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -87,7 +87,7 @@ module Draught
 
           incoming = Line.build(radians: deg_to_rad(-45), length: 100)
           outgoing = Line.build(radians: deg_to_rad(45), length: 100)
-          joined = Corner::Rounded.join(radius: 10, paths: [incoming, outgoing])
+          joined = Corner.join_rounded(radius: 10, paths: [incoming, outgoing])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -107,7 +107,7 @@ module Draught
 
           h = Line.horizontal(100)
           l45 = Line.build(radians: deg_to_rad(135), length: 100)
-          joined = Corner::Rounded.join(radius: 10, paths: [h, l45])
+          joined = Corner.join_rounded(radius: 10, paths: [h, l45])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -121,7 +121,7 @@ module Draught
 
           h = Line.horizontal(-100)
           l45 = Line.build(radians: deg_to_rad(45), length: 100)
-          joined = Corner::Rounded.join(radius: 10, paths: [h, l45])
+          joined = Corner.join_rounded(radius: 10, paths: [h, l45])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -141,7 +141,7 @@ module Draught
 
           h = Line.horizontal(100)
           l135 = Line.build(radians: deg_to_rad(45), length: 100)
-          joined = Corner::Rounded.join(radius: 10, paths: [h, l135])
+          joined = Corner.join_rounded(radius: 10, paths: [h, l135])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -155,7 +155,7 @@ module Draught
 
           h = Line.horizontal(-100)
           l135 = Line.build(radians: deg_to_rad(135), length: 100)
-          joined = Corner::Rounded.join(radius: 10, paths: [h, l135])
+          joined = Corner.join_rounded(radius: 10, paths: [h, l135])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -177,7 +177,7 @@ module Draught
         }
 
         ref = PathBuilder.connect(down, horizontal, up)
-        joined = Corner::Rounded.join(radius: 10, paths: [down, horizontal, up])
+        joined = Corner.join_rounded(radius: 10, paths: [down, horizontal, up])
 
         expect(joined).to approximate(expected).within(0.00001)
       end
