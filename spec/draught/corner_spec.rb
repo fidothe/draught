@@ -161,5 +161,26 @@ module Draught
         end
       end
     end
+
+    describe "joining multiple paths", focus: true do
+      let(:horizontal) { Line.horizontal(100) }
+      let(:up) { Line.vertical(100) }
+      let(:down) { Line.vertical(-100) }
+
+      specify "when asked to connect three paths" do
+        expected = PathBuilder.build { |p|
+          p << Point::ZERO << Point.new(0,-90)
+          p << ArcBuilder.degrees(angle: 90, radius: 10, starting_angle: 180).curve.translate(Vector.new(0,-90))
+          p << Point.new(90,-100)
+          p << ArcBuilder.degrees(angle: 90, radius: 10, starting_angle: 270).curve.translate(Vector.new(90,-100))
+          p << Point.new(100,0)
+        }
+
+        ref = PathBuilder.connect(down, horizontal, up)
+        joined = Corner::Rounded.join(radius: 10, paths: [down, horizontal, up])
+
+        expect(joined).to approximate(expected).within(0.00001)
+      end
+    end
   end
 end

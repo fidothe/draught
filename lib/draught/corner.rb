@@ -18,12 +18,10 @@ module Draught
       end
 
       def join
-        new_path = []
-
         paths.inject do |incoming, outgoing|
-          incoming_before_final_segment = incoming[0..-3]
+          incoming_before_final_segment = incoming[0..-2]
           incoming_line = Line.from_path(incoming[-2,2])
-          outgoing_after_first_segment = outgoing[2..-1]
+          outgoing_after_first_segment = outgoing[1..-1]
           outgoing_line = Line.from_path(outgoing[0..1])
 
           incoming_corner_line = incoming_line.extend(to: 1)
