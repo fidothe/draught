@@ -1,5 +1,5 @@
-require 'draught/boxlike_examples'
 require 'draught/pathlike_examples'
+require 'draught/boxlike_examples'
 require 'draught/point'
 require 'draught/vector'
 require 'draught/transformations'
@@ -23,6 +23,10 @@ module Draught
     it_should_behave_like "a pathlike thing" do
       subject { Path.new([point, other_point]) }
       let(:points) { [point, other_point] }
+    end
+
+    it_should_behave_like "a basic rectangular box-like thing" do
+      subject { Path.new([point, other_point]) }
     end
 
     describe "adding points to the path" do
@@ -116,10 +120,6 @@ module Draught
     end
 
     describe "information about extent" do
-      subject { Path.new([Point.new(1,4), Point.new(5,2)]) }
-
-      it_should_behave_like "a basic rectangular box-like thing"
-
       context "an empty path" do
         subject { Path.new }
 
