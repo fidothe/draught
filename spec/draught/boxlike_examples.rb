@@ -72,7 +72,7 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
         expect(transformed).not_to be(subject)
       end
 
-      specify "the dimensions of the translated box are totes affected" do
+      specify "the dimensions of the transformed box are totes affected" do
         expect(transformed.width).to eq(subject.width * 2)
         expect(transformed.height).to eq(subject.height * 2)
       end
