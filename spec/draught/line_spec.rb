@@ -1,5 +1,6 @@
 require 'draught/path_builder'
 require 'draught/pathlike_examples'
+require 'draught/boxlike_examples'
 require 'draught/line'
 
 module Draught
@@ -273,6 +274,10 @@ module Draught
       let(:end_point) { Point.new(4,4) }
       let(:points) { [Point::ZERO, end_point] }
       subject { Line.build(end_point: end_point) }
+    end
+
+    it_should_behave_like "a basic rectangular box-like thing" do
+      subject { Line.build(end_point: Point.new(4,4)) }
     end
 
     context "building a line from a two-item Path" do

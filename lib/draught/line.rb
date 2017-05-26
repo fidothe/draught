@@ -1,5 +1,6 @@
 require_relative './path'
 require_relative './pathlike'
+require_relative './boxlike'
 require_relative './point'
 require_relative './transformations'
 
@@ -10,6 +11,7 @@ module Draught
     DEGREES_270 = Math::PI * 1.5
     DEGREES_360 = Math::PI * 2
 
+    include Boxlike
     include Pathlike
 
     class << self
@@ -85,6 +87,18 @@ module Draught
       ])
     end
 
+    def lower_left
+      @lower_left ||= Point.new(x_min, y_min)
+    end
+
+    def width
+      @width ||= x_max - x_min
+    end
+
+    def height
+      @height ||= y_max - y_min
+    end
+
     private
 
     def shift_line(new_line)
@@ -99,6 +113,22 @@ module Draught
 
     def transform_args_hash
       {start_point: start_point, end_point: end_point}
+    end
+
+    def x_max
+      @x_max ||= points.map(&:x).max || 0
+    end
+
+    def x_min
+      @x_min ||= points.map(&:x).min || 0
+    end
+
+    def y_max
+      @y_max ||= points.map(&:y).max || 0
+    end
+
+    def y_min
+      @y_min ||= points.map(&:y).min || 0
     end
 
     class LineBuilderFromAngles
