@@ -98,6 +98,33 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
       specify "returns itself when moving the box would have no effect" do
         expect(subject.move_to(subject.lower_left)).to be(subject)
       end
+
+      context "specifying which point on the box will be used as a reference" do
+        it "allows the corners to be specified" do
+          [:upper_left, :upper_right, :lower_left, :lower_right].each do |pos|
+            moved = subject.move_to(relocation_point, position: pos)
+            expect(moved.send(pos)).to eq(relocation_point)
+          end
+        end
+
+        it "allows the centre-edge points to be specified" do
+          [:upper_centre, :centre_right, :lower_centre, :centre_left].each do |pos|
+            moved = subject.move_to(relocation_point, position: pos)
+            expect(moved.send(pos)).to eq(relocation_point)
+          end
+        end
+
+        it "allows the centre to be specified" do
+          moved = subject.move_to(relocation_point, position: :centre)
+          expect(moved.centre).to eq(relocation_point)
+        end
+
+        it "raises an error if an invalid position is used" do
+          expect {
+            subject.move_to(relocation_point, position: :blargle) 
+          }.to raise_error(ArgumentError)
+        end
+      end
     end
 
     context "equality" do
