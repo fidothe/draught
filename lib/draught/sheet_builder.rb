@@ -3,23 +3,17 @@ require_relative 'point'
 
 module Draught
   class SheetBuilder
-    attr_reader :max_height, :max_width, :outer_gap
+    attr_reader :max_height, :max_width, :outer_gap, :boxes
 
-    def self.build(opts = {}, &block)
-      builder = new(opts)
-      builder.instance_exec(&block)
-      builder.sheet
+    def self.sheet(args)
+      new(args).sheet
     end
 
     def initialize(opts = {})
       @max_width = opts.fetch(:max_width)
       @max_height = opts.fetch(:max_height)
       @outer_gap = opts.fetch(:outer_gap, 0)
-      @boxes_to_nest = []
-    end
-
-    def add(box)
-      @boxes_to_nest << box
+      @boxes = opts.fetch(:boxes)
     end
 
     def sheet
@@ -32,21 +26,35 @@ module Draught
       })
     end
 
+    def ==(other)
+      comparison_args.inject(true) { |ok, meth_name|
+        send(meth_name) == other.send(meth_name) && ok
+      }
+    end
+
     private
+
+    def comparison_args
+      [:max_width, :max_height, :outer_gap, :boxes]
+    end
+
+    def containers
+      @containers ||= nested
+    end
 
     def nested
       full = false
-      boxes = []
-      @boxes_to_nest.cycle do |box|
+      nested_boxes = []
+      boxes.cycle do |box|
         break if full
-        placement_point = find_placement_point(box, boxes)
+        placement_point = find_placement_point(box, nested_boxes)
         if placement_point
-          boxes << box.move_to(placement_point)
+          nested_boxes << box.move_to(placement_point)
         else
           full = true
         end
       end
-      boxes.map { |box| box.translate(origin_offset) }
+      nested_boxes.map { |box| box.translate(origin_offset) }
     end
 
     def width(boxes)

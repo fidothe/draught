@@ -10,8 +10,7 @@ module Draught
     let(:path) { PathBuilder.build { |p| p << Point.new(0,0); p << Point.new(50,50) } }
     let(:container) { Container.new(path, min_gap: 50) }
     let(:sheet) {
-      box = container
-      SheetBuilder.build(max_width: 150, max_height: 150) { add box }
+      SheetBuilder.sheet(max_width: 150, max_height: 150, boxes: [container])
     }
     subject { Renderer.new(sheet) }
 
