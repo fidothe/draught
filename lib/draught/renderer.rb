@@ -21,7 +21,7 @@ module Draught
         points = path.points.dup
         close_and_stroke do
           self.line_width = 0.003
-          move_to *point_tuple(points.shift)
+          move_to(*point_tuple(points.shift))
           points.each do |pointlike|
             draw_pointlike(pointlike)
           end
@@ -42,7 +42,7 @@ module Draught
             ]
           })
         else
-          line_to *point_tuple(pointlike)
+          line_to(*point_tuple(pointlike))
         end
       end
 

@@ -58,15 +58,17 @@ module Draught
     end
 
     def width(boxes)
-      min_x = boxes.map { |box| box.lower_left.x }.min
-      max_x = boxes.map { |box| box.upper_right.x }.max
-      (max_x - min_x) + (2 * outer_gap)
+      edge_length(boxes, :left_edge, :right_edge)
     end
 
     def height(boxes)
-      min_y = boxes.map { |box| box.lower_left.y }.min
-      max_y = boxes.map { |box| box.upper_right.y }.max
-      (max_y - min_y) + (2 * outer_gap)
+      edge_length(boxes, :bottom_edge, :top_edge)
+    end
+
+    def edge_length(boxes, min_method, max_method)
+      min = boxes.map(&min_method).min
+      max = boxes.map(&max_method).max
+      (max - min) + (2 * outer_gap)
     end
 
     def find_placement_point(box, placed_boxes)
@@ -83,8 +85,8 @@ module Draught
     end
 
     def placement_around_a_box(box, placed_boxes, reference_point_method)
-      reference_box = placed_boxes.find { |reference_box|
-        point = offset(box, reference_box, reference_point_method)
+      reference_box = placed_boxes.find { |placed_box|
+        point = offset(box, placed_box, reference_point_method)
         placeable_at_location?(box, point, placed_boxes)
       }
       if reference_box

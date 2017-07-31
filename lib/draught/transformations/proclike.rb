@@ -28,7 +28,7 @@ module Draught
         [self]
       end
 
-      def coalesce(other)
+      def coalesce(_)
         raise TypeError, "non-Affine transforms cannot be coalesced"
       end
 

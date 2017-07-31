@@ -12,7 +12,7 @@ module Draught
       end
 
       def call(point)
-        transforms.inject(point) { |point, transform| transform.call(point) }
+        transforms.inject(point) { |result_point, transform| transform.call(result_point) }
       end
 
       def affine?

@@ -57,6 +57,22 @@ module Draught
       [lower_left, lower_right, upper_right, upper_left]
     end
 
+    def left_edge
+      @left_edge ||= lower_left.x
+    end
+
+    def right_edge
+      @right_edge ||= upper_right.x
+    end
+
+    def top_edge
+      @top_edge ||= upper_right.y
+    end
+
+    def bottom_edge
+      @bottom_edge ||= lower_left.y
+    end
+
     def move_to(point, opts = {})
       reference_position_method = opts.fetch(:position, :lower_left)
       if invalid_position_method?(reference_position_method)
@@ -89,20 +105,8 @@ module Draught
       !disjoint?(other_box)
     end
 
-    def horizontal_extent
-      @horizontal_extent ||= lower_left.x..upper_right.x
-    end
-
-    def vertical_extent
-      @vertical_extent ||= lower_left.y..upper_right.y
-    end
-
     def disjoint?(other_box)
-      h = other_box.horizontal_extent
-      v = other_box.vertical_extent
-
-      horizontal_disjoint?(h.first, h.last) ||
-        vertical_disjoint?(v.first, v.last)
+      horizontal_disjoint?(other_box) || vertical_disjoint?(other_box)
     end
 
     def include_point?(point)
@@ -115,20 +119,22 @@ module Draught
 
     private
 
-    def horizontal_disjoint?(other_left, other_right)
-      left = horizontal_extent.first
-      right = horizontal_extent.last
-
-      other_left == right || other_right == left ||
-        other_left > right || other_right < left
+    def horizontal_disjoint?(other_box)
+      other_box.left_edge == right_edge || other_box.right_edge == left_edge ||
+        other_box.left_edge > right_edge || other_box.right_edge < left_edge
     end
 
-    def vertical_disjoint?(other_bottom, other_top)
-      bottom = vertical_extent.first
-      top = vertical_extent.last
+    def vertical_disjoint?(other_box)
+      other_box.bottom_edge == top_edge || other_box.top_edge == bottom_edge ||
+        other_box.top_edge < bottom_edge || other_box.bottom_edge > top_edge
+    end
 
-      other_bottom == top || other_top == bottom ||
-        other_top < bottom || other_bottom > top
+    def horizontal_extent
+      @horizontal_extent ||= lower_left.x..upper_right.x
+    end
+
+    def vertical_extent
+      @vertical_extent ||= lower_left.y..upper_right.y
     end
 
     def invalid_position_method?(method_name)

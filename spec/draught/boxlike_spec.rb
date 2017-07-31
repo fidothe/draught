@@ -51,9 +51,27 @@ module Draught
       end
     end
 
+    context "edges of the box" do
+      specify "left edge" do
+        expect(subject.left_edge).to eq(10)
+      end
+
+      specify "right edge" do
+        expect(subject.right_edge).to eq(30)
+      end
+
+      specify "top edge" do
+        expect(subject.top_edge).to eq(20)
+      end
+
+      specify "bottom edge" do
+        expect(subject.bottom_edge).to eq(10)
+      end
+    end
+
     context "interaction with other geometric objects" do
-     context "working out if a Point is included within this Boxlike" do
-      let(:in_point) { Point.new(15,15) }
+      context "working out if a Point is included within this Boxlike" do
+        let(:in_point) { Point.new(15,15) }
         let(:out_point) { Point.new(15,25) }
         let(:edge_point) { Point.new(10,15) }
 

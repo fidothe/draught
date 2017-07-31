@@ -121,21 +121,18 @@ module Draught
       end
 
       def incoming_corner_line
-        @incoming_corner_line ||= begin
-          incoming_corner_line = incoming_line.extend(to: 1)
-          incoming_corner_line.translate(
-            Vector.translation_to_zero(incoming_corner_line.last)
-          )
-        end
+        @incoming_corner_line ||= zeroed_unit_line_segment(incoming_line, :last)
       end
 
       def outgoing_corner_line
-        @outgoing_corner_line ||= begin
-          outgoing_corner_line = outgoing_line.extend(to: 1)
-          outgoing_corner_line.translate(
-            Vector.translation_to_zero(outgoing_corner_line.first)
-          )
-        end
+        @outgoing_corner_line ||= zeroed_unit_line_segment(outgoing_line, :first)
+      end
+
+      def zeroed_unit_line_segment(segment, zero_to_point)
+        unit_line_segment = segment.extend(to: 1)
+        unit_line_segment.translate(
+          Vector.translation_to_zero(unit_line_segment.public_send(zero_to_point))
+        )
       end
 
       def abs_arc_sweep
