@@ -1,10 +1,14 @@
 # Draught - a Geometry library for creating vector graphics
 
 > draught, v.
+>
 > 2. To make a plan or sketch of; esp. to draw a preliminary plan of (something to be constructed); to design. (Sometimes draft.)
+>
 > [Oxford English Dictionary](http://www.oed.com/view/Entry/57521?result=2&rskey=9oHsDI)
 
 Draught is a library for creating vector graphics as PDFs. It's grown out of generating shapes that can be laser cut, and that's still its focus.
+
+TODO: Explain the fundamental concepts
 
 ## Installation
 
@@ -24,7 +28,24 @@ Or install it yourself as:
 
 ## Usage
 
-TODO
+Example docs are bad and I will fix them.
+
+Also having to require everything individually.
+
+Create a simple straight line and add it to a sheet, then generate a PDF with it:
+
+```ruby
+require 'draught/line'
+require 'draught/bounding_box'
+require 'draught/sheet'
+require 'draught/renderer'
+
+line = Draught::Line.horizontal(100).translate(Draught::Vector.new(100,100))
+box = Draught::BoundingBox.new(line)
+sheet = Draught::Sheet.new(width: 300, height: 200, containers: [box])
+
+renderer = Draught::Renderer.render_to_file(sheet, './example.pdf')
+```
 
 ## Development
 
@@ -39,4 +60,3 @@ Bug reports and pull requests are welcome on GitHub at https://github.com/fidoth
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
