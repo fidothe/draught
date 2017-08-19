@@ -48,15 +48,15 @@ module Draught
 
     def intercepts_horizontal?(previous_point, point, next_point)
       points = [previous_point, point, next_point]
-      intercepts_line?(points, :x)
+      intercepts_line_segment?(points, :x)
     end
 
     def intercepts_vertical?(previous_point, point, next_point)
       points = [previous_point, point, next_point]
-      intercepts_line?(points, :y)
+      intercepts_line_segment?(points, :y)
     end
 
-    def intercepts_line?(points, axis)
+    def intercepts_line_segment?(points, axis)
       axis_aligned?(points, perpendicular_axis(axis)) && obviously_intermediate?(points, axis)
     end
 

@@ -1,6 +1,6 @@
 require 'draught/corner'
 require 'draught/arc_builder'
-require 'draught/line'
+require 'draught/line_segment'
 require 'draught/path_builder'
 
 module Draught
@@ -11,11 +11,11 @@ module Draught
           degrees * (Math::PI/180)
         end
 
-        let(:horizontal) { Line.horizontal(100) }
-        let(:up) { Line.vertical(100) }
-        let(:down) { Line.vertical(-100) }
+        let(:horizontal) { LineSegment.horizontal(100) }
+        let(:up) { LineSegment.vertical(100) }
+        let(:down) { LineSegment.vertical(-100) }
 
-        specify "when the incoming line is left-right and the outgoing line is bottom-to-top" do
+        specify "when the incoming line_segment is left-right and the outgoing line_segment is bottom-to-top" do
           expected = PathBuilder.build { |p|
             p << Point::ZERO << Point.new(90,0)
             p << ArcBuilder.degrees(angle: 90, radius: 10, starting_angle: 270).curve.translate(Vector.new(90,0))
@@ -27,7 +27,7 @@ module Draught
           expect(joined).to approximate(expected).within(0.00001)
         end
 
-        specify "when the incoming line is left-right and the outgoing line is top-to-bottom" do
+        specify "when the incoming line_segment is left-right and the outgoing line_segment is top-to-bottom" do
           expected = PathBuilder.build { |p|
             p << Point::ZERO << Point.new(90,0)
             p << ArcBuilder.degrees(angle: -90, radius: 10, starting_angle: -90).curve.translate(Vector.new(90,0))
@@ -39,17 +39,17 @@ module Draught
           expect(joined).to approximate(expected).within(0.00001)
         end
 
-        specify "when the incoming line is at a 45º angle top-left - bottom-right" do
+        specify "when the incoming line_segment is at a 45º angle top-left - bottom-right" do
           expected = PathBuilder.build { |p|
-            p << Line.build(radians: deg_to_rad(-45), length: 90)
+            p << LineSegment.build(radians: deg_to_rad(-45), length: 90)
             p << ArcBuilder.degrees(angle: 90, radius: 10, starting_angle: -135).curve.
               translate(Vector.translation_between(Point::ZERO, p.last))
-            p << Line.build(radians: deg_to_rad(45), length: 90).
+            p << LineSegment.build(radians: deg_to_rad(45), length: 90).
               translate(Vector.translation_between(Point::ZERO, p.last))[1]
           }
 
-          incoming = Line.build(radians: deg_to_rad(-45), length: 100)
-          outgoing = Line.build(radians: deg_to_rad(45), length: 100)
+          incoming = LineSegment.build(radians: deg_to_rad(-45), length: 100)
+          outgoing = LineSegment.build(radians: deg_to_rad(45), length: 100)
           joined = Corner.join_rounded(radius: 10, paths: [incoming, outgoing])
 
           expect(joined).to approximate(expected).within(0.00001)
@@ -61,29 +61,29 @@ module Draught
           degrees * (Math::PI/180)
         end
 
-        specify "when the incoming line is left-right and the outgoing line is 45º from bottom-right to top-left" do
+        specify "when the incoming line_segment is left-right and the outgoing line_segment is 45º from bottom-right to top-left" do
           arc = ArcBuilder.degrees(angle: 135, radius: 10, starting_angle: -90).path
           expected = PathBuilder.build { |p|
             p << Point::ZERO << arc.translate(Vector.new(75.857864,0))
-            p << Line.build(radians: deg_to_rad(135), length: 100).translate(Vector.new(100,0))[1]
+            p << LineSegment.build(radians: deg_to_rad(135), length: 100).translate(Vector.new(100,0))[1]
           }
 
-          h = Line.horizontal(100)
-          l45 = Line.build(radians: deg_to_rad(135), length: 100)
+          h = LineSegment.horizontal(100)
+          l45 = LineSegment.build(radians: deg_to_rad(135), length: 100)
           joined = Corner.join_rounded(radius: 10, paths: [h, l45])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
 
-        specify "when the incoming line is right-left and the outgoing line is 45º from bottom-left to top-right" do
+        specify "when the incoming line_segment is right-left and the outgoing line_segment is 45º from bottom-left to top-right" do
           arc = ArcBuilder.degrees(angle: -135, radius: 10, starting_angle: -270).path
           expected = PathBuilder.build { |p|
             p << Point::ZERO << arc.translate(Vector.new(-75.857864,0))
-            p << Line.build(radians: deg_to_rad(45), length: 100).translate(Vector.new(-100,0))[1]
+            p << LineSegment.build(radians: deg_to_rad(45), length: 100).translate(Vector.new(-100,0))[1]
           }
 
-          h = Line.horizontal(-100)
-          l45 = Line.build(radians: deg_to_rad(45), length: 100)
+          h = LineSegment.horizontal(-100)
+          l45 = LineSegment.build(radians: deg_to_rad(45), length: 100)
           joined = Corner.join_rounded(radius: 10, paths: [h, l45])
 
           expect(joined).to approximate(expected).within(0.00001)
@@ -95,29 +95,29 @@ module Draught
           degrees * (Math::PI/180)
         end
 
-        specify "when the incoming line is left-right and the outgoing line is 135º from bottom-left to top-right" do
+        specify "when the incoming line_segment is left-right and the outgoing line_segment is 135º from bottom-left to top-right" do
           arc = ArcBuilder.degrees(angle: 45, radius: 10, starting_angle: -90).path
           expected = PathBuilder.build { |p|
             p << Point::ZERO << arc.translate(Vector.new(95.857864,0))
-            p << Line.build(radians: deg_to_rad(45), length: 100).translate(Vector.new(100,0))[1]
+            p << LineSegment.build(radians: deg_to_rad(45), length: 100).translate(Vector.new(100,0))[1]
           }
 
-          h = Line.horizontal(100)
-          l135 = Line.build(radians: deg_to_rad(45), length: 100)
+          h = LineSegment.horizontal(100)
+          l135 = LineSegment.build(radians: deg_to_rad(45), length: 100)
           joined = Corner.join_rounded(radius: 10, paths: [h, l135])
 
           expect(joined).to approximate(expected).within(0.00001)
         end
 
-        specify "when the incoming line is right-left and the outgoing line is 135º from bottom-right to top-left" do
+        specify "when the incoming line_segment is right-left and the outgoing line_segment is 135º from bottom-right to top-left" do
           arc = ArcBuilder.degrees(angle: -45, radius: 10, starting_angle: 90).path
           expected = PathBuilder.build { |p|
             p << Point::ZERO << arc.translate(Vector.new(-95.857864,0))
-            p << Line.build(radians: deg_to_rad(135), length: 100).translate(Vector.new(-100,0))[1]
+            p << LineSegment.build(radians: deg_to_rad(135), length: 100).translate(Vector.new(-100,0))[1]
           }
 
-          h = Line.horizontal(-100)
-          l135 = Line.build(radians: deg_to_rad(135), length: 100)
+          h = LineSegment.horizontal(-100)
+          l135 = LineSegment.build(radians: deg_to_rad(135), length: 100)
           joined = Corner.join_rounded(radius: 10, paths: [h, l135])
 
           expect(joined).to approximate(expected).within(0.00001)
@@ -126,9 +126,9 @@ module Draught
     end
 
     describe "joining multiple paths", focus: true do
-      let(:horizontal) { Line.horizontal(100) }
-      let(:up) { Line.vertical(100) }
-      let(:down) { Line.vertical(-100) }
+      let(:horizontal) { LineSegment.horizontal(100) }
+      let(:up) { LineSegment.vertical(100) }
+      let(:down) { LineSegment.vertical(-100) }
 
       specify "when asked to connect three paths" do
         expected = PathBuilder.build { |p|
