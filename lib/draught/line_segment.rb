@@ -5,7 +5,7 @@ require_relative './point'
 require_relative './transformations'
 
 module Draught
-  class Line
+  class LineSegment
     DEGREES_90 = Math::PI / 2
     DEGREES_180 = Math::PI
     DEGREES_270 = Math::PI * 1.5
@@ -24,9 +24,9 @@ module Draught
       end
 
       def build(args = {})
-        builder_class = args.has_key?(:end_point) ? LineBuilderFromPoint : LineBuilderFromAngles
-        line_args = builder_class.new(args).line_args
-        new(line_args)
+        builder_class = args.has_key?(:end_point) ? LineSegmentBuilderFromPoint : LineSegmentBuilderFromAngles
+        line_segment_args = builder_class.new(args).line_segment_args
+        new(line_segment_args)
       end
 
       def from_path(path)
@@ -54,10 +54,10 @@ module Draught
       default_args = {at: :end}
       args = default_args.merge(args)
       new_length = args[:to] || length + args[:by]
-      new_line = self.class.build({
+      new_line_segment = self.class.build({
         start_point: start_point, length: new_length, radians: radians
       })
-      args[:at] == :start ? shift_line(new_line) : new_line
+      args[:at] == :start ? shift_line_segment(new_line_segment) : new_line_segment
     end
 
     def [](index_start_or_range, length = nil)
@@ -101,12 +101,12 @@ module Draught
 
     private
 
-    def shift_line(new_line)
-      translation = Vector.translation_between(new_line.end_point, end_point)
+    def shift_line_segment(new_line_segment)
+      translation = Vector.translation_between(new_line_segment.end_point, end_point)
       self.class.new({
         start_point: start_point.translate(translation),
-        end_point: new_line.end_point.translate(translation),
-        length: new_line.length,
+        end_point: new_line_segment.end_point.translate(translation),
+        length: new_line_segment.length,
         radians: radians
       })
     end
@@ -131,7 +131,7 @@ module Draught
       @y_min ||= points.map(&:y).min || 0
     end
 
-    class LineBuilderFromAngles
+    class LineSegmentBuilderFromAngles
       attr_reader :start_point, :length, :radians
       private :start_point, :length, :radians
 
@@ -141,7 +141,7 @@ module Draught
         @radians = args.fetch(:radians)
       end
 
-      def line_args
+      def line_segment_args
         {length: length, radians: radians, start_point: start_point, end_point: end_point}
       end
 
@@ -200,7 +200,7 @@ module Draught
       end
     end
 
-    class LineBuilderFromPoint
+    class LineSegmentBuilderFromPoint
       attr_reader :start_point, :end_point
       private :start_point, :end_point
 
@@ -209,7 +209,7 @@ module Draught
         @end_point = args.fetch(:end_point)
       end
 
-      def line_args
+      def line_segment_args
         {length: length, radians: radians, start_point: start_point, end_point: end_point}
       end
 

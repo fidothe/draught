@@ -35,13 +35,13 @@ Also having to require everything individually.
 Create a simple straight line and add it to a sheet, then generate a PDF with it:
 
 ```ruby
-require 'draught/line'
+require 'draught/line_segment'
 require 'draught/bounding_box'
 require 'draught/sheet'
 require 'draught/renderer'
 
-line = Draught::Line.horizontal(100).translate(Draught::Vector.new(100,100))
-box = Draught::BoundingBox.new(line)
+line_segment = Draught::LineSegment.horizontal(100).translate(Draught::Vector.new(100,100))
+box = Draught::BoundingBox.new(line_segment)
 sheet = Draught::Sheet.new(width: 300, height: 200, containers: [box])
 
 renderer = Draught::Renderer.render_to_file(sheet, './example.pdf')
