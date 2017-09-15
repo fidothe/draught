@@ -125,7 +125,7 @@ module Draught
       end
     end
 
-    describe "joining multiple paths", focus: true do
+    describe "joining multiple paths" do
       let(:horizontal) { LineSegment.horizontal(100) }
       let(:up) { LineSegment.vertical(100) }
       let(:down) { LineSegment.vertical(-100) }

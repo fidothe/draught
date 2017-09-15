@@ -21,7 +21,7 @@ module Draught
         expect(subject.radians).to be_within(0.0001).of(deg_to_rad(45))
       end
 
-      specify "a line_segment at 0º should have radians == 0", focus: true do
+      specify "a line_segment at 0º should have radians == 0" do
         line_segment = LineSegment.build(end_point: Point.new(10,0))
 
         expect(line_segment.radians).to be_within(0.0001).of(0)
