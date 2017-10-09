@@ -6,8 +6,9 @@ require_relative './cubic_bezier'
 require_relative './transformations'
 
 module Draught
-  # Beziér curve handling inspired mainly by Pomax's beziér tutorial <https://pomax.github.io/bezierinfo/> 
-  # and `bezier.js` library: <https://github.com/Pomax/bezierjs>
+  # Beziér curve handling inspired mainly by Pomax's beziér tutorial
+  # <https://pomax.github.io/bezierinfo/> and `bezier.js` library
+  # <https://github.com/Pomax/bezierjs>
   class CurveSegment
     include Boxlike
     include Pathlike
@@ -100,6 +101,35 @@ module Draught
       @height ||= y_max - y_min
     end
 
+    def line?
+      false
+    end
+
+    def curve?
+      true
+    end
+
+    def compute_point(t)
+      return start_point if t == 0
+      return end_point if t == 1
+
+      t = t.to_f
+      mt = 1 - t
+      mt2 = mt * mt
+      t2 = t * t
+      a = mt2 * mt
+      b = mt2 * t * 3
+      c = mt * t2 * 3
+      d = t * t2
+
+      sp, cp1, cp2, ep = [start_point, control_point_1, control_point_2, end_point]
+
+      x = (a * sp.x) + (b * cp1.x) + (c * cp2.x) + (d * ep.x)
+      y = (a * sp.y) + (b * cp1.y) + (c * cp2.y) + (d * ep.y)
+
+      Point.new(x, y)
+    end
+
     private
 
     def transform_args_hash
@@ -134,27 +164,6 @@ module Draught
       derivative_points[0..1].map { |points|
         derivative_roots(points.map(&axis))
       }.flatten.reject { |t| t < 0 || t > 1 }
-    end
-
-    def compute_point(t)
-      return start_point if t == 0
-      return end_point if t == 1
-
-      t = t.to_f
-      mt = 1 - t
-      mt2 = mt * mt
-      t2 = t * t
-      a = mt2 * mt
-      b = mt2 * t * 3
-      c = mt * t2 * 3
-      d = t * t2
-
-      sp, cp1, cp2, ep = [start_point, control_point_1, control_point_2, end_point]
-
-      x = (a * sp.x) + (b * cp1.x) + (c * cp2.x) + (d * ep.x)
-      y = (a * sp.y) + (b * cp1.y) + (c * cp2.y) + (d * ep.y)
-
-      Point.new(x, y)
     end
 
     def derivative_points

@@ -21,6 +21,14 @@ module Draught
         expect(subject.radians).to be_within(0.0001).of(deg_to_rad(45))
       end
 
+      it "knows it's a line" do
+        expect(subject.line?).to be(true)
+      end
+
+      it "knows it's not a curve" do
+        expect(subject.curve?).to be(false)
+      end
+
       specify "a line_segment at 0º should have radians == 0" do
         line_segment = LineSegment.build(end_point: Point.new(10,0))
 

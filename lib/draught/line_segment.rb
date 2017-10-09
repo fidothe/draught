@@ -99,6 +99,14 @@ module Draught
       @height ||= y_max - y_min
     end
 
+    def line?
+      true
+    end
+
+    def curve?
+      false
+    end
+
     private
 
     def shift_line_segment(new_line_segment)

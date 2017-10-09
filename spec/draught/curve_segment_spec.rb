@@ -36,6 +36,14 @@ module Draught
       subject { CurveSegment.build(segment_opts) }
     end
 
+    it "knows it's not a line" do
+      expect(subject.line?).to be(false)
+    end
+
+    it "knows it's a curve" do
+      expect(subject.curve?).to be(true)
+    end
+
     describe "building  a Curve Segment from a hash" do
       it "can be handed a start_point and cubic_bezier" do
         expect(CurveSegment.build({
