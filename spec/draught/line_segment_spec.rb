@@ -264,6 +264,14 @@ module Draught
           expect(subject.extend(to: 5, at: :start)).to approximate(expected).within(0.00001)
         end
       end
+
+      context "computing a point on the line with t (0..1, like Bezier curves)" do
+        it "by moving the end point" do
+          expected = LineSegment.build(length: 8, radians: radians).end_point
+
+          expect(subject.compute_point(0.8)).to approximate(expected).within(0.00001)
+        end
+      end
     end
 
     describe "[] access" do

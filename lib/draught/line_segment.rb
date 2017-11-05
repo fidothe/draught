@@ -50,6 +50,18 @@ module Draught
       @points ||= [start_point, end_point]
     end
 
+    def compute_point(t)
+      return start_point if t == 0
+      return end_point if t == 1
+
+      t = t.to_f
+      mt = 1 - t
+
+      x = mt * start_point.x + t * end_point.x
+      y = mt * start_point.y + t * end_point.y
+      Point.new(x, y)
+    end
+
     def extend(args = {})
       default_args = {at: :end}
       args = default_args.merge(args)
@@ -121,6 +133,10 @@ module Draught
 
     def transform_args_hash
       {start_point: start_point, end_point: end_point}
+    end
+
+    def compute_coord(coord_set, t)
+      (1 - t) * start_point.send(coord_set) + t * end_point.send(coord_set)
     end
 
     def x_max
