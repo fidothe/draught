@@ -1,5 +1,6 @@
 require_relative './vector'
 require_relative './pointlike'
+require_relative './approximately'
 require 'matrix'
 
 module Draught
@@ -28,8 +29,8 @@ module Draught
 
     def approximates?(other, delta)
       other.point_type == point_type &&
-        ((other.x - x).abs <= delta) &&
-        ((other.y - y).abs <= delta)
+        Approximately.equal?(other.x, x, delta) &&
+        Approximately.equal?(other.y, y, delta)
     end
 
     def translate(vector)

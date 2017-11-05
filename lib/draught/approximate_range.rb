@@ -1,12 +1,12 @@
-require_relative './approximately'
+require_relative './approximate_value'
 
 module Draught
   class ApproximateRange
     attr_reader :begin, :end
 
-    def initialize(range)
-      @begin = Approximately.new(range.begin)
-      @end = Approximately.new(range.end)
+    def initialize(range, delta = ApproximateValue::DEFAULT_DELTA)
+      @begin = ApproximateValue.with_delta(range.begin, delta)
+      @end = ApproximateValue.with_delta(range.end, delta)
     end
 
     def include?(value)
