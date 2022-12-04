@@ -1,3 +1,4 @@
+require 'draught/world'
 require 'draught/transformations/affine'
 require 'draught/transformations/proclike'
 require 'draught/transformations/shared_examples'
@@ -5,11 +6,12 @@ require 'draught/point'
 
 module Draught::Transformations
   RSpec.describe Affine do
+    let(:world) { Draught::World.new }
     let(:transformation_matrix) {
       Matrix[[-1, 0, 0],[0, -1, 0],[0,0,1]]
     }
-    let(:input_point) { Draught::Point.new(1,2) }
-    let(:expected_point) { Draught::Point.new(-1,-2) }
+    let(:input_point) { world.point.new(1,2) }
+    let(:expected_point) { world.point.new(-1,-2) }
 
     subject { Affine.new(transformation_matrix) }
 
@@ -26,7 +28,7 @@ module Draught::Transformations
       let(:t2) { Affine.new(Matrix[[1, 0, 0],[0, -1, 0],[0, 0, 1]]) }
 
       specify "produces a new Affine transform by matrix multiplication" do
-        expect(t2.coalesce(t1).call(input_point)).to eq(Draught::Point.new(-1,-2))
+        expect(t2.coalesce(t1).call(input_point, world)).to eq(world.point.new(-1,-2))
       end
 
       specify "the matrix of the new transform is the product of the inputs" do
@@ -38,7 +40,7 @@ module Draught::Transformations
       end
 
       specify "attempting to coalesce an Affine transform with another kind raises TypeError" do
-        other = Proclike.new(->(p) { p })
+        other = Proclike.new(->(p, w) { p })
 
         expect { subject.coalesce(other) }.to raise_error(TypeError)
       end

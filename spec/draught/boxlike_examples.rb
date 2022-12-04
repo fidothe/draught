@@ -41,7 +41,7 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
 
   context "manipulation in space" do
     context "translation" do
-      let(:translation) { Draught::Vector.new(5,5) }
+      let(:translation) { world.vector.new(5,5) }
       let(:translated) { subject.translate(translation) }
 
       specify "moves the origin of the box correctly" do
@@ -53,8 +53,8 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
       end
 
       specify "the dimensions of the translated box are unaffected" do
-        expect(translated.width).to eq(subject.width)
-        expect(translated.height).to eq(subject.height)
+        expect(translated.width).to approximate(subject.width).tolerance(world.tolerance)
+        expect(translated.height).to approximate(subject.height).tolerance(world.tolerance)
       end
     end
 
@@ -79,7 +79,7 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
     end
 
     context "relocation" do
-      let(:relocation_point) { subject.lower_left.translate(Draught::Vector.new(-10, -10)) }
+      let(:relocation_point) { subject.lower_left.translate(world.vector.new(-10, -10)) }
       let(:moved) { subject.move_to(relocation_point) }
 
       specify "moves the origin of the box correctly" do
@@ -91,8 +91,8 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
       end
 
       specify "the dimensions of the translated box are unaffected" do
-        expect(moved.width).to eq(subject.width)
-        expect(moved.height).to eq(subject.height)
+        expect(moved.width).to approximate(subject.width).tolerance(world.tolerance)
+        expect(moved.height).to approximate(subject.height).tolerance(world.tolerance)
       end
 
       specify "returns itself when moving the box would have no effect" do
@@ -121,7 +121,7 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
 
         it "raises an error if an invalid position is used" do
           expect {
-            subject.move_to(relocation_point, position: :blargle) 
+            subject.move_to(relocation_point, position: :blargle)
           }.to raise_error(ArgumentError)
         end
       end
@@ -129,7 +129,7 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
 
     context "equality" do
       it "compares equal to a (0,0) translation of itself" do
-        expect(subject.translate(Draught::Vector.new(0,0))).to eq(subject)
+        expect(subject.translate(world.vector.new(0,0))).to eq(subject)
       end
     end
   end

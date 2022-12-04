@@ -1,20 +1,21 @@
 require_relative '../point'
+require_relative '../range_with_tolerance'
 
 module Draught
-  module IntersectionChecker
+  class IntersectionChecker
     # Calculates intersection point of two line segments, if there is one.
     # Based on https://pomax.github.io/bezierinfo/#line-line-intersections
     # and https://www.topcoder.com/community/data-science/data-science-tutorials/geometry-concepts-line-intersection-and-its-applications/#line_line_intersection
     # @api private
     class Line
-      def self.check(segment_1, segment_2)
-        new(segment_1, segment_2).check
+      def self.check(world, segment_1, segment_2, tolerance)
+        new(world, segment_1, segment_2, tolerance).check
       end
 
-      attr_reader :segment_1, :segment_2
+      attr_reader :world, :segment_1, :segment_2, :tolerance
 
-      def initialize(segment_1, segment_2)
-        @segment_1, @segment_2 = segment_1, segment_2
+      def initialize(world, segment_1, segment_2, tolerance)
+        @world, @segment_1, @segment_2, @tolerance = world, segment_1, segment_2, tolerance
       end
 
       def check
@@ -32,7 +33,9 @@ module Draught
       def point_on_segment?(segment)
         xs = segment.points.map(&:x)
         ys = segment.points.map(&:y)
-        (xs.min..xs.max).include?(intersection_point.x) && (ys.min..ys.max).include?(intersection_point.y)
+        xs_range = Draught::RangeWithTolerance.new(xs.min..xs.max, tolerance)
+        ys_range = Draught::RangeWithTolerance.new(ys.min..ys.max, tolerance)
+        xs_range.include?(intersection_point.x) && ys_range.include?(intersection_point.y)
       end
 
       def segments_parallel?
@@ -41,14 +44,14 @@ module Draught
 
       def intersection_point
         @intersection_point ||= begin
-          nx = ((x1 * y2) - (y1 * x2) * (x3 - x4)) - ((x1 - x2) * ((x3 * y4) - (y3 * x4)))
-          ny = ((x1 * y2) - (y1 * x2) * (y3 - y4)) - ((y1 - y2) * ((x3 * y4) - (y3 * x4)))
-          Draught::Point.new(nx/d, ny/d)
+          nx = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)
+          ny = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)
+          world.point.new(nx/d, ny/d)
         end
       end
 
       def d
-        @d ||= ((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4)).to_f
+        @d ||= ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)).to_f
       end
 
       def x1

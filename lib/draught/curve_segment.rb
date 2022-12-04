@@ -4,6 +4,7 @@ require_relative './boxlike'
 require_relative './point'
 require_relative './cubic_bezier'
 require_relative './transformations'
+require_relative './tolerance'
 
 module Draught
   # Beziér curve handling inspired mainly by Pomax's beziér tutorial
@@ -14,17 +15,17 @@ module Draught
     include Pathlike
 
     class << self
-      def build(args = {})
+      def build(world, args = {})
         if args.has_key?(:control_point_1)
           args = {
             start_point: args.fetch(:start_point),
-            cubic_bezier: CubicBezier.new(args)
+            cubic_bezier: CubicBezier.new(world, args)
           }
         end
-        new(args)
+        new(world, args)
       end
 
-      def from_path(path)
+      def from_path(world, path)
         if path.number_of_points != 2
           raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
         end
@@ -35,13 +36,14 @@ module Draught
           raise ArgumentError, "the last point on the path must be a CubicBezier instance, this was #{path.last.inspect}"
         end
 
-        build(start_point: path.first, cubic_bezier: path.last)
+        build(world, start_point: path.first, cubic_bezier: path.last)
       end
     end
 
-    attr_reader :start_point, :cubic_bezier
+    attr_reader :world, :start_point, :cubic_bezier
 
-    def initialize(args)
+    def initialize(world, args)
+      @world = world
       @start_point = args.fetch(:start_point)
       @cubic_bezier = args.fetch(:cubic_bezier)
     end
@@ -66,31 +68,31 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          Path.new(points[index_start_or_range])
+          world.path.new(points[index_start_or_range])
         when Numeric
           points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        Path.new(points[index_start_or_range, length])
+        world.path.new(points[index_start_or_range, length])
       end
     end
 
     def translate(vector)
-      self.class.build(Hash[
+      self.class.build(world, Hash[
         transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }
       ])
     end
 
     def transform(transformation)
-      self.class.build(Hash[
+      self.class.build(world, Hash[
         transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }
       ])
     end
 
     def lower_left
-      @lower_left ||= Point.new(x_min, y_min)
+      @lower_left ||= world.point.new(x_min, y_min)
     end
 
     def width
@@ -113,7 +115,51 @@ module Draught
       return start_point if t == 0
       return end_point if t == 1
 
-      t = t.to_f
+      a, b, c, d = compute_abcd(t.to_f)
+
+      x = compute_axis_value(:x, a, b, c, d)
+      y = compute_axis_value(:y, a, b, c, d)
+
+      world.point.new(x, y)
+    end
+
+    def compute_y_axis_value(t)
+      extrema_axis_value_computer(:y, t)
+    end
+
+    def compute_x_axis_value(t)
+      extrema_axis_value_computer(:x, t)
+    end
+
+    def pretty_print(q)
+      q.group(1, '(Pc', ')') do
+        q.seplist([start_point, cubic_bezier], ->() { }) do |pointish|
+          q.breakable
+          q.pp pointish
+        end
+      end
+    end
+
+    private
+
+    def extrema_axis_value_computer(axis, t)
+      return start_point.send(axis) if t == 0
+      return end_point.send(axis) if t == 1
+
+      a, b, c, d = compute_abcd(t.to_f)
+
+      compute_axis_value(axis, a, b, c, d)
+    end
+
+    def compute_axis_value(axis, a, b, c, d)
+      (a * start_point.send(axis)) +
+        (b * control_point_1.send(axis)) +
+        (c * control_point_2.send(axis)) +
+        (d * end_point.send(axis))
+    end
+
+    # @param t [Float]
+    def compute_abcd(t)
       mt = 1 - t
       mt2 = mt * mt
       t2 = t * t
@@ -121,19 +167,15 @@ module Draught
       b = mt2 * t * 3
       c = mt * t2 * 3
       d = t * t2
-
-      sp, cp1, cp2, ep = [start_point, control_point_1, control_point_2, end_point]
-
-      x = (a * sp.x) + (b * cp1.x) + (c * cp2.x) + (d * ep.x)
-      y = (a * sp.y) + (b * cp1.y) + (c * cp2.y) + (d * ep.y)
-
-      Point.new(x, y)
+      [a, b, c, d]
     end
-
-    private
 
     def transform_args_hash
       {start_point: start_point, cubic_bezier: cubic_bezier}
+    end
+
+    def all_points
+      [start_point, control_point_1, control_point_2, end_point]
     end
 
     def x_max
@@ -157,58 +199,104 @@ module Draught
     end
 
     def extrema_t_values
-      @extrema_t_values ||= ([0.0 , 1.0] + extrema_values(:x) + extrema_values(:y)).sort.uniq
+      @extrema_t_values ||= Extrema.t_values(world.tolerance, method(:extrema_axis_value_computer), self)
     end
 
-    def extrema_values(axis)
-      derivative_points[0..1].map { |points|
-        derivative_roots(points.map(&axis))
-      }.flatten.reject { |t| t < 0 || t > 1 }
-    end
+    class Extrema
+      attr_reader :tolerance, :axis_value_computer, :start, :control_1, :control_2, :last
 
-    def derivative_points
-      @derivative_points ||= begin
-        initial_points = [
-          start_point, control_point_1, control_point_2, end_point
-        ]
-        [4,3,2].reduce([initial_points]) { |results, d|
-          points = results.last
-          c = (d - 1).to_f
-          results << (0...c).map { |j|
-            derivative_x = c * (points[j + 1].x - points[j].x)
-            derivative_y = c * (points[j + 1].y - points[j].y)
-            Point.new(derivative_x, derivative_y)
-          }
-        }[1..-1]
+      def self.t_values(tolerance, axis_value_computer, curve_segment)
+        new(
+          tolerance,
+          axis_value_computer,
+          curve_segment.start_point,
+          curve_segment.control_point_1,
+          curve_segment.control_point_2,
+          curve_segment.end_point
+        ).t_values
       end
-    end
 
-    def derivative_roots(points)
-      points.length == 3 ? quadratic_roots(points) : linear_roots(points)
-    end
-
-    def quadratic_roots(points)
-      a, b, c = points.map(&:to_f)
-      d = a - (2 * b) + c
-
-      if d != 0
-        m1 = -Math.sqrt((b * b) - (a * c))
-        m2 = -a + b
-        v1 = -(m1 + m2) / d
-        v2 = -(-m1 + m2) / d
-        return [v1, v2]
-      elsif b != c && d == 0
-        return [((2 * b) - c)/(2 * (b - c))]
+      def initialize(tolerance, axis_value_computer, start, control_1, control_2, last)
+        @tolerance, @axis_value_computer, @start, @control_1, @control_2, @last = tolerance, axis_value_computer, start, control_1, control_2, last
       end
-      []
-    end
 
-    def linear_roots(points)
-      a, b = points.map(&:to_f)
-      if (a != b)
-        return [a / (a - b)]
+      def t_values_for_axis(axis, result)
+        a, b, c = derivative_bernstein_polynomial_form(axis)
+        if a == 0 # start == end and c1 == c2
+          vs = extrema_values_via_brute_force(axis, result)
+          vs
+        else
+          quadratic_roots(a, b, c, result)
+        end
       end
-      []
+
+      def extrema_values_via_brute_force(axis, result)
+        values = histogram(axis, 0, 1)
+        [
+          min_or_max_value_via_brute_force(axis, :min, values.first),
+          min_or_max_value_via_brute_force(axis, :max, values.last),
+        ].reject { |t|
+          tolerance.within?(0, t) || tolerance.within?(1, t)
+        }.each do |t|
+          result << t
+        end
+      end
+
+      def min_or_max_value_via_brute_force(axis, min_max_meth, histogram_value)
+        values = histogram(axis, histogram_value.min_t, histogram_value.max_t)
+        if values.permutation(2).all? { |a, b| tolerance.within?(a.value, b.value) }
+          return histogram_value.min_t
+        end
+        min_or_max_value = values.send(:"#{min_max_meth}_by") { |v| v.value }
+        min_or_max_value_via_brute_force(axis, min_max_meth, min_or_max_value)
+      end
+
+      HistogramValue = Struct.new(:min_t, :max_t, :value)
+
+      def histogram(axis, min_t, max_t)
+        step_size = (max_t - min_t) / 10.0
+        steps = [min_t] + (1..9).to_a.map { |n|
+          min_t + (step_size * n)
+        } + [max_t]
+        pairs = (0..(steps.length - 2)).map { |n|
+          steps[n, 2]
+        }.map { |min_t, max_t|
+          HistogramValue.new(
+            min_t, max_t,
+            (axis_value_computer.call(axis, min_t) + axis_value_computer.call(axis, max_t)) / 2.0
+          )
+        }.sort_by { |hv| hv.value }
+      end
+
+      def derivative_bernstein_polynomial_form(axis)
+        p0 = start.send(axis)
+        p1 = control_1.send(axis)
+        p2 = control_2.send(axis)
+        p3 = last.send(axis)
+
+        a = (-3.0 * p0) + (9.0 * p1) - (9.0 * p2) + (3.0 * p3)
+        b = (6.0 * p0) - (12.0 * p1) + (6.0 * p2)
+        c = (-3.0 * p0) + (3.0 * p1)
+
+        [a, b, c]
+      end
+
+      # t = -b ± √(b² - 4ac) / 2a
+      def quadratic_roots(a, b, c, result)
+        sqrt_term = (b * b) - (4.0 * a * c)
+        # bail if Math.sqrt would explode on a negative number
+        return if sqrt_term < 0
+        q = Math.sqrt(sqrt_term)
+        result << (q - b)/(2.0 * a)
+        result << (-b - q)/(2.0 * a)
+      end
+
+      def t_values
+        result = [0.0, 1.0]
+        t_values_for_axis(:x, result)
+        t_values_for_axis(:y, result)
+        result.select { |t| t >= 0 && t <= 1 }.sort.uniq
+      end
     end
   end
 end

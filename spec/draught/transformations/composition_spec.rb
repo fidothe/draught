@@ -13,8 +13,9 @@ module Draught::Transformations
     end
 
     context "behaving like a transform" do
-      let(:input_point) { Draught::Point.new(1,2) }
-      let(:expected_point) { Draught::Point.new(-1,-2) }
+      let(:world) { Draught::World.new }
+      let(:input_point) { world.point.new(1,2) }
+      let(:expected_point) { world.point.new(-1,-2) }
       subject { Composition.new([t1, t2]) }
 
       include_examples "transformation object fundamentals"

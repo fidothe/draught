@@ -1,18 +1,18 @@
-require 'draught/renderer'
-require 'draught/point'
-require 'draught/path_builder'
+require 'draught/renderer/pdf'
+require 'draught/world'
 require 'draught/container'
 require 'draught/sheet_builder'
 require 'tmpdir'
 
-module Draught
-  RSpec.describe Renderer do
-    let(:path) { PathBuilder.build { |p| p << Point.new(0,0); p << Point.new(50,50) } }
-    let(:container) { Container.new(path, min_gap: 50) }
+module Draught::Renderer
+  RSpec.describe PDF do
+    let(:world) { Draught::World.new }
+    let(:path) { world.path.build { |p| p << world.point.new(0,0); p << world.point.new(50,50) } }
+    let(:container) { Draught::Container.new(world, path, min_gap: 50) }
     let(:sheet) {
-      SheetBuilder.sheet(max_width: 150, max_height: 150, boxes: [container])
+      Draught::SheetBuilder.sheet(world, max_width: 150, max_height: 150, boxes: [container])
     }
-    subject { Renderer.new(sheet) }
+    subject { described_class.new(sheet) }
 
     specify "Boxes in the sheet are passed to the render_container method with the render context" do
       context = subject.context
@@ -45,7 +45,7 @@ module Draught
     it "provides a convenience class method for rendering a sheet to a file" do
       Dir.mktmpdir do |dir|
         path = File.join(dir, 'tmp.pdf')
-        Renderer.render_to_file(sheet, path)
+        described_class.render_to_file(sheet, path)
 
         expect(File.file?(path)).to be(true)
       end

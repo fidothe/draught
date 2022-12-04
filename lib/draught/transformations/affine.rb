@@ -12,8 +12,8 @@ module Draught
         @transformation_matrix = transformation_matrix
       end
 
-      def call(point)
-        Point.from_matrix(transformation_matrix * point.to_matrix)
+      def call(point, world)
+        world.point.from_matrix(transformation_matrix * point.to_matrix)
       end
 
       def affine?

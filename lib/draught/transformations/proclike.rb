@@ -12,8 +12,8 @@ module Draught
         @proclike = proclike
       end
 
-      def call(point)
-        point_from_tuple_or_point(proclike.call(point))
+      def call(point, world)
+        point_from_tuple_or_point(proclike.call(point, world), world)
       end
 
       def affine?
@@ -34,8 +34,8 @@ module Draught
 
       private
 
-      def point_from_tuple_or_point(tuple_or_point)
-        return Point.new(*tuple_or_point) if tuple_or_point.respond_to?(:each)
+      def point_from_tuple_or_point(tuple_or_point, world)
+        return world.point.new(*tuple_or_point) if tuple_or_point.respond_to?(:each)
         tuple_or_point
       end
     end

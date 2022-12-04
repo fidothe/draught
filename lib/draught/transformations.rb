@@ -57,7 +57,7 @@ module Draught
     end
 
     def round_to_n_decimal_places(n)
-      Proclike.new(->(p) { [p.x.round(n), p.y.round(n)] })
+      Proclike.new(->(p, w) { [p.x.round(n), p.y.round(n)] })
     end
   end
 end

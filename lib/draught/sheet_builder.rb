@@ -3,13 +3,14 @@ require_relative 'point'
 
 module Draught
   class SheetBuilder
-    attr_reader :max_height, :max_width, :outer_gap, :boxes
+    attr_reader :world, :max_height, :max_width, :outer_gap, :boxes
 
-    def self.sheet(args)
-      new(args).sheet
+    def self.sheet(world, args)
+      new(world, args).sheet
     end
 
-    def initialize(opts = {})
+    def initialize(world, opts = {})
+      @world = world
       @max_width = opts.fetch(:max_width)
       @max_height = opts.fetch(:max_height)
       @outer_gap = opts.fetch(:outer_gap, 0)
@@ -18,8 +19,8 @@ module Draught
 
     def sheet
       containers = nested
-      Sheet.new({
-        lower_left: Point::ZERO,
+      Sheet.new(world, {
+        lower_left: world.point.zero,
         containers: containers,
         width: width(containers),
         height: height(containers)
@@ -72,7 +73,7 @@ module Draught
     end
 
     def find_placement_point(box, placed_boxes)
-      return Point::ZERO if placeable_at_location?(box, Point::ZERO, placed_boxes)
+      return world.point.zero if placeable_at_location?(box, world.point.zero, placed_boxes)
       placement_after_a_box(box, placed_boxes) || placement_above_a_box(box, placed_boxes)
     end
 
@@ -108,9 +109,9 @@ module Draught
     def offset_translation(gap, reference_point_method)
       case reference_point_method
       when :lower_right
-        Vector.new(gap, 0)
+        world.vector.new(gap, 0)
       when :upper_left
-        Vector.new(0, gap)
+        world.vector.new(0, gap)
       end
     end
 
@@ -138,7 +139,7 @@ module Draught
     end
 
     def origin_offset
-      Vector.new(outer_gap, outer_gap)
+      world.vector.new(outer_gap, outer_gap)
     end
   end
 end

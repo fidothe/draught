@@ -1,11 +1,13 @@
+require 'draught/world'
 require 'draught/boxlike_examples'
 require 'draught/boxlike'
 require 'draught/spec_box'
 
 module Draught
   RSpec.describe Boxlike do
-    subject { SpecBox.new({
-      lower_left: Point.new(10,10),
+    let(:world) { World.new }
+    subject { SpecBox.new(world, {
+      lower_left: world.point.new(10,10),
       width: 20, height: 10
     }) }
 
@@ -13,41 +15,41 @@ module Draught
 
     context "reporting the edges of the box" do
       specify "lower-left corner" do
-        expect(subject.lower_left).to eq(Point.new(10, 10))
+        expect(subject.lower_left).to eq(world.point.new(10, 10))
       end
 
       specify "lower-right corner" do
-        expect(subject.lower_right).to eq(Point.new(30,10))
+        expect(subject.lower_right).to eq(world.point.new(30,10))
       end
 
       specify "upper-right corner" do
-        expect(subject.upper_right).to eq(Point.new(30,20))
+        expect(subject.upper_right).to eq(world.point.new(30,20))
       end
 
       specify "upper-left corner" do
-        expect(subject.upper_left).to eq(Point.new(10,20))
+        expect(subject.upper_left).to eq(world.point.new(10,20))
       end
     end
 
     context "centre points of the box" do
       specify "centre-left" do
-        expect(subject.centre_left).to eq(Point.new(10, 15))
+        expect(subject.centre_left).to eq(world.point.new(10, 15))
       end
 
       specify "lower-centre" do
-        expect(subject.lower_centre).to eq(Point.new(20, 10))
+        expect(subject.lower_centre).to eq(world.point.new(20, 10))
       end
 
       specify "centre-right" do
-        expect(subject.centre_right).to eq(Point.new(30, 15))
+        expect(subject.centre_right).to eq(world.point.new(30, 15))
       end
 
       specify "upper-centre" do
-        expect(subject.upper_centre).to eq(Point.new(20, 20))
+        expect(subject.upper_centre).to eq(world.point.new(20, 20))
       end
 
       specify "centre" do
-        expect(subject.centre).to eq(Point.new(20, 15))
+        expect(subject.centre).to eq(world.point.new(20, 15))
       end
     end
 
@@ -71,9 +73,9 @@ module Draught
 
     context "interaction with other geometric objects" do
       context "working out if a Point is included within this Boxlike" do
-        let(:in_point) { Point.new(15,15) }
-        let(:out_point) { Point.new(15,25) }
-        let(:edge_point) { Point.new(10,15) }
+        let(:in_point) { world.point.new(15,15) }
+        let(:out_point) { world.point.new(15,25) }
+        let(:edge_point) { world.point.new(10,15) }
 
         specify "an included Point is reported included" do
           expect(subject.include_point?(in_point)).to be true
@@ -91,17 +93,17 @@ module Draught
       context "working out if another Boxlike overlaps with this box" do
         context "boxes overlap when" do
           specify "a box is entirely contained within this box" do
-            other = SpecBox.new({lower_left: Point.new(11,11), width: 5, height: 5})
+            other = SpecBox.new(world, {lower_left: world.point.new(11,11), width: 5, height: 5})
             expect(subject.overlaps?(other)).to be true
           end
 
           specify "a box entirely contains this box" do
-            other = SpecBox.new({lower_left: Point::ZERO, width: 50, height: 50})
+            other = SpecBox.new(world, {lower_left: world.point.zero, width: 50, height: 50})
             expect(subject.overlaps?(other)).to be true
           end
 
           specify "a box partially overlaps this box" do
-            other = SpecBox.new({lower_left: Point.new(5,5), width: 10, height: 10})
+            other = SpecBox.new(world, {lower_left: world.point.new(5,5), width: 10, height: 10})
             expect(subject.overlaps?(other)).to be true
           end
 
@@ -112,11 +114,11 @@ module Draught
 
         context "boxes do not overlap when" do
           def other(x, y)
-            other = SpecBox.new({lower_left: Point.new(x, y), width: 10, height: 10})
+            other = SpecBox.new(world, {lower_left: world.point.new(x, y), width: 10, height: 10})
           end
 
-          subject { SpecBox.new({
-            lower_left: Point.new(10,10),
+          subject { SpecBox.new(world, {
+            lower_left: world.point.new(10,10),
             width: 20, height: 10
           }) }
 

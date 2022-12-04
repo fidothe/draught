@@ -25,7 +25,7 @@ module Draught::Transformations
     end
 
     describe "coalescing transforms" do
-      let(:pt) { Proclike.new(->(p) { p }) }
+      let(:pt) { Proclike.new(->(p, w) { p }) }
 
       it "can coalesce a sequence of Affine transforms into a single transform" do
         expect(subject.coalesced_transforms).to eq([t1_t2_coalesced])
