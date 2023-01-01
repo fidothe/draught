@@ -7,6 +7,10 @@ module Draught
   RSpec.describe LineSegment do
     let(:world) { World.new }
 
+    def p(x,y)
+      world.point.new(x,y)
+    end
+
     describe "manipulating line_segments" do
       let(:radians) { deg_to_rad(45) }
       let(:length) { 10 }
@@ -72,15 +76,21 @@ module Draught
       end
     end
 
+    specify "can return their center point along the line" do
+      # A 3-4-5 triangle hypotenuse
+      l = LineSegment.build(world, start_point: p(100,100), end_point: p(500,400))
+      expect(l.center).to eq(p(300,250))
+    end
+
     describe "[] access" do
       subject { LineSegment.build(world, end_point: world.point.new(2,2)) }
 
       it "returns a Path when [Range]-style access is used" do
-        expect(subject[0..0]).to eq(world.path.new([world.point.zero]))
+        expect(subject[0..0]).to eq(world.path.new(points: [world.point.zero]))
       end
 
       it "returns a Path when [start, length]-style access is used" do
-        expect(subject[1,1]).to eq(world.path.new([world.point.new(2,2)]))
+        expect(subject[1,1]).to eq(world.path.new(points: [world.point.new(2,2)]))
       end
     end
 

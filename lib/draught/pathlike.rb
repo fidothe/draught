@@ -16,6 +16,17 @@ module Draught
       raise NotImplementedError, "Pathlike objects must implement [] access on their points, returning a new instance"
     end
 
+    # @return [Draught::Style]
+    def style
+      raise NotImplementedError, "Pathlike objects must implement #style to return a Style object"
+    end
+
+    # @param style [Draught::Style] the new style to use with the new copy of this Pathlike
+    # @return [Pathlike] a copy of this Pathlike with a new Style attached
+    def with_new_style(style)
+      raise NotImplementedError, "Pathlike objects must implement #with_new_style to return a copy of themselves with the new Style object"
+    end
+
     def number_of_points
       points.length
     end

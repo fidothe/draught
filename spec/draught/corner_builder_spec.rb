@@ -18,8 +18,8 @@ module Draught
 
         specify "when the incoming line_segment is left-right and the outgoing line_segment is bottom-to-top" do
           expected = world.path.build { |p|
-            p << world.point.zero << world.point.new(90,0)
-            p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 270).curve.translate(world.vector.new(90,0))
+            p << world.point.zero
+            p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector.new(90,0))
             p << world.point.new(100,100)
           }
 
@@ -30,8 +30,8 @@ module Draught
 
         specify "when the incoming line_segment is left-right and the outgoing line_segment is top-to-bottom" do
           expected = world.path.build { |p|
-            p << world.point.zero << world.point.new(90,0)
-            p << arc_builder.degrees(angle: -90, radius: 10, starting_angle: -90).curve.translate(world.vector.new(90,0))
+            p << world.point.zero
+            p << arc_builder.degrees(angle: -90, radius: 10, starting_angle: -90).path.translate(world.vector.new(90,0))
             p << world.point.new(100,-100)
           }
 
@@ -43,8 +43,8 @@ module Draught
         specify "when the incoming line_segment is at a 45º angle top-left - bottom-right" do
           expected = world.path.build { |p|
             p << world.line_segment.build(radians: deg_to_rad(-45), length: 90)
-            p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: -135).curve.
-              translate(world.vector.translation_between(world.point.zero, p.last))
+            p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: -135).path.
+              translate(world.vector.translation_between(world.point.zero, p.last))[1..-1]
             p << world.line_segment.build(radians: deg_to_rad(45), length: 90).
               translate(world.vector.translation_between(world.point.zero, p.last))[1]
           }
@@ -126,9 +126,9 @@ module Draught
       specify "when asked to connect three paths" do
         expected = world.path.build { |p|
           p << world.point.zero << world.point.new(0,-90)
-          p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 180).curve.translate(world.vector.new(0,-90))
+          p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 180).path.translate(world.vector.new(0,-90))[1..-1]
           p << world.point.new(90,-100)
-          p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 270).curve.translate(world.vector.new(90,-100))
+          p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector.new(90,-100))[1..-1]
           p << world.point.new(100,0)
         }
 

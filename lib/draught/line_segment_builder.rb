@@ -22,6 +22,10 @@ module Draught
       LineSegment.build(world, args)
     end
 
+    def from_to(p1, p2)
+      build(start_point: p1, end_point: p2)
+    end
+
     def from_path(path)
       if path.number_of_points != 2
         raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"

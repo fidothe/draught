@@ -45,6 +45,10 @@ module Draught
           expect(subject.to_matrix).to eq(matrix)
         end
       end
+
+      specify "a point can be turned into a Vector" do
+        expect(subject.to_vector).to eq(world.vector.new(subject.x, subject.y))
+      end
     end
 
     describe "pretty printing" do

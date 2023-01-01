@@ -1,9 +1,11 @@
 require_relative './point'
 require_relative './vector'
 require_relative './cubic_bezier'
-require_relative './curve'
 require_relative './path'
 require_relative './transformations'
+require_relative './pathlike'
+require_relative './boxlike'
+require 'forwardable'
 
 module Draught
   # Represents a circular arc of a specified radius and size in radians. Can
@@ -14,9 +16,12 @@ module Draught
     # to 12 d.p. which means we avoid requiring two segments to represent an
     # arc of 90.000000000000000001º
     LARGEST_SEGMENT_RADIANS = (Math::PI / 2.0).round(12)
-    CIRCLE_RADIANS = Math::PI * 2
 
-    attr_reader :world, :radius, :starting_angle, :radians
+    extend Forwardable
+    include Pathlike
+    include Boxlike
+
+    attr_reader :world, :radius, :starting_angle, :radians, :start_point
     # @!attribute [r] world
     #   @return [World] the World
     # @!attribute [r] radius
@@ -25,39 +30,70 @@ module Draught
     #   @return [Number] the angle at which the Arc begins, in radians
     # @!attribute [r] radians
     #   @return [Number] the angular size of the Arc, in radians
+    # @!attribute [r] start_point
+    #   @return [Point] the Point the arc path starts at
 
+    def_delegators :path, :points, :"[]", :width, :height, :lower_left, :lower_right, :upper_left, :upper_right
 
     # @param world [World] the world
     # @param args [Hash] the arc arguments.
     # @option args [Number] :radius The radius
     # @option args [Number] :starting_angle (0) the angle at which the arc begins
     # @option args [Number] :radians (0) the size of the arc
+    # @option args [Draught::Point] :start_point (0,0) the point the arc should start at
+    # @option args [Draught::Style] :style (nil) Styles that should be attached to the Arc
     def initialize(world, args = {})
       @world = world
       @radius = args.fetch(:radius)
       @starting_angle = args.fetch(:starting_angle, 0)
       @radians = args.fetch(:radians)
+      @style = args.fetch(:style, nil)
+      @start_point = args.fetch(:start_point, world.point.zero)
     end
 
     # @return [Path]
     def path
-      @path ||= world.path.new([start_point, curve])
+      @path ||= world.path.new(points: [start_point] + cubic_beziers, style: style)
     end
 
-    # @return [Point]
-    def start_point
-      @start_point ||= untranslated_start_point.transform(transformer)
+    # @return [Array<CubicBezier>]
+    def cubic_beziers
+      @cubic_beziers ||= segments.map { |s| s.cubic_bezier.transform(transformer) }
     end
 
-    # @return [Curve]
-    def curve
-      @curve ||= Curve.new(world, {
-        end_point: segments.last.end_point,
-        cubic_beziers: segments.map { |s| s.cubic_bezier }
-      }).transform(transformer)
+    def style
+      @style ||= Style.new
+    end
+
+    def with_new_style(style)
+      self.class.new(world, new_args.merge(style: style))
+    end
+
+    def translate(vector)
+      path.translate(vector)
+    end
+
+    def transform(transformer)
+      path.transform(transformer)
+    end
+
+    def box_type
+      [:path]
+    end
+
+    def paths
+      []
+    end
+
+    def containers
+      []
     end
 
     private
+
+    def new_args
+      {radius: radius, radians: radians, starting_angle: starting_angle, start_point: start_point, style: style}
+    end
 
     def untranslated_start_point
       segments.first.first_point
@@ -90,7 +126,7 @@ module Draught
     end
 
     def translation_transformer
-      @translation_transformer ||= world.vector.translation_to_zero(untranslated_start_point).to_transform
+      @translation_transformer ||= world.vector.translation_between(untranslated_start_point, start_point).to_transform
     end
 
     def negative?

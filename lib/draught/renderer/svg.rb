@@ -11,9 +11,10 @@ module Draught
           @out = out.nil? ? StringIO.new : out
         end
 
-        def root(&block)
+        # @param container [Draught::Boxlike] the root container
+        def root(container, &block)
           out << %{<?xml version="1.0" encoding="UTF-8" standalone="no"?>}
-          element('svg', version: '1.1', xmlns: 'http://www.w3.org/2000/svg', &block)
+          element('svg', width: container.width, height: container.height, version: '1.1', xmlns: 'http://www.w3.org/2000/svg', &block)
         end
 
         def empty_element(name, attr_hash={})
@@ -62,9 +63,9 @@ module Draught
         @builder = Builder.new(out)
       end
 
-      def doc(objects)
-        builder.root do |doc|
-          draw_objects(objects)
+      def doc(container)
+        builder.root(container) do |doc|
+          draw_objects(container.paths)
         end
       end
 
@@ -90,20 +91,13 @@ module Draught
       end
 
       def path(pathlike)
-        first = pathlike.points[0]
-        rest = pathlike.points[1..-1]
-        path_def = rest.chunk_while { |before, after|
-          before.class === after
-        }.flat_map(&method(:render_pointlike_chunks)).join(" ")
-        builder.empty_element('path', d: "M #{XY.call(first)} " + path_def)
+        builder.empty_element('path', path_attrs(pathlike))
       end
 
       def render_pointlike_chunks(pointlikes)
         case pointlikes.first
         when Draught::Point
           ["L", pointlikes.map(&XY)]
-        when Draught::Curve
-          pointlikes.map { |curve| render_pointlike_chunks(curve.as_cubic_beziers) }
         when Draught::CubicBezier
           pointlikes.map { |cubic|
             ["C", [cubic.control_point_1, cubic.control_point_2, cubic.end_point].map(&XY)]
@@ -113,6 +107,30 @@ module Draught
 
       def out
         builder.out
+      end
+
+      # @param pathlike [Draught::Pathlike] the pathlike to generate attributes for
+      def path_attrs(pathlike)
+        {d: path_def_value(pathlike), style: style_attr_value(pathlike.style)}.reject { |k, v| v == '' }
+      end
+
+      # @param pathlike [Draught::Pathlike] the pathlike to generate a def for
+      def path_def_value(pathlike)
+        first = pathlike.points[0]
+        rest = pathlike.points[1..-1]
+        path_def = rest.chunk_while { |before, after|
+          before.class === after
+        }.flat_map(&method(:render_pointlike_chunks)).join(" ")
+        "M #{XY.call(first)} " + path_def
+      end
+
+      # @param style [Draught::Style] the style to generate CSS properties for
+      def style_attr_value(style)
+        properties = []
+        {stroke_color: 'stroke', stroke_width: 'stroke-width', fill: 'fill'}.map { |style_meth, css_prop|
+          value = style.send(style_meth)
+          value.nil? ? nil : "#{css_prop}: #{value};"
+        }.compact.join(' ')
       end
     end
   end

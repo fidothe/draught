@@ -38,13 +38,13 @@ module Draught
 
     context "building a Curve Segment from a two-item Path" do
       it "generates the CurveSegment correctly" do
-        path = world.path.new([start_point, cubic_bezier])
+        path = world.path.new(points: [start_point, cubic_bezier])
 
         expect(subject.from_path(path)).to eq(expected_curve_segment)
       end
 
       it "blows up for a > 2-item Path" do
-        path = world.path.new([start_point, cubic_bezier, world.point.new(6,6)])
+        path = world.path.new(points: [start_point, cubic_bezier, world.point.new(6,6)])
 
         expect {
           subject.from_path(path)
@@ -52,7 +52,7 @@ module Draught
       end
 
       it "blows up for a < 2-item Path" do
-        path = world.path.new([world.point.zero])
+        path = world.path.new(points: [world.point.zero])
 
         expect {
           subject.from_path(path)
@@ -60,7 +60,7 @@ module Draught
       end
 
       it "blows up if the first item isn't a Point" do
-        path = world.path.new([cubic_bezier, start_point])
+        path = world.path.new(points: [cubic_bezier, start_point])
 
         expect {
           subject.from_path(path)
@@ -68,7 +68,7 @@ module Draught
       end
 
       it "blows up if the last item isn't a CubicBezier" do
-        path = world.path.new([start_point, end_point])
+        path = world.path.new(points: [start_point, end_point])
 
         expect {
           subject.from_path(path)

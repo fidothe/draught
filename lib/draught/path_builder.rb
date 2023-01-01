@@ -10,12 +10,12 @@ module Draught
       @world = world
     end
 
-    def new(points = [])
-      Path.new(world, points)
+    def new(args = {})
+      Path.new(world, args)
     end
 
-    def build
-      builder = Builder.new(new)
+    def build(style = nil)
+      builder = Builder.new(new(style: style))
       yield(builder)
       builder.path
     end

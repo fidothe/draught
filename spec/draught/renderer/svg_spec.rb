@@ -28,10 +28,6 @@ module Draught::Renderer
       world.line_segment.horizontal(width)
     end
 
-    def complex_curve(*c)
-      Draught::Curve.new(world, end_point: c.last.end_point, cubic_beziers: c)
-    end
-
     def box(objects = [])
       Draught::BoundingBox.new(world, objects)
     end
@@ -78,7 +74,7 @@ module Draught::Renderer
         end
 
         context "from a multi-point path" do
-          let(:path) { world.path.new([p(10,20), p(30,10), p(50,20)]) }
+          let(:path) { world.path.new(points: [p(10,20), p(30,10), p(50,20)]) }
           let(:svg_path) { render { |svg| svg.path(path) } }
           let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 
@@ -92,7 +88,7 @@ module Draught::Renderer
         end
 
         context "from a multi-point path containing curves (a spline)" do
-          let(:path) { world.path.new([p(10,20), c(p(30,10), p(30,50), p(10,50)), p(50,20)]) }
+          let(:path) { world.path.new(points: [p(10,20), c(p(30,10), p(30,50), p(10,50)), c(p(30,20), p(30,60), p(10,60)), p(50,20)]) }
           let(:svg_path) { render { |svg| svg.path(path) } }
           let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 
@@ -101,28 +97,41 @@ module Draught::Renderer
           end
 
           specify "has the right path definition" do
-            expect(element.get_attribute('d')).to eq("M 10,20 C 30,10 30,50 10,50 L 50,20")
+            expect(element.get_attribute('d')).to eq("M 10,20 C 30,10 30,50 10,50 C 30,20 30,60 10,60 L 50,20")
           end
         end
 
-        context "from a path containing a cubic spline object" do
-          let(:path) {
-            world.path.new([p(10,20),
-              complex_curve(
-                c(p(30,10), p(30,50), p(10,50)),
-                c(p(30,20), p(30,60), p(10,60))
-              )
-            ])
-          }
+        context "with all-nil Style properties" do
+          let(:path) { world.path.new(points: [p(10,20), p(30,10), p(50,20)]) }
           let(:svg_path) { render { |svg| svg.path(path) } }
           let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 
-          specify "has the right element name" do
-            expect(element.name).to eq('path')
+          specify "no style attribute is generated" do
+            expect(!element.has_attribute?('style'))
+          end
+        end
+
+        context "with non-nil Style properties" do
+          let(:style) { Draught::Style.new(stroke_color: 'black', stroke_width: '1pt', fill: 'none') }
+          let(:line) { world.line_segment.horizontal(100).with_new_style(style) }
+          let(:svg_path) { render { |svg| svg.path(line) } }
+          let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
+          let(:style_attr) { element.get_attribute('style') }
+
+          specify "has a style attribute" do
+            expect(element.has_attribute?('style'))
           end
 
-          specify "has the right path definition" do
-            expect(element.get_attribute('d')).to eq("M 10,20 C 30,10 30,50 10,50 C 30,20 30,60 10,60")
+          specify "sets stroke colour" do
+            expect(style_attr).to match('stroke: black;')
+          end
+
+          specify "sets stroke width" do
+            expect(style_attr).to match('stroke-width: 1pt;')
+          end
+
+          specify "sets fill" do
+            expect(style_attr).to match('fill: none;')
           end
         end
       end
@@ -153,7 +162,7 @@ module Draught::Renderer
         end
 
         context "a group containing a group" do
-          let(:svg_path) { render { |svg| svg.g([box(path)]) } }
+          let(:svg_path) { render { |svg| svg.g([box([path])]) } }
 
           specify "has the right element name" do
             expect(element.name).to eq('g')
@@ -170,19 +179,34 @@ module Draught::Renderer
     describe "complete documents" do
       let(:path_1) { l(100) }
       let(:path_2) { l(100).translate(world.vector.new(0,100)) }
+      let(:container) { box([path_1, path_2]) }
 
       context "producing a complete SVG doc" do
-        let(:result) { render { |svg| svg.doc([path_1, path_2]) } }
+        let(:result) { render { |svg| svg.doc(container) } }
         let(:result_doc) { Nokogiri.XML(result) }
 
         specify "which begins with the XML declaration" do
           expect(result).to start_with("<?xml")
         end
 
-        specify "the document element is svg:svg" do
-          root = result_doc.root
-          expect(root.name).to eq("svg")
-          expect(root.namespace.href).to eq("http://www.w3.org/2000/svg")
+        describe "the svg element" do
+          let(:root) { result_doc.root }
+
+          specify "is the document element" do
+            expect(root.name).to eq("svg")
+          end
+
+          specify "has the correct namespace" do
+            expect(root.namespace.href).to eq("http://www.w3.org/2000/svg")
+          end
+
+          specify "takes its width from the root container" do
+            expect(root.get_attribute('width')).to eq(container.width.to_s)
+          end
+
+          specify "takes its height from the root container" do
+            expect(root.get_attribute('height')).to eq(container.height.to_s)
+          end
         end
 
         context "rendered paths" do

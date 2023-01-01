@@ -64,6 +64,48 @@ RSpec.shared_examples "a pathlike thing" do
     end
   end
 
+  describe "style properties" do
+    it "can return a Style object" do
+      expect(subject.style).to be_a(Draught::Style)
+    end
+
+    it "can return a copy of itself with a new Style object attached" do
+      new_style = Draught::Style.new(stroke_color: 'hot pink')
+      restyled = subject.with_new_style(new_style)
+
+      expect(restyled.style).to be(new_style)
+      expect(restyled).to eq(subject)
+    end
+
+    context "transformation and translation" do
+      let(:style) { Draught::Style.new(stroke_color: 'hot pink') }
+      let(:restyled) { subject.with_new_style(style) }
+
+      specify "translating a Pathlike maintains Style" do
+        translation = world.vector.new(2,1)
+
+        expect(restyled.translate(translation).style).to be(style)
+      end
+
+      specify "transforming a Pathlike maintains Style" do
+        transformation = Draught::Transformations::Affine.new(
+          Matrix[[2,0,0],[0,2,0],[0,0,1]]
+        )
+
+        expect(restyled.transform(transformation).style).to be(style)
+      end
+    end
+
+    context "[] access" do
+      let(:style) { Draught::Style.new(stroke_color: 'hot pink') }
+      let(:restyled) { subject.with_new_style(style) }
+
+      specify "preserves Style in the returned Pathlike" do
+        expect(restyled[0..1].style).to be(style)
+      end
+    end
+  end
+
   context "renderer methods" do
     it "returns an array including :path for #box_type" do
       expect(subject.box_type).to include(:path)

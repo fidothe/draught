@@ -47,6 +47,12 @@ module Draught
         expect(builder.world).to be(subject)
       end
 
+      specify "provides a CircleBuilder" do
+        builder = subject.circle
+        expect(builder).to be_an(CircleBuilder)
+        expect(builder.world).to be(subject)
+      end
+
       specify "provides a CurveSegmentBuilder" do
         builder = subject.curve_segment
         expect(builder).to be_a(CurveSegmentBuilder)

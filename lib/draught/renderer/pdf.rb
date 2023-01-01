@@ -1,5 +1,4 @@
 require 'prawn'
-require_relative '../curve'
 require_relative '../cubic_bezier'
 
 module Draught
@@ -31,10 +30,6 @@ module Draught
 
         def draw_pointlike(pointlike)
           case pointlike
-          when Draught::Curve
-            pointlike.as_cubic_beziers.each do |cubic_bezier|
-              draw_pointlike(cubic_bezier)
-            end
           when Draught::CubicBezier
             curve_to(point_tuple(pointlike.end_point), {
               bounds: [
@@ -52,7 +47,7 @@ module Draught
         end
       end
 
-      def self.render_to_file(sheet, path)
+      def self.render_to_file(path, sheet)
         new(sheet).render_to_file(path)
       end
 

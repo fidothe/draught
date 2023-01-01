@@ -204,19 +204,19 @@ module Draught
       it "can generate a LineSegment from angle/length and start point" do
         line_segment = subject.build(start_point: world.point.new(1,1), radians: Math::PI/4, length: 5.656854)
 
-        expect(line_segment).to approximate(world.path.new([world.point.new(1,1), world.point.new(5,5)])).within(0.00001)
+        expect(line_segment).to approximate(world.path.new(points: [world.point.new(1,1), world.point.new(5,5)])).within(0.00001)
       end
     end
 
-    describe "building a line_segment from a two-item Path" do
+    describe "building a LineSegment from a two-item Path" do
       it "generates the LineSegment correctly" do
-        path = world.path.new([world.point.zero, world.point.new(4,4)])
+        path = world.path.new(points: [world.point.zero, world.point.new(4,4)])
 
         expect(subject.from_path(path)).to eq(path)
       end
 
       it "blows up for a > 2-item Path" do
-        path = world.path.new([world.point.zero, world.point.new(4,4), world.point.new(6,6)])
+        path = world.path.new(points: [world.point.zero, world.point.new(4,4), world.point.new(6,6)])
 
         expect {
           subject.from_path(path)
@@ -224,11 +224,21 @@ module Draught
       end
 
       it "blows up for a < 2-item Path" do
-        path = world.path.new([world.point.zero])
+        path = world.path.new(points: [world.point.zero])
 
         expect {
           subject.from_path(path)
         }.to raise_error(ArgumentError)
+      end
+    end
+
+    describe "building a LineSegment from two points" do
+      it "generates the LineSegment correctly" do
+        p1 = world.point.zero
+        p2 = world.point.new(4,4)
+        path = world.path.new(points: [p1, p2])
+
+        expect(subject.from_to(p1, p2)).to eq(path)
       end
     end
   end

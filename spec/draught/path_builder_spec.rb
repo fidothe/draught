@@ -1,5 +1,6 @@
 require 'draught/world'
 require 'draught/point'
+require 'draught/style'
 require 'draught/path_builder'
 
 module Draught
@@ -17,9 +18,16 @@ module Draught
       end
 
       specify "from an array of Points" do
-        path = subject.new([p1, p2])
+        path = subject.new(points: [p1, p2])
         expect(path.points).to eq([p1, p2])
         expect(path.world).to be(world)
+      end
+
+      specify "including Style" do
+        style = Style.new(stroke_color: 'hot pink')
+        path = subject.new(points: [p1, p2], style: style)
+        expect(path.style).to eq(style)
+
       end
     end
 
@@ -65,6 +73,15 @@ module Draught
         }
 
         expect(collector).to eq([p2])
+      end
+
+      specify "Style can be set" do
+        style = Style.new(stroke_color: 'hot pink')
+        path = subject.build(style) { |p|
+          p << p1
+        }
+
+        expect(path.style).to be(style)
       end
     end
 

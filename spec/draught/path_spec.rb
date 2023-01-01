@@ -4,6 +4,7 @@ require 'draught/boxlike_examples'
 require 'draught/point'
 require 'draught/vector'
 require 'draught/transformations'
+require 'draught/style'
 require 'draught/path'
 
 module Draught
@@ -11,28 +12,35 @@ module Draught
     let(:world) { World.new }
     let(:point) { world.point.new(1,1) }
     let(:other_point) { world.point.new(2,2) }
+    let(:style) { Style.new(stroke_width: '1pt') }
 
     it "contains no points by default" do
       expect(Path.new(world).empty?).to be(true)
     end
 
     it "can be initialized with an array of Points" do
-      path = Path.new(world, [point])
+      path = Path.new(world, points: [point])
 
       expect(path.empty?).to be(false)
     end
 
+    it "can be initialized with a Style" do
+      path = Path.new(world, points: [point], style: style)
+
+      expect(path.style).to be(style)
+    end
+
     it_should_behave_like "a pathlike thing" do
-      subject { Path.new(world, [point, other_point]) }
+      subject { Path.new(world, points: [point, other_point]) }
       let(:points) { [point, other_point] }
     end
 
     it_should_behave_like "a basic rectangular box-like thing" do
-      subject { Path.new(world, [point, other_point]) }
+      subject { Path.new(world, points: [point, other_point]) }
     end
 
     describe "adding points to the path" do
-      subject { Path.new(world, [point]) }
+      subject { Path.new(world, points: [point], style: style) }
 
       context "appending" do
         specify "appending a point to the path returns a new path" do
@@ -49,11 +57,17 @@ module Draught
         end
 
         it "appending another path returns a new path with the other path's points appended" do
-          other_path = Path.new(world, [other_point])
+          other_path = Path.new(world, points: [other_point])
 
           path = subject << other_path
 
           expect(path.points).to eq([point, other_point])
+        end
+
+        specify "appending preserves style" do
+          path = subject.append(other_point)
+
+          expect(path.style).to be(style)
         end
       end
 
@@ -72,11 +86,17 @@ module Draught
         end
 
         it "prepending another path returns a new path with the other path's points appended" do
-          other_path = Path.new(world, [other_point])
+          other_path = Path.new(world, points: [other_point])
 
           path = subject.prepend(other_path)
 
           expect(path.points).to eq([other_point, point])
+        end
+
+        specify "prepending preserves style" do
+          path = subject.prepend(other_point)
+
+          expect(path.style).to be(style)
         end
       end
     end
@@ -86,15 +106,15 @@ module Draught
       let(:p2) { world.point.new(1,2) }
       let(:p3) { world.point.new(2,1) }
 
-      subject { Path.new(world, [p1, p2, p3]) }
+      subject { Path.new(world, points: [p1, p2, p3]) }
 
       context "[] access" do
         it "can also retrieve a slice via range" do
-          expect(subject[1..2]).to eq(Path.new(world, [p2, p3]))
+          expect(subject[1..2]).to eq(Path.new(world, points: [p2, p3]))
         end
 
         it "can also retrieve a slice via (n,n) args" do
-          expect(subject[0,2]).to eq(Path.new(world, [p1, p2]))
+          expect(subject[0,2]).to eq(Path.new(world, points: [p1, p2]))
         end
       end
     end
@@ -104,11 +124,11 @@ module Draught
       let(:p2) { world.point.new(1,2) }
       let(:p3) { world.point.new(2,1) }
 
-      subject { Path.new(world, [p1, p2]) }
+      subject { Path.new(world, points: [p1, p2]) }
 
       context "equality" do
         it "compares two Paths equal if all their Points are equal" do
-          path = Path.new(world, [p1, p2])
+          path = Path.new(world, points: [p1, p2])
 
           expect(subject == path).to be(true)
         end
@@ -144,11 +164,11 @@ module Draught
       end
 
       specify "an one-point path returns a sensible string" do
-        expect(Path.new(world, [p1])).to pp_as("(P 1,1)\n")
+        expect(Path.new(world, points: [p1])).to pp_as("(P 1,1)\n")
       end
 
       specify "a path containing multiple points returns a sensible string" do
-        expect(Path.new(world, [p1, p2])).to pp_as("(P 1,1 1,2)\n")
+        expect(Path.new(world, points: [p1, p2])).to pp_as("(P 1,1 1,2)\n")
       end
     end
   end

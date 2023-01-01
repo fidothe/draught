@@ -1,5 +1,9 @@
 require 'draught/arc'
 require 'draught/world'
+require 'draught/style'
+require 'draught/pathlike_examples'
+require 'draught/boxlike_examples'
+
 
 module Draught
   RSpec.describe Arc do
@@ -47,9 +51,9 @@ module Draught
       }
 
       context "generating a one-segment curve for a 90º arc" do
-        let(:expected) { Path.new(world, [
+        let(:expected) { Path.new(world, points: [
           world.point.zero,
-          Curve.new(world, end_point: world.point.new(-100,100), cubic_beziers: [first_90])
+          first_90
         ]) }
 
         it "creates the expected curve" do
@@ -65,20 +69,22 @@ module Draught
       end
 
       it "generates a two-segment curve for a 180º arc" do
-        path = Path.new(world, [
+        path = Path.new(world, points: [
           world.point.zero,
-          Curve.new(world, end_point: world.point.new(-200,0), cubic_beziers: [first_90, second_90])
+          first_90,
+          second_90
         ])
-        pp path
         builder = described_class.new(world, radius: 100, radians: deg_to_rad(180))
 
         expect(builder.path).to approximate(path).within(0.00001)
       end
 
       it "generates a three-segment curve for a 270º arc" do
-        path = Path.new(world, [
+        path = Path.new(world, points: [
           world.point.zero,
-          Curve.new(world, end_point: world.point.new(-100,-100), cubic_beziers: [first_90, second_90, third_90])
+          first_90,
+          second_90,
+          third_90
         ])
         builder = described_class.new(world, radius: 100, radians: deg_to_rad(270))
 
@@ -86,9 +92,12 @@ module Draught
       end
 
       it "generates a four-segment curve for a 360º arc" do
-        path = Path.new(world, [
+        path = Path.new(world, points: [
           world.point.zero,
-          Curve.new(world, end_point: world.point.zero, cubic_beziers: [first_90, second_90, third_90, fourth_90])
+          first_90,
+          second_90,
+          third_90,
+          fourth_90
         ])
         builder = described_class.new(world, radius: 100, radians: deg_to_rad(360))
 
@@ -96,18 +105,13 @@ module Draught
       end
 
       it "generates a two-segment curve for an arc between 90 and 180º" do
-        path = Path.new(world, [
+        path = Path.new(world, points: [
           world.point.zero,
-          Curve.new(world, {
+          first_90,
+          CubicBezier.new(world, {
             end_point: world.point.new(-117.36482, 98.48078),
-            cubic_beziers: [
-              first_90,
-              CubicBezier.new(world, {
-                end_point: world.point.new(-117.36482, 98.48078),
-                control_point_1: world.point.new( -105.82146, 100),
-                control_point_2: world.point.new(-111.63179, 99.49166)
-              })
-            ]
+            control_point_1: world.point.new( -105.82146, 100),
+            control_point_2: world.point.new(-111.63179, 99.49166)
           })
         ])
         builder = described_class.new(world, radius: 100, radians: deg_to_rad(100))
@@ -135,31 +139,23 @@ module Draught
               control_point_2: world.point.new(0, 55.22847)
             })
           ]
-          path = Path.new(world, [
-            world.point.zero,
-            Curve.new(world, end_point: world.point.zero, cubic_beziers: cubic_beziers)
-          ])
+          path = Path.new(world, points: [world.point.zero] + cubic_beziers)
           builder = described_class.new(world, radius: 100, radians: deg_to_rad(-360))
 
           expect(builder.path).to approximate(path).within(0.00001)
         end
 
         it "generates correct clockwise arcs when the angle is not a clean right-angle" do
-          path = Path.new(world, [
+          path = Path.new(world, points: [
             world.point.zero,
-            Curve.new(world, {
+            CubicBezier.new(world, {
+              end_point: world.point.new(-100, -100), control_point_1: world.point.new(0, -55.22847),
+              control_point_2: world.point.new(-44.77153, -100)
+            }),
+            CubicBezier.new(world, {
               end_point: world.point.new(-117.36482, -98.48078),
-              cubic_beziers: [
-                CubicBezier.new(world, {
-                  end_point: world.point.new(-100, -100), control_point_1: world.point.new(0, -55.22847),
-                  control_point_2: world.point.new(-44.77153, -100)
-                }),
-                CubicBezier.new(world, {
-                  end_point: world.point.new(-117.36482, -98.48078),
-                  control_point_1: world.point.new( -105.82146, -100),
-                  control_point_2: world.point.new(-111.63179, -99.49166)
-                })
-              ]
+              control_point_1: world.point.new( -105.82146, -100),
+              control_point_2: world.point.new(-111.63179, -99.49166)
             })
           ])
           builder = described_class.new(world, radius: 100, radians: deg_to_rad(-100))
@@ -173,6 +169,20 @@ module Draught
 
         expect(builder.path.first).to eq(world.point.zero)
       end
+
+      specify "allows a specific first (starting) point to be given" do
+        p1 = world.point.new(100,100)
+        builder = described_class.new(world, radius: 100, radians: deg_to_rad(90), starting_angle: deg_to_rad(15), start_point: p1)
+
+        expect(builder.path.first).to eq(p1)
+      end
     end
+
+
+    it_should_behave_like "a pathlike thing" do
+      let(:points) { subject.path.points }
+    end
+
+    it_should_behave_like "a basic rectangular box-like thing"
   end
 end

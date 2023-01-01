@@ -2,6 +2,7 @@ require_relative './tolerance'
 require_relative './point_builder'
 require_relative './vector_builder'
 require_relative './arc_builder'
+require_relative './circle_builder'
 require_relative './path_builder'
 require_relative './line_segment_builder'
 require_relative './curve_segment_builder'
@@ -40,6 +41,11 @@ module Draught
     # @return [ArcBuilder] the builder for producing Arc objects
     def arc
       @arc ||= ArcBuilder.new(self)
+    end
+
+    # @return [CircleBuilder] the builder for producing Circle objects
+    def circle
+      @circle ||= CircleBuilder.new(self)
     end
 
     # @return [PathBuilder] the builder for producing Path objects

@@ -37,6 +37,11 @@ module Draught
       world.vector.translation_between(self, point)
     end
 
+    # @return [Vector] a vector form of this point (Vector(self.x,self.y))
+    def to_vector
+      world.vector.new(x, y)
+    end
+
     def to_matrix
       @matrix ||= Matrix[[x],[y],[1]].freeze
     end

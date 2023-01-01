@@ -19,7 +19,8 @@ module Draught
         if args.has_key?(:control_point_1)
           args = {
             start_point: args.fetch(:start_point),
-            cubic_bezier: CubicBezier.new(world, args)
+            cubic_bezier: CubicBezier.new(world, args),
+            style: args.fetch(:style, nil)
           }
         end
         new(world, args)
@@ -46,6 +47,7 @@ module Draught
       @world = world
       @start_point = args.fetch(:start_point)
       @cubic_bezier = args.fetch(:cubic_bezier)
+      @style = args.fetch(:style, nil)
     end
 
     def control_point_1
@@ -68,27 +70,27 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          world.path.new(points[index_start_or_range])
+          world.path.new(points: points[index_start_or_range], style: style)
         when Numeric
           points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        world.path.new(points[index_start_or_range, length])
+        world.path.new(points: points[index_start_or_range, length], style: style)
       end
     end
 
     def translate(vector)
-      self.class.build(world, Hash[
-        transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }
-      ])
+      translated_args = transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }.to_h
+      translated_args[:style] = style
+      self.class.build(world, translated_args)
     end
 
     def transform(transformation)
-      self.class.build(world, Hash[
-        transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }
-      ])
+      transformed_args = transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }.to_h
+      transformed_args[:style] = style
+      self.class.build(world, transformed_args)
     end
 
     def lower_left
@@ -138,6 +140,16 @@ module Draught
           q.pp pointish
         end
       end
+    end
+
+    def style
+      @style ||= Style.new
+    end
+
+    def with_new_style(style)
+      args = transform_args_hash
+      args[:style] = style
+      self.class.new(world, args)
     end
 
     private

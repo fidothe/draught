@@ -45,7 +45,7 @@ module Draught::Renderer
     it "provides a convenience class method for rendering a sheet to a file" do
       Dir.mktmpdir do |dir|
         path = File.join(dir, 'tmp.pdf')
-        described_class.render_to_file(sheet, path)
+        described_class.render_to_file(path, sheet)
 
         expect(File.file?(path)).to be(true)
       end

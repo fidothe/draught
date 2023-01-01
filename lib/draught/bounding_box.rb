@@ -7,7 +7,7 @@ module Draught
 
     attr_reader :world, :paths
 
-    def initialize(world, *paths)
+    def initialize(world, paths)
       @world = world
       @paths = paths
     end
@@ -25,11 +25,11 @@ module Draught
     end
 
     def translate(point)
-      self.class.new(world, *paths.map { |path| path.translate(point) })
+      self.class.new(world, paths.map { |path| path.translate(point) })
     end
 
     def transform(transformer)
-      self.class.new(world, *paths.map { |path| path.transform(transformer) })
+      self.class.new(world, paths.map { |path| path.transform(transformer) })
     end
 
     def zero_origin

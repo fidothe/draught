@@ -21,11 +21,11 @@ module Draught
 
     describe "[] access" do
       it "returns a Path when [Range]-style access is used" do
-        expect(subject[0..0]).to eq(world.path.new([world.point.zero]))
+        expect(subject[0..0]).to eq(world.path.new(points: [world.point.zero]))
       end
 
       it "returns a Path when [start, length]-style access is used" do
-        expect(subject[1,1]).to eq(world.path.new([cubic]))
+        expect(subject[1,1]).to eq(world.path.new(points: [cubic]))
       end
     end
 
@@ -64,13 +64,13 @@ module Draught
 
     context "building a Curve Segment from a two-item Path" do
       it "generates the CurveSegment correctly" do
-        path = world.path.new([start_point, cubic])
+        path = world.path.new(points: [start_point, cubic])
 
         expect(CurveSegment.from_path(world, path)).to eq(path)
       end
 
       it "blows up for a > 2-item Path" do
-        path = world.path.new([start_point, cubic, world.point.new(6,6)])
+        path = world.path.new(points: [start_point, cubic, world.point.new(6,6)])
 
         expect {
           CurveSegment.from_path(world, path)
@@ -78,7 +78,7 @@ module Draught
       end
 
       it "blows up for a < 2-item Path" do
-        path = world.path.new([world.point.zero])
+        path = world.path.new(points: [world.point.zero])
 
         expect {
           CurveSegment.from_path(world, path)
@@ -86,7 +86,7 @@ module Draught
       end
 
       it "blows up if the first item isn't a Point" do
-        path = world.path.new([cubic, start_point])
+        path = world.path.new(points: [cubic, start_point])
 
         expect {
           CurveSegment.from_path(world, path)
@@ -94,7 +94,7 @@ module Draught
       end
 
       it "blows up if the last item isn't a CubicBezier" do
-        path = world.path.new([start_point, end_point])
+        path = world.path.new(points: [start_point, end_point])
 
         expect {
           CurveSegment.from_path(world, path)

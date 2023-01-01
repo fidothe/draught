@@ -31,10 +31,15 @@ module Draught
       @end_point = args.fetch(:end_point)
       @length = args.fetch(:length)
       @radians = args.fetch(:radians)
+      @style = args.fetch(:style, nil)
     end
 
     def points
       @points ||= [start_point, end_point]
+    end
+
+    def center
+      @center ||= compute_point(0.5)
     end
 
     def compute_point(t)
@@ -63,27 +68,27 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          world.path.new(points[index_start_or_range])
+          world.path.new(points: points[index_start_or_range], style: style)
         when Numeric
           points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        world.path.new(points[index_start_or_range, length])
+        world.path.new(points: points[index_start_or_range, length], style: style)
       end
     end
 
     def translate(vector)
-      self.class.build(world, Hash[
-        transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }
-      ])
+      translated_args = transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }.to_h
+      translated_args[:style] = style
+      self.class.build(world, translated_args)
     end
 
     def transform(transformation)
-      self.class.build(world, Hash[
-        transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }
-      ])
+      transformed_args = transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }.to_h
+      transformed_args[:style] = style
+      self.class.build(world, transformed_args)
     end
 
     def lower_left
@@ -123,6 +128,14 @@ module Draught
       end
     end
 
+    def style
+      @style ||= Style.new
+    end
+
+    def with_new_style(style)
+      self.class.new(world, {start_point: start_point, end_point: end_point, length: length, radians: radians, style: style})
+    end
+
     private
 
     def shift_line_segment(new_line_segment)
@@ -131,7 +144,8 @@ module Draught
         start_point: start_point.translate(translation),
         end_point: new_line_segment.end_point.translate(translation),
         length: new_line_segment.length,
-        radians: radians
+        radians: radians,
+        style: style
       })
     end
 

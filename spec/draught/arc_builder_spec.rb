@@ -10,6 +10,7 @@ module Draught
 
     describe "creating an Arc" do
       let(:arc) { subject.new(radians: radians, radius: 100) }
+
       it "defaults to a starting angle of 0 radians" do
         expect(arc.starting_angle).to eq(0)
       end
