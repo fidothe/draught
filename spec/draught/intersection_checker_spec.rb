@@ -2,6 +2,7 @@ require 'draught/intersection_checker'
 require 'draught/world'
 require 'draught/line_segment'
 require 'draught/curve_segment'
+require 'intersection_helper'
 
 module Draught
   RSpec.describe IntersectionChecker do
@@ -85,6 +86,28 @@ module Draught
         expect(actual.length).to eq(2)
         expect(actual.first).to approximate(intersection_point_1).within(0.000001)
         expect(actual.last).to approximate(intersection_point_2).within(0.000001)
+      end
+    end
+
+    describe "curve/line intersections" do
+      # Affinity Designer mostly rounds to 3 d.p. in its SVG output, but rounds
+      # to 1 d.p. in the UI. In my experience 1 d.p. is closer to the mark than
+      # 3 d.p. when comparing Draught intersections with Affinity Designer
+      # intersections. I'm now using a tolerance of 0.1 and adding zeroes above
+      # the decimal using (10000,10000) instead of the original (100,100).
+      let(:tolerance) { Tolerance.new(0.1) }
+      let(:world) { World.new(tolerance) }
+
+      def fixture_path(name)
+        (Pathname.new(__dir__)/'../fixtures/intersection')/name
+      end
+
+      specify "2 intersections, with an analytic solution" do
+        expect('curve-line/2-intersection.svg').to have_intersecting('line', 'curve')
+      end
+
+      specify "2 intersections, with no analytic solution" do
+        expect('curve-line/2-intersection-no-analytic.svg').to have_intersecting('line', 'curve')
       end
     end
   end
