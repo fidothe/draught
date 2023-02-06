@@ -6,6 +6,7 @@ require 'draught/boxlike_examples'
 module Draught
   RSpec.describe CurveSegment do
     let(:world) { World.new }
+    let(:metadata) { Metadata::Instance.new(name: 'name') }
     let(:start_point) { world.point.zero }
     let(:end_point) { world.point.new(4,0) }
     let(:control_point_1) { world.point.new(1,2) }
@@ -18,6 +19,18 @@ module Draught
     let(:segment_opts) { {start_point: start_point, cubic_bezier: cubic} }
 
     subject { CurveSegment.build(world, segment_opts) }
+
+    context "metadata" do
+      it "can be initialized with a Metadata" do
+        path = described_class.new(world, segment_opts.merge(metadata: metadata))
+
+        expect(path.metadata).to be(metadata)
+      end
+
+      specify "has a blank Metadata by default" do
+        expect(subject.metadata).to be(Metadata::BLANK)
+      end
+    end
 
     describe "[] access" do
       it "returns a Path when [Range]-style access is used" do

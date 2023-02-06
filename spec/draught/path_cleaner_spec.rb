@@ -4,15 +4,28 @@ require 'draught/world'
 module Draught
   RSpec.describe PathCleaner do
     let(:world) { World.new }
+    let(:metadata) { Metadata::Instance.new(name: 'name') }
+
     def p(x, y)
       world.point.new(x, y)
     end
 
-    it "can remove extra identical points and returns a new cleaned path" do
-      input = world.path.new(points: [p(0,0), p(1,0), p(1,0), p(4,0)])
-      expected = world.path.new(points: [p(0,0), p(1,0), p(4,0)])
+    describe "cleaning a path by removing extra identical points" do
+      specify "returns a new cleaned path" do
+        input = world.path.new(points: [p(0,0), p(1,0), p(1,0), p(4,0)])
+        expected = world.path.new(points: [p(0,0), p(1,0), p(4,0)])
 
-      expect(PathCleaner.dedupe(world, input)).to eq(expected)
+        expect(PathCleaner.dedupe(world, input)).to eq(expected)
+      end
+
+      context "handling Metadata" do
+        let(:input) { world.path.new(points: [p(0,0), p(4,0), p(1,0)], metadata: metadata) }
+        let(:deduped) { PathCleaner.dedupe(world, input) }
+
+        specify "preserves Metadata" do
+          expect(deduped.metadata).to be(metadata)
+        end
+      end
     end
 
     describe "simplifying a path" do
@@ -61,6 +74,16 @@ module Draught
         expected = world.path.new(points: [p(0,4), p(0,1)])
 
         expect(PathCleaner.simplify(world, input)).to eq(expected)
+      end
+
+
+      context "handling Metadata" do
+        let(:input) { world.path.new(points: [p(0,0), p(4,0), p(1,0)], metadata: metadata) }
+        let(:deduped) { PathCleaner.simplify(world, input) }
+
+        specify "preserves Metadata" do
+          expect(deduped.metadata).to be(metadata)
+        end
       end
     end
   end

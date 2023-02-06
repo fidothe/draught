@@ -1,3 +1,5 @@
+require 'securerandom'
+
 RSpec.shared_examples "a pathlike thing" do
   it "can return an array of its points" do
     expect(subject.points).to eq(points)
@@ -64,44 +66,65 @@ RSpec.shared_examples "a pathlike thing" do
     end
   end
 
-  describe "style properties" do
-    it "can return a Style object" do
-      expect(subject.style).to be_a(Draught::Style)
-    end
+  describe "metadata" do
+    let(:name) { SecureRandom.hex(10) }
+    let(:style) { Draught::Style.new(stroke_color: 'hot pink') }
+    let(:annotation) { ['score'] }
+    let(:metadata) {
+      Draught::Metadata::Instance.new(name: name, style: style, annotation: annotation)
+    }
 
-    it "can return a copy of itself with a new Style object attached" do
-      new_style = Draught::Style.new(stroke_color: 'hot pink')
-      restyled = subject.with_new_style(new_style)
+    context "metadata-only changes" do
+      specify "a copy of the object using a new metadata instance can be made" do
+        metadata_updated = subject.with_metadata(metadata)
 
-      expect(restyled.style).to be(new_style)
-      expect(restyled).to eq(subject)
-    end
-
-    context "transformation and translation" do
-      let(:style) { Draught::Style.new(stroke_color: 'hot pink') }
-      let(:restyled) { subject.with_new_style(style) }
-
-      specify "translating a Pathlike maintains Style" do
-        translation = world.vector.new(2,1)
-
-        expect(restyled.translate(translation).style).to be(style)
+        expect(metadata_updated.metadata).to be(metadata)
+        expect(metadata_updated).to eq(subject)
       end
 
-      specify "transforming a Pathlike maintains Style" do
-        transformation = Draught::Transformations::Affine.new(
-          Matrix[[2,0,0],[0,2,0],[0,0,1]]
-        )
+      context "creating a copy with only a partial metadata update" do
+        specify "allows a name-only update" do
+          renamed = subject.with_name(name)
 
-        expect(restyled.transform(transformation).style).to be(style)
+          expect(renamed.name).to eq(name)
+          expect(renamed).to eq(subject)
+        end
+
+        specify "allows a style-only update" do
+          restyled = subject.with_style(style)
+
+          expect(restyled.style).to be(style)
+          expect(restyled).to eq(subject)
+        end
+
+        specify "allows an annotation-only update" do
+          annotated = subject.with_annotation(annotation)
+
+          expect(annotated.annotation).to eq(annotation)
+          expect(annotated).to eq(subject)
+        end
       end
-    end
 
-    context "[] access" do
-      let(:style) { Draught::Style.new(stroke_color: 'hot pink') }
-      let(:restyled) { subject.with_new_style(style) }
+      describe "preserving metadata through transform, translate, and slice access" do
+        let(:updated) { subject.with_metadata(metadata) }
 
-      specify "preserves Style in the returned Pathlike" do
-        expect(restyled[0..1].style).to be(style)
+        specify "translating a Pathlike preserves its metadata" do
+          translation = world.vector.new(2,1)
+
+          expect(updated.translate(translation).metadata).to be(metadata)
+        end
+
+        specify "transforming a Pathlike preserves its metadata" do
+          transformation = Draught::Transformations::Affine.new(
+            Matrix[[2,0,0],[0,2,0],[0,0,1]]
+          )
+
+          expect(updated.transform(transformation).metadata).to be(metadata)
+        end
+
+        specify "slice access of a Pathlike preserves metadata in the resulting Path" do
+          expect(updated[0..1].metadata).to be(metadata)
+        end
       end
     end
   end

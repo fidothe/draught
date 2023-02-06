@@ -32,6 +32,8 @@ module Draught
     #   @return [Number] the angular size of the Arc, in radians
     # @!attribute [r] start_point
     #   @return [Point] the Point the arc path starts at
+    # @!attribute [r] metadata
+    #   @return [Metadata] Metadata for the arc
 
     def_delegators :path, :points, :"[]", :width, :height, :lower_left, :lower_right, :upper_left, :upper_right
 
@@ -41,19 +43,19 @@ module Draught
     # @option args [Number] :starting_angle (0) the angle at which the arc begins
     # @option args [Number] :radians (0) the size of the arc
     # @option args [Draught::Point] :start_point (0,0) the point the arc should start at
-    # @option args [Draught::Style] :style (nil) Styles that should be attached to the Arc
+    # @option args [Draught::Metadata::Instance] :metadata (nil) Metadata for the Arc that should be attached to the Arc
     def initialize(world, args = {})
       @world = world
       @radius = args.fetch(:radius)
       @starting_angle = args.fetch(:starting_angle, 0)
       @radians = args.fetch(:radians)
-      @style = args.fetch(:style, nil)
       @start_point = args.fetch(:start_point, world.point.zero)
+      @metadata = args.fetch(:metadata, nil)
     end
 
     # @return [Path]
     def path
-      @path ||= world.path.new(points: [start_point] + cubic_beziers, style: style)
+      @path ||= world.path.new(points: [start_point] + cubic_beziers, metadata: metadata)
     end
 
     # @return [Array<CubicBezier>]
@@ -61,12 +63,12 @@ module Draught
       @cubic_beziers ||= segments.map { |s| s.cubic_bezier.transform(transformer) }
     end
 
-    def style
-      @style ||= Style.new
-    end
-
-    def with_new_style(style)
-      self.class.new(world, new_args.merge(style: style))
+    # return a copy of this object with a different Metadata attached
+    #
+    # @param style [Metadata::Instance] the metadata to use
+    # @return [Arc] the copy of this Arc with new metadata
+    def with_metadata(metadata)
+      self.class.new(world, new_args.merge(metadata: metadata))
     end
 
     def translate(vector)
@@ -92,7 +94,7 @@ module Draught
     private
 
     def new_args
-      {radius: radius, radians: radians, starting_angle: starting_angle, start_point: start_point, style: style}
+      {radius: radius, radians: radians, starting_angle: starting_angle, start_point: start_point, metadata: metadata}
     end
 
     def untranslated_start_point

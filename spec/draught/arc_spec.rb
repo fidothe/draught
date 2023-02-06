@@ -1,9 +1,7 @@
 require 'draught/arc'
 require 'draught/world'
-require 'draught/style'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
-
 
 module Draught
   RSpec.describe Arc do

@@ -110,8 +110,14 @@ module Draught
       end
 
       # @param pathlike [Draught::Pathlike] the pathlike to generate attributes for
+      # @return [Hash<Symbol,String>] name, value hash of attributes for an element
       def path_attrs(pathlike)
-        {d: path_def_value(pathlike), style: style_attr_value(pathlike.style)}.reject { |k, v| v == '' }
+        {
+          d: path_def_value(pathlike),
+          style: style_attr_value(pathlike.style),
+          class: class_attr_value(pathlike.annotation),
+          id: id_attr_value(pathlike.name)
+        }.reject { |k, v| v == '' }
       end
 
       # @param pathlike [Draught::Pathlike] the pathlike to generate a def for
@@ -125,12 +131,27 @@ module Draught
       end
 
       # @param style [Draught::Style] the style to generate CSS properties for
+      # @return [String] a CSS rules string
       def style_attr_value(style)
         properties = []
         {stroke_color: 'stroke', stroke_width: 'stroke-width', fill: 'fill'}.map { |style_meth, css_prop|
           value = style.send(style_meth)
           value.nil? ? nil : "#{css_prop}: #{value};"
         }.compact.join(' ')
+      end
+
+      # @param annotation [Array<String>] the annotation to generate a class attr from
+      # @return [String] the space-separated class attr value
+      def class_attr_value(annotation)
+        return '' if annotation.empty?
+        annotation.join(' ')
+      end
+
+      # @param name [String] the name to generate an id attr from
+      # @return [String] the id value
+      def id_attr_value(name)
+        return '' if name.nil?
+        name
       end
     end
   end

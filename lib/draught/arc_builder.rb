@@ -16,7 +16,7 @@ module Draught
     end
 
     def degrees(args = {})
-      new_args = {radius: args[:radius]}
+      new_args = args.select { |k,_| [:radius, :metadata] }
       new_args[:radians] = deg_to_rad(args.fetch(:angle))
       new_args[:starting_angle] = deg_to_rad(args.fetch(:starting_angle, 0))
       new(new_args)

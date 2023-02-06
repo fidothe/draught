@@ -10,7 +10,7 @@ module Draught
     subject { described_class.new(world) }
     let(:arc_builder) { ArcBuilder.new(world) }
 
-    describe "joing two paths with a rounded corner returns a new containing the incoming path up to the point the arc starts, the arc, and the rest of the outgoing path" do
+    describe "joing two paths with a rounded corner returns a new path containing the incoming path up to the point the arc starts, the arc, and the rest of the outgoing path" do
       context "the two paths meet at right-angles" do
         let(:horizontal) { world.line_segment.horizontal(100) }
         let(:up) { world.line_segment.vertical(100) }
@@ -23,7 +23,7 @@ module Draught
             p << world.point.new(100,100)
           }
 
-          joined = subject.join_rounded(radius: 10, paths: [horizontal, up])
+          joined = subject.join_rounded(horizontal, up, radius: 10)
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -35,7 +35,7 @@ module Draught
             p << world.point.new(100,-100)
           }
 
-          joined = subject.join_rounded(radius: 10, paths: [horizontal, down])
+          joined = subject.join_rounded(horizontal, down, radius: 10)
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -51,9 +51,30 @@ module Draught
 
           incoming = world.line_segment.build(radians: deg_to_rad(-45), length: 100)
           outgoing = world.line_segment.build(radians: deg_to_rad(45), length: 100)
-          joined = subject.join_rounded(radius: 10, paths: [incoming, outgoing])
+          joined = subject.join_rounded(incoming, outgoing, radius: 10)
 
           expect(joined).to approximate(expected).within(0.00001)
+        end
+
+        context "handling Metadata" do
+          let(:metadata) { Metadata::Instance.new(name: 'name') }
+          let(:styled_horizontal) { horizontal.with_metadata(metadata) }
+
+          context "when the first path has metadata but the builder does not" do
+            let(:joined) { subject.join_rounded(styled_horizontal, up, radius: 10) }
+
+            specify "the resulting path has a blank metadata" do
+              expect(joined.metadata).to_not be(metadata)
+            end
+          end
+
+          context "when the builder specifies Metadata" do
+            let(:joined) { subject.join_rounded(horizontal, up, radius: 10, metadata: metadata) }
+
+            specify "the resulting path has the correct Metadata" do
+              expect(joined.metadata).to be(metadata)
+            end
+          end
         end
       end
 
@@ -67,7 +88,7 @@ module Draught
 
           h = world.line_segment.horizontal(100)
           l45 = world.line_segment.build(radians: deg_to_rad(135), length: 100)
-          joined = subject.join_rounded(radius: 10, paths: [h, l45])
+          joined = subject.join_rounded(h, l45, radius: 10)
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -81,7 +102,7 @@ module Draught
 
           h = world.line_segment.horizontal(-100)
           l45 = world.line_segment.build(radians: deg_to_rad(45), length: 100)
-          joined = subject.join_rounded(radius: 10, paths: [h, l45])
+          joined = subject.join_rounded(h, l45, radius: 10)
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -97,7 +118,7 @@ module Draught
 
           h = world.line_segment.horizontal(100)
           l135 = world.line_segment.build(radians: deg_to_rad(45), length: 100)
-          joined = subject.join_rounded(radius: 10, paths: [h, l135])
+          joined = subject.join_rounded(h, l135, radius: 10)
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -111,7 +132,7 @@ module Draught
 
           h = world.line_segment.horizontal(-100)
           l135 = world.line_segment.build(radians: deg_to_rad(135), length: 100)
-          joined = subject.join_rounded(radius: 10, paths: [h, l135])
+          joined = subject.join_rounded(h, l135, radius: 10)
 
           expect(joined).to approximate(expected).within(0.00001)
         end
@@ -133,7 +154,7 @@ module Draught
         }
 
         ref = world.path.connect(down, horizontal, up)
-        joined = subject.join_rounded(radius: 10, paths: [down, horizontal, up])
+        joined = subject.join_rounded(down, horizontal, up, radius: 10)
 
         expect(joined).to approximate(expected).within(0.00001)
       end

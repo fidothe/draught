@@ -1,7 +1,6 @@
 require 'forwardable'
 require_relative './boxlike'
 require_relative './pathlike'
-require_relative './style'
 
 module Draught
   class Path
@@ -9,15 +8,21 @@ module Draught
     include Pathlike
 
     attr_reader :world, :points
+    # @!attribute [r] world
+    #   @return [World] the World
+    # @!attribute [r] points
+    #   @return [Array<Point>] the Points that make up the Path
+    # @!attribute [r] metadata
+    #   @return [Metadata] Metadata for the Path
 
     # @param world [World] the world
     # @param args [Hash] the Path arguments.
     # @option args [Array<Draught::Point>] :points ([]) the points of the Path
-    # @option args [Draught::Style] :style (nil) Styles that should be attached to the Path
+    # @option args [Draught::Metadata] :metadata (nil) a Metadata object that should be attached to the Path
     def initialize(world, args = {})
       @world = world
       @points = args.fetch(:points, []).dup.freeze
-      @style = args.fetch(:style, nil)
+      @metadata = args.fetch(:metadata, nil)
     end
 
     def <<(point)
@@ -29,7 +34,7 @@ module Draught
     end
 
     def prepend(*paths_or_points)
-      paths_or_points.inject(Path.new(world, points: [], style: style)) { |path, point_or_path|
+      paths_or_points.inject(Path.new(world, points: [], metadata: metadata)) { |path, point_or_path|
         path.add_points(point_or_path.points)
       }.add_points(self.points)
     end
@@ -38,14 +43,14 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          self.class.new(world, points: points[index_start_or_range], style: style)
+          new_instance_with_points(points[index_start_or_range])
         when Numeric
           points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        self.class.new(world, points: points[index_start_or_range, length], style: style)
+        new_instance_with_points(points[index_start_or_range, length])
       end
     end
 
@@ -62,11 +67,11 @@ module Draught
     end
 
     def translate(vector)
-      self.class.new(world, points: points.map { |p| p.translate(vector) }, style: style)
+      new_instance_with_points(points.map { |p| p.translate(vector) })
     end
 
     def transform(transformer)
-      self.class.new(world, points: points.map { |p| p.transform(transformer) }, style: style)
+      new_instance_with_points(points.map { |p| p.transform(transformer) })
     end
 
     def pretty_print(q)
@@ -78,18 +83,18 @@ module Draught
       end
     end
 
-    def style
-      @style ||= Style.new
-    end
-
-    def with_new_style(style)
-      self.class.new(world, points: points, style: style)
+    # return a copy of this object with a new Metadata attached
+    #
+    # @param style [Metadata::Instance] the Metadata to use
+    # @return [Path] the copy of this Path with the new metadata
+    def with_metadata(metadata)
+      self.class.new(world, points: points, metadata: metadata)
     end
 
     protected
 
     def add_points(points)
-      self.class.new(world, points: @points + points, style: style)
+      new_instance_with_points(@points + points)
     end
 
     private
@@ -108,6 +113,10 @@ module Draught
 
     def y_min
       @y_min ||= points.map(&:y).min || 0
+    end
+
+    def new_instance_with_points(points)
+      self.class.new(world, points: points, metadata: metadata)
     end
   end
 end

@@ -10,19 +10,19 @@ module Draught
       @world = world
     end
 
-    def new(args = {})
-      Path.new(world, args)
+    def new(**kwargs)
+      Path.new(world, kwargs)
     end
 
-    def build(style = nil)
-      builder = Builder.new(new(style: style))
+    def build(**kwargs)
+      builder = Builder.new(new(**kwargs))
       yield(builder)
       builder.path
     end
 
-    def connect(*paths)
+    def connect(*paths, **kwargs)
       paths = paths.reject(&:empty?)
-      build { |p|
+      build(**kwargs) { |p|
         p << paths.shift
         paths.inject(p.last) { |point, path|
           translation = world.vector.translation_between(path.first, point)

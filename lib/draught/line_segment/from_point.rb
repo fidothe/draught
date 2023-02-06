@@ -1,8 +1,8 @@
 module Draught
   class LineSegment
     class FromPoint
-      attr_reader :world, :start_point, :end_point, :style
-      private :start_point, :end_point, :style
+      attr_reader :world, :start_point, :end_point, :metadata
+      private :start_point, :end_point, :metadata
 
       def self.build(world, args)
         new(world, args).line_segment_args
@@ -12,11 +12,11 @@ module Draught
         @world = world
         @start_point = args.fetch(:start_point, world.point.zero)
         @end_point = args.fetch(:end_point)
-        @style = args.fetch(:style, nil)
+        @metadata = args.fetch(:metadata, Metadata::BLANK)
       end
 
       def line_segment_args
-        {length: length, radians: radians, start_point: start_point, end_point: end_point, style: style}
+        {length: length, radians: radians, start_point: start_point, end_point: end_point, metadata: metadata}
       end
 
       private

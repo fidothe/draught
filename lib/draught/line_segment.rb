@@ -24,14 +24,31 @@ module Draught
     end
 
     attr_reader :world, :start_point, :end_point, :length, :radians
+    # @!attribute [r] world
+    #   @return [World] the World
+    # @!attribute [r] start_point
+    #   @return [Point] the Point the LineSegment starts at
+    # @!attribute [r] end_point
+    #   @return [Point] the Point the LineSegment ends at
+    # @!attribute [r] length
+    #   @return [Number] the length of the LineSegment
+    # @!attribute [r] radians
+    #   @return [Number] the angle of the LineSegment in radians.
 
+    # @param world [World] the world
+    # @param args [Hash] the Path arguments.
+    # @option args [Draught::Point] (PointBuilder.zero) :start_point the start Point of the line
+    # @option args [Draught::Point] :end_point the end Point of the line
+    # @option args [Number] :length the length of the line
+    # @option args [Number] :radians the angle of the line, in radians
+    # @option args [Draught::Metadata] :metadata (nil) a Metadata object that should be attached to the LineSegment
     def initialize(world, args)
       @world = world
       @start_point = args.fetch(:start_point, world.point.zero)
       @end_point = args.fetch(:end_point)
       @length = args.fetch(:length)
       @radians = args.fetch(:radians)
-      @style = args.fetch(:style, nil)
+      @metadata = args.fetch(:metadata, nil)
     end
 
     def points
@@ -59,7 +76,8 @@ module Draught
       args = default_args.merge(args)
       new_length = args[:to] || length + args[:by]
       new_line_segment = self.class.build(world, {
-        start_point: start_point, length: new_length, radians: radians
+        start_point: start_point, length: new_length, radians: radians,
+        metadata: metadata
       })
       args[:at] == :start ? shift_line_segment(new_line_segment) : new_line_segment
     end
@@ -68,27 +86,23 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          world.path.new(points: points[index_start_or_range], style: style)
+          world.path.new(points: points[index_start_or_range], metadata: metadata)
         when Numeric
           points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        world.path.new(points: points[index_start_or_range, length], style: style)
+        world.path.new(points: points[index_start_or_range, length], metadata: metadata)
       end
     end
 
     def translate(vector)
-      translated_args = transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }.to_h
-      translated_args[:style] = style
-      self.class.build(world, translated_args)
+      transformed_instance(->(arg, point) { [arg, point.translate(vector)] })
     end
 
     def transform(transformation)
-      transformed_args = transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }.to_h
-      transformed_args[:style] = style
-      self.class.build(world, transformed_args)
+      transformed_instance(->(arg, point) { [arg, point.transform(transformation)] })
     end
 
     def lower_left
@@ -128,12 +142,11 @@ module Draught
       end
     end
 
-    def style
-      @style ||= Style.new
-    end
-
-    def with_new_style(style)
-      self.class.new(world, {start_point: start_point, end_point: end_point, length: length, radians: radians, style: style})
+    def with_metadata(metadata)
+      self.class.new(world, {
+        start_point: start_point, end_point: end_point, length: length, radians: radians,
+        metadata: metadata
+      })
     end
 
     private
@@ -145,8 +158,14 @@ module Draught
         end_point: new_line_segment.end_point.translate(translation),
         length: new_line_segment.length,
         radians: radians,
-        style: style
+        metadata: metadata,
       })
+    end
+
+    def transformed_instance(mapper)
+      args = transform_args_hash.map(&mapper).to_h
+      args[:metadata] = metadata
+      self.class.build(world, args)
     end
 
     def transform_args_hash

@@ -24,8 +24,8 @@ module Draught::Renderer
       Draught::CubicBezier.new(world, control_point_1: c1, control_point_2: c2, end_point: e)
     end
 
-    def l(width)
-      world.line_segment.horizontal(width)
+    def l(width, metadata: nil)
+      world.line_segment.horizontal(width, metadata: metadata)
     end
 
     def box(objects = [])
@@ -101,37 +101,94 @@ module Draught::Renderer
           end
         end
 
-        context "with all-nil Style properties" do
-          let(:path) { world.path.new(points: [p(10,20), p(30,10), p(50,20)]) }
-          let(:svg_path) { render { |svg| svg.path(path) } }
-          let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
+        context "handling Style properties" do
+          context "when all-nil" do
+            let(:path) { world.path.new(points: [p(10,20), p(30,10), p(50,20)]) }
+            let(:svg_path) { render { |svg| svg.path(path) } }
+            let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 
-          specify "no style attribute is generated" do
-            expect(!element.has_attribute?('style'))
+            specify "no style attribute is generated" do
+              expect(!element.has_attribute?('style'))
+            end
+          end
+
+          context "when set to something" do
+            let(:style) { Draught::Style.new(stroke_color: 'black', stroke_width: '1pt', fill: 'none') }
+            let(:metadata) { Draught::Metadata::Instance.new(style: style) }
+            let(:line) { l(100, metadata: metadata) }
+            let(:svg_path) { render { |svg| svg.path(line) } }
+            let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
+            let(:style_attr) { element.get_attribute('style') }
+
+            specify "has a style attribute" do
+              expect(element.has_attribute?('style'))
+            end
+
+            specify "sets stroke colour" do
+              expect(style_attr).to match('stroke: black;')
+            end
+
+            specify "sets stroke width" do
+              expect(style_attr).to match('stroke-width: 1pt;')
+            end
+
+            specify "sets fill" do
+              expect(style_attr).to match('fill: none;')
+            end
           end
         end
 
-        context "with non-nil Style properties" do
-          let(:style) { Draught::Style.new(stroke_color: 'black', stroke_width: '1pt', fill: 'none') }
-          let(:line) { world.line_segment.horizontal(100).with_new_style(style) }
+        describe "handling Annotations" do
+          let(:metadata) { Draught::Metadata::Instance.new(annotation: ['score', 'draw']) }
           let(:svg_path) { render { |svg| svg.path(line) } }
           let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
-          let(:style_attr) { element.get_attribute('style') }
 
-          specify "has a style attribute" do
-            expect(element.has_attribute?('style'))
+          context "when nil" do
+            let(:line) { l(100) }
+
+            specify "has no class attribute" do
+              expect(!element.has_attribute?('class'))
+            end
           end
 
-          specify "sets stroke colour" do
-            expect(style_attr).to match('stroke: black;')
+          context "when set" do
+            let(:line) { l(100, metadata: metadata) }
+            let(:class_attr) { element.get_attribute('class') }
+
+            specify "has a class attribute" do
+              expect(element.has_attribute?('class'))
+            end
+
+            specify "sets the class attribute correctly" do
+              expect(class_attr).to eq('score draw')
+            end
+          end
+        end
+
+        describe "handling Names" do
+          let(:metadata) { Draught::Metadata::Instance.new(name: 'scored') }
+          let(:svg_path) { render { |svg| svg.path(line) } }
+          let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
+
+          context "when nil" do
+            let(:line) { l(100) }
+
+            specify "has no id attribute" do
+              expect(!element.has_attribute?('id'))
+            end
           end
 
-          specify "sets stroke width" do
-            expect(style_attr).to match('stroke-width: 1pt;')
-          end
+          context "when set" do
+            let(:line) { l(100, metadata: metadata) }
+            let(:id_attr) { element.get_attribute('id') }
 
-          specify "sets fill" do
-            expect(style_attr).to match('fill: none;')
+            specify "has am id attribute" do
+              expect(element.has_attribute?('id'))
+            end
+
+            specify "sets the id attribute correctly" do
+              expect(id_attr).to eq('scored')
+            end
           end
         end
       end

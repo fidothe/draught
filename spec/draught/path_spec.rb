@@ -4,7 +4,6 @@ require 'draught/boxlike_examples'
 require 'draught/point'
 require 'draught/vector'
 require 'draught/transformations'
-require 'draught/style'
 require 'draught/path'
 
 module Draught
@@ -12,7 +11,7 @@ module Draught
     let(:world) { World.new }
     let(:point) { world.point.new(1,1) }
     let(:other_point) { world.point.new(2,2) }
-    let(:style) { Style.new(stroke_width: '1pt') }
+    let(:metadata) { Metadata::Instance.new(name: 'name') }
 
     it "contains no points by default" do
       expect(Path.new(world).empty?).to be(true)
@@ -24,10 +23,16 @@ module Draught
       expect(path.empty?).to be(false)
     end
 
-    it "can be initialized with a Style" do
-      path = Path.new(world, points: [point], style: style)
+    context "metadata" do
+      it "can be initialized with a Metadata" do
+        path = Path.new(world, points: [point], metadata: metadata)
 
-      expect(path.style).to be(style)
+        expect(path.metadata).to be(metadata)
+      end
+
+      specify "has a blank Metadata by default" do
+        expect(Path.new(world).metadata).to be(Metadata::BLANK)
+      end
     end
 
     it_should_behave_like "a pathlike thing" do
@@ -40,7 +45,7 @@ module Draught
     end
 
     describe "adding points to the path" do
-      subject { Path.new(world, points: [point], style: style) }
+      subject { Path.new(world, points: [point], metadata: metadata) }
 
       context "appending" do
         specify "appending a point to the path returns a new path" do
@@ -64,10 +69,10 @@ module Draught
           expect(path.points).to eq([point, other_point])
         end
 
-        specify "appending preserves style" do
+        specify "appending preserves metadata" do
           path = subject.append(other_point)
 
-          expect(path.style).to be(style)
+          expect(path.metadata).to be(metadata)
         end
       end
 
@@ -93,10 +98,10 @@ module Draught
           expect(path.points).to eq([other_point, point])
         end
 
-        specify "prepending preserves style" do
+        specify "prepending preserves metadata" do
           path = subject.prepend(other_point)
 
-          expect(path.style).to be(style)
+          expect(path.metadata).to be(metadata)
         end
       end
     end

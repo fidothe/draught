@@ -20,7 +20,7 @@ module Draught
           args = {
             start_point: args.fetch(:start_point),
             cubic_bezier: CubicBezier.new(world, args),
-            style: args.fetch(:style, nil)
+            metadata: args.fetch(:metadata, nil)
           }
         end
         new(world, args)
@@ -42,12 +42,22 @@ module Draught
     end
 
     attr_reader :world, :start_point, :cubic_bezier
+    # @!attribute [r] world
+    #   @return [World] the World
+    # @!attribute [r] start_point
+    #   @return [Point] the Point the CurveSegment starts at
+    # @!attribute [r] cubic_bezier
+    #   @return [CubicBezier] the CubicBezier portion of the CurveSegment
 
+    # @param world [World] the world
+    # @param args [Hash] the Path arguments.
+    # @option args [Array<Draught::Point>] :points ([]) the points of the Path
+    # @option args [Draught::Metadata::Instance] :metadata (nil) Metadata that should be attached to the CurveSegment
     def initialize(world, args)
       @world = world
       @start_point = args.fetch(:start_point)
       @cubic_bezier = args.fetch(:cubic_bezier)
-      @style = args.fetch(:style, nil)
+      @metadata = args.fetch(:metadata, nil)
     end
 
     def control_point_1
@@ -70,27 +80,23 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          world.path.new(points: points[index_start_or_range], style: style)
+          world.path.new(points: points[index_start_or_range], metadata: metadata)
         when Numeric
           points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        world.path.new(points: points[index_start_or_range, length], style: style)
+        world.path.new(points: points[index_start_or_range, length], metadata: metadata)
       end
     end
 
     def translate(vector)
-      translated_args = transform_args_hash.map { |arg, point| [arg, point.translate(vector)] }.to_h
-      translated_args[:style] = style
-      self.class.build(world, translated_args)
+      transformed_instance(->(arg, point) { [arg, point.translate(vector)] })
     end
 
     def transform(transformation)
-      transformed_args = transform_args_hash.map { |arg, point| [arg, point.transform(transformation)] }.to_h
-      transformed_args[:style] = style
-      self.class.build(world, transformed_args)
+      transformed_instance(->(arg, point) { [arg, point.transform(transformation)] })
     end
 
     def lower_left
@@ -142,13 +148,12 @@ module Draught
       end
     end
 
-    def style
-      @style ||= Style.new
-    end
-
-    def with_new_style(style)
-      args = transform_args_hash
-      args[:style] = style
+    # return a copy of this object with different metadata attached
+    #
+    # @param style [Metadata::Instance] the metadata to use
+    # @return [CurveSegment] the copy of this CurveSegment with new metadata
+    def with_metadata(metadata)
+      args = transform_args_hash.merge(metadata: metadata)
       self.class.new(world, args)
     end
 
@@ -180,6 +185,12 @@ module Draught
       c = mt * t2 * 3
       d = t * t2
       [a, b, c, d]
+    end
+
+    def transformed_instance(mapper)
+      args = transform_args_hash.map(&mapper).to_h
+      args[:metadata] = metadata
+      self.class.build(world, args)
     end
 
     def transform_args_hash

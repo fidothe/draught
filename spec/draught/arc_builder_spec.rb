@@ -6,6 +6,7 @@ module Draught
     let(:world) { World.new }
     let(:degrees) { 90 }
     let(:radians) { deg_to_rad(degrees) }
+    let(:metadata) { Metadata::Instance.new(name: 'name') }
     subject { ArcBuilder.new(world) }
 
     describe "creating an Arc" do
@@ -22,6 +23,16 @@ module Draught
       it "reports its radius" do
         expect(arc.radius).to eq(100)
       end
+
+      context "handling Metadata" do
+        let(:arc) {
+          subject.new(radians: radians, radius: 100, metadata: metadata)
+        }
+
+        specify "produces an Arc with the correct Metadata" do
+          expect(arc.metadata).to be(metadata)
+        end
+      end
     end
 
     context "convenience creators" do
@@ -37,6 +48,20 @@ module Draught
         expect(arc.radians).to eq(Math::PI)
         expect(arc.starting_angle).to eq(Math::PI/2)
         expect(arc.radius).to eq(1)
+      end
+
+      context "handling Metadata" do
+        [:radians, :degrees].each do |meth|
+          context "##{meth}" do
+            let(:arc) {
+              subject.send(meth, angle: 2, radius: 1, metadata: metadata)
+            }
+
+            specify "produces an Arc with the correct Metadata" do
+              expect(arc.metadata).to be(metadata)
+            end
+          end
+        end
       end
     end
   end

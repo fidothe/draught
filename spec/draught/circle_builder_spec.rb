@@ -12,6 +12,17 @@ module Draught
       it "reports its radius" do
         expect(circle.radius).to eq(100)
       end
+
+      context "handling Style and Annotation" do
+        let(:metadata) { Metadata::Instance.new(name: 'name') }
+        let(:circle) {
+          subject.new(radius: 100, metadata: metadata)
+        }
+
+        specify "produces a Circle with the correct Metadata" do
+          expect(circle.metadata).to be(metadata)
+        end
+      end
     end
   end
 end

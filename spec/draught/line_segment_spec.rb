@@ -6,6 +6,7 @@ require 'draught/line_segment'
 module Draught
   RSpec.describe LineSegment do
     let(:world) { World.new }
+    let(:metadata) { Metadata::Instance.new(name: 'name') }
 
     def p(x,y)
       world.point.new(x,y)
@@ -64,6 +65,26 @@ module Draught
           expected = line_segment.translate(world.vector.translation_between(line_segment.last, subject.last))
 
           expect(subject.extend(to: 5, at: :start)).to approximate(expected).within(0.00001)
+        end
+      end
+
+      context "preservation of metadata" do
+        subject { LineSegment.build(world, length: length, radians: radians, metadata: metadata) }
+
+        context "when adding at the start" do
+          let(:extended) { subject.extend(by: 2, at: :start) }
+
+          specify "metadata is preserved" do
+            expect(extended.metadata).to be(metadata)
+          end
+        end
+
+        context "when adding at the end" do
+          let(:extended) { subject.extend(by: 2, at: :end) }
+
+          specify "metadata is preserved" do
+            expect(extended.metadata).to be(metadata)
+          end
         end
       end
 

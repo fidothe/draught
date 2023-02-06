@@ -18,7 +18,9 @@ module Draught
     # @!attribute [r] world
     #   @return [World] the World
     # @!attribute [r] radius
-    #   @return [Number] the radius of the Arc's circle
+    #   @return [Number] the radius of the circle
+    # @!attribute [r] annotation
+    #   @return [Annotation] an Annotation for the Path
 
     def_delegators :path, :points, :"[]"
 
@@ -26,11 +28,12 @@ module Draught
     # @param args [Hash] the circle arguments.
     # @option args [Number] :radius The radius
     # @option args [Point] :center The centre point
+    # @option args [Draught::Metadata::Instance] :metadata (nil) Metadata that should be attached to the Circle
     def initialize(world, args = {})
       @world = world
       @radius = args.fetch(:radius)
       @center = args.fetch(:center, nil)
-      @style = args.fetch(:style, nil)
+      @metadata = args.fetch(:metadata, nil)
     end
 
     # @return [Path]
@@ -75,15 +78,15 @@ module Draught
 
     # @return [Arc] an Arc representing this circle
     def arc
-      @arc ||= world.arc.new(radius: radius, radians: CIRCLE_RADIANS, start_point: center.translate(arc_translation_vector), style: style)
+      @arc ||= world.arc.new(radius: radius, radians: CIRCLE_RADIANS, start_point: center.translate(arc_translation_vector), metadata: metadata)
     end
 
-    def style
-      @style ||= Style.new
-    end
-
-    def with_new_style(style)
-      self.class.new(world, new_args.merge(style: style))
+    # return a copy of this object with a different Metadata instance attached
+    #
+    # @param style [Metadata::Instance] the metadata to use
+    # @return [Circle] the copy of this Circle with new metadata
+    def with_metadata(metadata)
+      self.class.new(world, new_args.merge(metadata: metadata))
     end
 
     def translate(vector)
@@ -110,7 +113,7 @@ module Draught
     private
 
     def new_args
-      {radius: radius, center: center, style: style}
+      {radius: radius, center: center, metadata: metadata}
     end
 
     # @return [Vector] the vector between the circle's centre and the arc's centre [radius,0]

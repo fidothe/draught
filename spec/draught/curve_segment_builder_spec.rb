@@ -34,6 +34,36 @@ module Draught
           control_point_2: control_point_2
         })).to eq(expected_curve_segment)
       end
+
+      context "handling Metadata" do
+        let(:metadata) { Metadata::Instance.new(name: 'name') }
+        let(:path) { world.path.new(points: [start_point, cubic_bezier], metadata: metadata) }
+
+        context "when given a start_point and cubic_bezier" do
+          let(:built_curve_segment) {
+            subject.build(start_point: start_point, cubic_bezier: cubic_bezier, metadata: metadata)
+          }
+
+          specify "produces a CurveSegment with the correct Metadata" do
+            expect(built_curve_segment.metadata).to be(metadata)
+          end
+        end
+
+        context "when given start, end and cubic control points" do
+          let(:built_curve_segment) {
+            subject.build({
+              start_point: start_point, end_point: end_point,
+              control_point_1: control_point_1,
+              control_point_2: control_point_2,
+              metadata: metadata
+            })
+          }
+
+          specify "produces a CurveSegment with the correct Metadata" do
+            expect(built_curve_segment.metadata).to be(metadata)
+          end
+        end
+      end
     end
 
     context "building a Curve Segment from a two-item Path" do
@@ -73,6 +103,16 @@ module Draught
         expect {
           subject.from_path(path)
         }.to raise_error(ArgumentError)
+      end
+
+      context "handling Metadata" do
+        let(:metadata) { Metadata::Instance.new(name: 'name') }
+        let(:path) { world.path.new(points: [start_point, cubic_bezier], metadata: metadata) }
+        let(:built_curve_segment) { subject.from_path(path) }
+
+        specify "produces a CurveSegment with the correct Metadata" do
+          expect(built_curve_segment.metadata).to be(metadata)
+        end
       end
     end
   end

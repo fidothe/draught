@@ -4,13 +4,13 @@ require 'draught/world'
 module Draught
   RSpec.describe LineSegmentBuilder do
     let(:world) { World.new }
-    subject { described_class.new(world) }
+    let(:metadata) { Metadata::Instance.new(name: 'name') }
 
-    let(:world) { World.new }
+    subject { described_class.new(world) }
 
     describe "building a LineSegment between two Points" do
       let(:finish) { world.point.new(4,4) }
-      let(:line_segment) { subject.build(end_point: finish) }
+      let(:line_segment) { subject.build(end_point: finish, metadata: metadata) }
 
       it "knows how long it is" do
         expect(line_segment.length).to be_within(0.01).of(5.66)
@@ -26,6 +26,10 @@ module Draught
 
       it "knows it's not a curve" do
         expect(line_segment.curve?).to be(false)
+      end
+
+      specify "passes Metadata in correctly" do
+        expect(line_segment.metadata).to be(metadata)
       end
 
       specify "a LineSegment at 0º should have radians == 0" do
@@ -84,6 +88,12 @@ module Draught
         expected = world.path.build { |p| p << world.point.zero << world.point.new(10, 0) }
 
         expect(subject.horizontal(10)).to eq(expected)
+      end
+
+      specify "metadata can be passed too" do
+        line_segment = subject.horizontal(10, metadata: metadata)
+
+        expect(line_segment.metadata).to be(metadata)
       end
     end
 
@@ -191,6 +201,19 @@ module Draught
           expect(subject.build(length: length, radians: deg_to_rad(630))).to eq(expected)
         end
       end
+
+      context "handling Metadata" do
+        let(:line_segment) {
+          subject.build({
+            length: length, radians: deg_to_rad(45),
+            metadata: metadata
+          })
+        }
+
+        specify "passes Metadata in correctly" do
+          expect(line_segment.metadata).to be(metadata)
+        end
+      end
     end
 
     describe "generating LineSegment objects that don't start at 0,0" do
@@ -230,15 +253,29 @@ module Draught
           subject.from_path(path)
         }.to raise_error(ArgumentError)
       end
+
+      specify "the path's metadata is taken" do
+        path = world.path.new(points: [world.point.zero, world.point.new(4,4)], metadata: metadata)
+        line_segment = subject.from_path(path)
+
+        expect(line_segment.metadata).to be(metadata)
+      end
     end
 
     describe "building a LineSegment from two points" do
+      let(:p1) { world.point.zero }
+      let(:p2) { world.point.new(4,4) }
+
       it "generates the LineSegment correctly" do
-        p1 = world.point.zero
-        p2 = world.point.new(4,4)
         path = world.path.new(points: [p1, p2])
 
         expect(subject.from_to(p1, p2)).to eq(path)
+      end
+
+      specify "metadata can be passed too" do
+        line_segment = subject.from_to(p1, p2, metadata: metadata)
+
+        expect(line_segment.metadata).to be(metadata)
       end
     end
   end

@@ -13,10 +13,10 @@ module Draught
 
     def build(args = {})
       if args.has_key?(:control_point_1)
-        args = {
+        args = args.select { |k, _| k == :metadata }.merge({
           start_point: args.fetch(:start_point),
           cubic_bezier: CubicBezier.new(world, args)
-        }
+        })
       end
       CurveSegment.new(world, args)
     end
@@ -32,7 +32,7 @@ module Draught
         raise ArgumentError, "the last point on the path must be a CubicBezier instance, this was #{path.last.inspect}"
       end
 
-      build(start_point: path.first, cubic_bezier: path.last)
+      build(start_point: path.first, cubic_bezier: path.last, metadata: path.metadata)
     end
   end
 end

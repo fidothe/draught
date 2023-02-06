@@ -1,5 +1,6 @@
 require_relative './join_angles'
 require_relative '../arc_builder'
+require_relative '../metadata'
 
 module Draught
   class CornerBuilder
@@ -15,6 +16,7 @@ module Draught
         @radius = args.fetch(:radius)
         @incoming = args.fetch(:incoming)
         @outgoing = args.fetch(:outgoing)
+        @metadata = args.fetch(:metadata, nil)
       end
 
       def joined
@@ -23,8 +25,13 @@ module Draught
           incoming_final_segment,
           corner_arc_path,
           outgoing_first_segment,
-          outgoing_after_first_segment
+          outgoing_after_first_segment,
+          metadata: metadata
         )
+      end
+
+      def metadata
+        @metadata ||= Metadata::BLANK
       end
 
       def incoming_before_final_segment

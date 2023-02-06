@@ -16,6 +16,7 @@ module Draught
 
       specify "report their fill" do
         expect(subject.fill).to eq('none')
-      end    end
+      end
+    end
   end
 end

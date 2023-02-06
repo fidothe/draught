@@ -8,6 +8,7 @@ module Draught
     let(:world) { World.new }
     let(:p1) { world.point.new(1,1) }
     let(:p2) { world.point.new(2,2) }
+    let(:metadata) { Metadata::Instance.new(name: 'name') }
     subject { described_class.new(world) }
 
     describe "creating a new Path" do
@@ -23,11 +24,9 @@ module Draught
         expect(path.world).to be(world)
       end
 
-      specify "including Style" do
-        style = Style.new(stroke_color: 'hot pink')
-        path = subject.new(points: [p1, p2], style: style)
-        expect(path.style).to eq(style)
-
+      specify "including Metadata" do
+        path = subject.new(points: [p1, p2], metadata: metadata)
+        expect(path.metadata).to be(metadata)
       end
     end
 
@@ -75,13 +74,16 @@ module Draught
         expect(collector).to eq([p2])
       end
 
-      specify "Style can be set" do
-        style = Style.new(stroke_color: 'hot pink')
-        path = subject.build(style) { |p|
-          p << p1
+      context "handling Style and Annotation" do
+        let(:path) {
+          subject.build(metadata: metadata) { |p|
+            p << p1
+          }
         }
 
-        expect(path.style).to be(style)
+        specify "Metadata can be set" do
+          expect(path.metadata).to be(metadata)
+        end
       end
     end
 
@@ -106,6 +108,26 @@ module Draught
         expect(path.points).to eq([
           world.point.new(0,0), world.point.new(1,0), world.point.new(2,1), world.point.new(3,1)
         ])
+      end
+
+      context "handling Metadata" do
+        let(:styled_horizontal) { horizontal.with_metadata(metadata) }
+
+        context "when a path being connected has metadata, but there's no explicit metadata supplied" do
+          let(:connected) { subject.connect(styled_horizontal, diagonal, spaced_horizontal) }
+
+          specify "the resulting path has null metadata" do
+            expect(connected.metadata).to_not be(metadata)
+          end
+        end
+
+        context "when the builder specifies Metadata" do
+          let(:joined) { subject.connect(horizontal, diagonal, spaced_horizontal, metadata: metadata) }
+
+          specify "the resulting path has the correct Metadata" do
+            expect(joined.metadata).to be(metadata)
+          end
+        end
       end
     end
   end
