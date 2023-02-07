@@ -10,6 +10,21 @@ module Draught
         expect(world.point.new(1,1).transform(Transformations.mm_to_pt)).
           to eq(world.point.new(2.8346456692913, 2.8346456692913))
       end
+
+      it "can convert mm to X dpi px" do
+        expect(world.point.new(1,1).transform(Transformations.mm_to_dpi(300))).
+          to eq(world.point.new(11.81102362, 11.81102362))
+      end
+
+      it "can convert Postscript pts to mm" do
+        expect(world.point.new(2.8346456692913, 2.8346456692913).transform(Transformations.pt_to_mm)).
+          to eq(world.point.new(1,1))
+      end
+
+      it "can convert X dpi px to mm" do
+        expect(world.point.new(11.81102362, 11.81102362).transform(Transformations.dpi_to_mm(300))).
+          to eq(world.point.new(1,1))
+      end
     end
 
     describe "Affine" do

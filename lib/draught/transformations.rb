@@ -11,9 +11,25 @@ module Draught
     MM_TO_PT = 2.8346456692913
 
     def mm_to_pt
+      unit_factor(MM_TO_PT)
+    end
+
+    def pt_to_mm
+      unit_factor(1/MM_TO_PT)
+    end
+
+    def mm_to_dpi(dpi)
+      unit_factor(MM_TO_PT * (dpi/72.0))
+    end
+
+    def dpi_to_mm(dpi)
+      unit_factor(1/(MM_TO_PT * (dpi/72.0)))
+    end
+
+    def unit_factor(factor)
       Affine.new(Matrix[
-        [MM_TO_PT, 0, 0],
-        [0, MM_TO_PT, 0],
+        [factor, 0, 0],
+        [0, factor, 0],
         [0, 0, 1]
       ])
     end
