@@ -1,74 +1,40 @@
-require 'draught/parser/svg'
+require 'svg_fixture_helper'
 
 module IntersectionHelper
-  class SVGFixture
-    attr_reader :world, :fixture_path, :segment_1_id, :segment_2_id
-
-    def initialize(world, fixture_path, segment_1_id, segment_2_id)
-      @world, @fixture_path, @segment_1_id, @segment_2_id = checker, fixture_path, segment_1_id, segment_2_id
-    end
-
-    def segment_1
-      @segment_1 ||= build_segment(segment_1_path)
-    end
-
-    def segment_2
-      @segment_2 ||= build_segment(segment_2_path)
-    end
-
-    def expected
-      @expected ||= parsed_fixture.paths.find { |path| path.name == 'expected' }.points
-    end
-
-    private
-
-    def parsed_fixture
-      @parsed_fixture ||= Parser::SVG.new(world, fixture_path.open('r:utf-8')).parse!
-    end
-
-    def segment_1_path
-      @segment_1_path ||= parsed_fixture.paths.find { |path| path.name == segment_1_id }
-    end
-
-    def segment_2_path
-      @segment_2_path ||= parsed_fixture.paths.find { |path| path.name == segment_2_id }
-    end
-
-    def path_is_line?(path)
-      path.points.all? { |point| point.point_type == :point }
-    end
-
-    def path_is_curve?(path)
-      !path_is_line?(path)
-    end
-
-    def build_segment(path)
-      builder = path_is_curve?(path) ? world.curve_segment : world.line_segment
-      builder.from_path(path)
-    end
-  end
-
   class Harness
-    attr_reader :checker, :fixture_path, :segment_1_id, :segment_2_id
+    attr_reader :checker, :fixture_name, :segment_1_id, :segment_2_id
 
-    def initialize(checker, fixture_path, segment_1_id, segment_2_id)
-      @checker, @fixture_path, @segment_1_id, @segment_2_id = checker, fixture_path, segment_1_id, segment_2_id
+    def initialize(checker, fixture_name, segment_1_id, segment_2_id)
+      @checker, @fixture_name, @segment_1_id, @segment_2_id = checker, fixture_name, segment_1_id, segment_2_id
     end
 
     def world
       @world ||= checker.world
     end
 
+    def id_patterns
+      @id_patterns ||= {expected: /^expected$/, segment_1: Regexp.new("^#{segment_1_id}$"), segment_2: Regexp.new("^#{segment_2_id}$")}
+    end
+
+    def loader
+      patterns = id_patterns
+      mapper = method(:pathlike_mapper)
+      @loader ||= SVGFixtureHelper::FixtureLoader.new(world, fixture_name).call {
+          fetch **patterns
+          map_paths &mapper
+        }
+    end
+
     def segment_1
-      @segment_1 ||= build_segment(segment_1_path)
+      @segment_1 ||= loader.found[:segment_1]
     end
 
     def segment_2
-      @segment_2 ||= build_segment(segment_2_path)
+      @segment_2 ||= loader.found[:segment_2]
     end
 
     def expected
-      @expected ||= parsed_fixture.paths.find { |path| path.name == 'expected' }.points
+      @expected ||= loader.found[:expected].points
     end
 
     def actual
@@ -93,24 +59,16 @@ module IntersectionHelper
       }
     end
 
-    def parsed_fixture
-      @parsed_fixture ||= Draught::Parser::SVG.new(world, fixture_path.open('r:utf-8')).parse!
-    end
-
-    def segment_1_path
-      @segment_1_path ||= parsed_fixture.paths.find { |path| path.name == segment_1_id }
-    end
-
-    def segment_2_path
-      @segment_2_path ||= parsed_fixture.paths.find { |path| path.name == segment_2_id }
-    end
-
     def path_is_line?(path)
       path.points.all? { |point| point.point_type == :point }
     end
 
     def path_is_curve?(path)
       !path_is_line?(path)
+    end
+
+    def pathlike_mapper(world, pathlike)
+      pathlike.name == 'expected' ? pathlike : build_segment(pathlike)
     end
 
     def build_segment(path)
@@ -122,7 +80,7 @@ end
 
 RSpec::Matchers.define :have_intersecting do |segment_1_id, segment_2_id|
   match do |fixture_name|
-    intersection_harness = IntersectionHelper::Harness.new(subject, fixture_path(fixture_name), segment_1_id, segment_2_id)
+    intersection_harness = IntersectionHelper::Harness.new(subject, fixture_name, segment_1_id, segment_2_id)
     @actual_points = intersection_harness.sorted_actual
     @expected_points = intersection_harness.sorted_expected
     @expected_length = @expected_points.length

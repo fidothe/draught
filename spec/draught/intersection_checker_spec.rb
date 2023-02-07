@@ -103,11 +103,11 @@ module Draught
       end
 
       specify "2 intersections, with an analytic solution" do
-        expect('curve-line/2-intersection.svg').to have_intersecting('line', 'curve')
+        expect('intersection/curve-line/2-intersection.svg').to have_intersecting('line', 'curve')
       end
 
       specify "2 intersections, with no analytic solution" do
-        expect('curve-line/2-intersection-no-analytic.svg').to have_intersecting('line', 'curve')
+        expect('intersection/curve-line/2-intersection-no-analytic.svg').to have_intersecting('line', 'curve')
       end
     end
   end

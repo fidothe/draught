@@ -4,6 +4,7 @@ require 'pp'
 SimpleCov.start
 
 require 'draught'
+require 'svg_fixture_helper'
 
 module Helpers
   def deg_to_rad(degrees)
@@ -23,6 +24,8 @@ RSpec.configure do |config|
   end
 
   config.include(Helpers)
+
+  config.extend SVGFixtureHelper::Helpers, :svg_fixture
 end
 
 RSpec::Matchers.define :approximate do |expected|

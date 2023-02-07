@@ -2,6 +2,7 @@ require 'draught/world'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
 require 'draught/line_segment'
+require 'draught/parser/svg'
 
 module Draught
   RSpec.describe LineSegment do
@@ -129,6 +130,23 @@ module Draught
       specify "a generates its pathlike start-point plus end-point" do
         line = LineSegment.build(world, end_point: world.point.new(5,0))
         expect(line).to pp_as("(Pl 0,0 5,0)\n")
+      end
+    end
+
+    describe "extend angle bugs", :svg_fixture do
+      let(:tolerance) { Tolerance.new(0.001) } # Affinity Designer rounds to 3 d.p., so for the fixture comparisons to work, so do we.
+
+      svg_fixture('line-segment-extension.svg') {
+        fetch_grouped(input: /a-([0-9]+)$/, expected: /a-([0-9]+)-extended$/)
+        map_paths { |world, path| world.line_segment.from_path(path) }
+      }.each do |world, angle, input, expected|
+        specify "extending a #{angle}º line" do
+          actual = input.extend(by: 100)
+
+          expect(actual.end_point).to approximate(expected.end_point).tolerance(tolerance)
+          expect(actual.radians).to be_within(0.00001).of(input.radians)
+          expect(actual.radians).to be_within(0.00001).of(expected.radians)
+        end
       end
     end
   end

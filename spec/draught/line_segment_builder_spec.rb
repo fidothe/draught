@@ -38,6 +38,43 @@ module Draught
         expect(line_segment.radians).to be_within(0.0001).of(0)
       end
 
+      context "angles < 90º" do
+        it "copes with a LineSegment of angle ~89.9º" do
+          line_segment = subject.build(end_point: world.point.new(0.007,4))
+
+          expect(line_segment.length).to be_within(0.01).of(4)
+          expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(89.9))
+        end
+
+        it "copes with a LineSegment of angle 60º" do
+          line_segment = subject.build(end_point: world.point.new(2.31,4))
+
+          expect(line_segment.length).to be_within(0.01).of(4.62)
+          expect(line_segment.radians).to be_within(0.001).of(deg_to_rad(60))
+        end
+
+        it "copes with a LineSegment of angle 45º" do
+          line_segment = subject.build(end_point: world.point.new(4,4))
+
+          expect(line_segment.length).to be_within(0.01).of(5.66)
+          expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(45))
+        end
+
+        it "copes with a LineSegment of angle 30º" do
+          line_segment = subject.build(end_point: world.point.new(4,2.31))
+
+          expect(line_segment.length).to be_within(0.01).of(4.62)
+          expect(line_segment.radians).to be_within(0.001).of(deg_to_rad(30))
+        end
+
+        it "copes with a LineSegment of angle ~1º" do
+          line_segment = subject.build(end_point: world.point.new(4,0.0699))
+
+          expect(line_segment.length).to be_within(0.01).of(4)
+          expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(1))
+        end
+      end
+
       context "angles >= 90º" do
         it "copes with a LineSegment of angle 90º" do
           line_segment = subject.build(end_point: world.point.new(0,4))
@@ -103,9 +140,33 @@ module Draught
 
         expect(subject.vertical(10)).to eq(expected)
       end
+
+      specify "metadata can be passed too" do
+        line_segment = subject.vertical(10, metadata: metadata)
+
+        expect(line_segment.metadata).to be(metadata)
+      end
     end
 
     describe "generating LineSegment objects of a given length and angle" do
+      def fixture_path
+        (Pathname.new(__dir__)/'../fixtures/line-segment-extension.svg')
+      end
+
+      def parse_fixture
+        parser = Parser::SVG.new(world, fixture_path.open('r:utf-8'))
+        parser.parse!
+      end
+
+      def line(angle)
+        svg = parse_fixture
+        world.line_segment.from_path(svg.paths.find { |path| path.name == "a-#{angle}" })
+      end
+
+      def deg_to_rad(degrees)
+        degrees * (Math::PI / 180)
+      end
+
       let(:length) { 5.656854 }
 
       it "copes with a line_segment of angle 0º" do
@@ -140,6 +201,16 @@ module Draught
         expected = subject.build(end_point: world.point.new(-length,0))
 
         expect(subject.build(length: length, radians: deg_to_rad(180))).to eq(expected)
+      end
+
+      it "copes with a LineSegment of angle < 270º" do
+        expected = line(210)
+
+        expected = subject.build(end_point: expected.end_point)
+
+        expect(subject.build({
+          length: 100, radians: deg_to_rad(210)
+        })).to approximate(expected).within(0.001)
       end
 
       it "copes with a LineSegment of angle < 270º" do
