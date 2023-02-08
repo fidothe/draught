@@ -34,7 +34,7 @@ module IntersectionHelper
     end
 
     def expected
-      @expected ||= loader.found[:expected].points
+      @expected ||= loader.found[:expected]
     end
 
     def actual
@@ -53,9 +53,9 @@ module IntersectionHelper
 
     def sort
       ->(a, b) {
-        x = a.x <=> b.x
+        x = a.x.round(2) <=> b.x.round(2)
         return x if x != 0
-        a.y <=> b.y
+        a.y.round(2) <=> b.y.round(2)
       }
     end
 
@@ -68,12 +68,30 @@ module IntersectionHelper
     end
 
     def pathlike_mapper(world, pathlike)
-      pathlike.name == 'expected' ? pathlike : build_segment(pathlike)
+      pathlike.name == 'expected' ? normalize_expected(pathlike) : build_segment(pathlike)
     end
 
     def build_segment(path)
       builder = path_is_curve?(path) ? world.curve_segment : world.line_segment
       builder.from_path(path)
+    end
+
+    # I use Affinity Designer to create the fixtures and it automatically
+    # simplifies paths on export, which means that a three-point path which is
+    # also a line (like the path for expectec 3-point intersection of a line and
+    # a curve) will be turned into a 2-point path. To get around this, I use a
+    # cubic point on the path, which prevents it being simplifed, but means this
+    # normalization process is required where any cubics get their end point
+    # taken and used instead.
+    def normalize_expected(pathlike)
+      pathlike.points.map { |pointlike|
+        case pointlike
+        when Draught::CubicBezier
+          pointlike.end_point
+        else
+          pointlike
+        end
+      }
     end
   end
 end
@@ -98,6 +116,18 @@ RSpec::Matchers.define :have_intersecting do |segment_1_id, segment_2_id|
   end
 
   description { "find that '#{segment_1_id}' intersects '#{segment_2_id}' #{@expected_length} times" }
+
+  failure_message {
+    if @actual_points.length != @expected_length
+      "expected #{@expected_length} intersections, got #{@actual_points.length}"
+    else
+      actual = ""
+      PP.pp(@actual_points, actual)
+      expected = ""
+      PP.pp(@expected_points, expected)
+      "expected #{expected}, got #{actual}"
+    end
+  }
 
   diffable
 end
