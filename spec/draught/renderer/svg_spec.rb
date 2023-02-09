@@ -257,12 +257,12 @@ module Draught::Renderer
             expect(root.namespace.href).to eq("http://www.w3.org/2000/svg")
           end
 
-          specify "takes its width from the root container" do
-            expect(root.get_attribute('width')).to eq(container.width.to_s)
+          specify "takes its width from the max-x of the root container" do
+            expect(root.get_attribute('width')).to eq(container.upper_right.x.to_s)
           end
 
-          specify "takes its height from the root container" do
-            expect(root.get_attribute('height')).to eq(container.height.to_s)
+          specify "takes its height from the max-y of the root container" do
+            expect(root.get_attribute('height')).to eq(container.upper_right.y.to_s)
           end
         end
 
