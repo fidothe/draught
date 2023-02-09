@@ -1,4 +1,5 @@
 require 'svg_fixture_helper'
+require 'forwardable'
 
 module IntersectionHelper
   class Harness
@@ -42,11 +43,25 @@ module IntersectionHelper
     end
 
     def sorted_expected
-      @sorted_expected ||= expected.sort(&sort)
+      @sorted_expected ||= IntersectionPoints.new(expected)
     end
 
     def sorted_actual
-      @sorted_actual ||= actual.sort(&sort)
+      @sorted_actual ||= IntersectionPoints.new(actual)
+    end
+
+    def output_debug_svg(path)
+      require 'draught/renderer/svg'
+      require 'draught/bounding_box'
+
+      curve_style = Draught::Style.new(stroke_width: '1px', stroke_color: 'black', fill: 'none')
+      expected_style = Draught::Style.new(stroke_width: '10px', stroke_color: 'rgb(255,107,1)', fill: 'none')
+      actual_style = Draught::Style.new(stroke_width: '1px', stroke_color: 'rgb(2,171,255)', fill: 'none')
+
+      expected_path = world.path.new(points: sorted_expected).with_style(expected_style).with_name('expected')
+      actual_path = world.path.new(points: sorted_actual).with_style(actual_style).with_name('actual')
+      box = Draught::BoundingBox.new(world, [segment_1.with_style(curve_style), segment_2.with_style(curve_style), expected_path, actual_path])
+      Draught::Renderer::SVG.render_to_file(path, box)
     end
 
     private
@@ -94,40 +109,136 @@ module IntersectionHelper
       }
     end
   end
-end
 
-RSpec::Matchers.define :have_intersecting do |segment_1_id, segment_2_id|
-  match do |fixture_name|
-    intersection_harness = IntersectionHelper::Harness.new(subject, fixture_name, segment_1_id, segment_2_id)
-    @actual_points = intersection_harness.sorted_actual
-    @expected_points = intersection_harness.sorted_expected
-    @expected_length = @expected_points.length
-    @actual_points.length == @expected_length && @actual_points.zip(@expected_points).all? { |actual_point, expected_point|
-      actual_point == expected_point
-    }
-  end
+  # This class basically only exists to make diffable output look right
+  class IntersectionPoints
+    extend Forwardable
+    include Enumerable
 
-  def expected
-    @expected_points.map(&:to_s).join(", ")
-  end
+    attr_reader :points
 
-  def actual
-    @actual_points.map(&:to_s).join(", ")
-  end
+    def_delegators :points, :"[]", :length, :size
 
-  description { "find that '#{segment_1_id}' intersects '#{segment_2_id}' #{@expected_length} times" }
-
-  failure_message {
-    if @actual_points.length != @expected_length
-      "expected #{@expected_length} intersections, got #{@actual_points.length}"
-    else
-      actual = ""
-      PP.pp(@actual_points, actual)
-      expected = ""
-      PP.pp(@expected_points, expected)
-      "expected #{expected}, got #{actual}"
+    def initialize(points)
+      @points = points.sort(&point_sorter)
     end
-  }
 
-  diffable
+    def each(&block)
+      points.each(&block)
+    end
+
+    def pretty_print(q)
+      q.group(1, '[', ']') do
+        q.seplist(points, ->() { }) do |pointlike|
+          q.breakable
+          q.pp pointlike
+        end
+      end
+    end
+
+    private
+
+    def point_sorter
+      ->(a, b) {
+        x = a.x.round(2) <=> b.x.round(2)
+        return x if x != 0
+        a.y.round(2) <=> b.y.round(2)
+      }
+    end
+  end
+
+  class IntersectionMatcher
+    attr_reader :actual, :expected, :segment_1_id, :segment_2_id, :fixture_name, :checker
+    private :segment_1_id, :segment_2_id, :fixture_name, :checker
+
+    def initialize(segment_1_id, segment_2_id)
+      @segment_1_id, @segment_2_id = segment_1_id, segment_2_id
+    end
+
+    def matches?(checker)
+      @checker = checker
+
+      generate_debug_output if match_failed?
+
+      match_succeeded?
+    end
+
+    def actual
+      @actual ||= harness.sorted_actual
+    end
+
+    def expected
+      @expected ||= harness.sorted_expected
+    end
+
+    def in(fixture_name)
+      @fixture_name = fixture_name
+      self
+    end
+
+    def debug_output(path)
+      @debug = true
+      @debug_output_path = path
+      self
+    end
+
+    def debug
+      @debug = true
+      self
+    end
+
+    def description
+      "find that '#{segment_1_id}' intersects '#{segment_2_id}' #{@expected_length} times"
+    end
+
+    def failure_message
+      if !has_correct_number_of_intersections?
+        "expected #{expected.length} intersections, got #{actual.length}"
+      else
+        "expected all #{expected.length} intersection points to match"
+      end
+    end
+
+    def diffable?
+      true
+    end
+
+    private
+
+    def harness
+      @harness ||= Harness.new(checker, fixture_name, segment_1_id, segment_2_id)
+    end
+
+    def has_correct_number_of_intersections?
+      actual.length == expected.length
+    end
+
+    def points_of_intersection_match?
+      actual.zip(expected).all? { |actual_point, expected_point|
+        actual_point == expected_point
+      }
+    end
+
+    def match_succeeded?
+      @match_succeeded ||= has_correct_number_of_intersections? && points_of_intersection_match?
+    end
+
+    def match_failed?
+      !match_succeeded?
+    end
+
+    def generate_debug_output
+      if @debug
+        debug_path = Pathname.new(@debug_output_path || fixture_name)
+        debug_path = "#{debug_path.basename(debug_path.extname)}-failure-debug.svg" if @debug_output_path.nil?
+        harness.output_debug_svg(debug_path)
+      end
+    end
+  end
+
+  module Matchers
+    def find_intersections_of(segment_1_id, segment_2_id)
+      IntersectionMatcher.new(segment_1_id, segment_2_id)
+    end
+  end
 end

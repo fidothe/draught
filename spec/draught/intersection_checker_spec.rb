@@ -6,6 +6,8 @@ require 'intersection_helper'
 
 module Draught
   RSpec.describe IntersectionChecker do
+    include IntersectionHelper::Matchers
+
     let(:world) { World.new }
     subject { described_class.new(world) }
 
@@ -50,46 +52,7 @@ module Draught
       end
     end
 
-    describe "curve/line intersections" do
-      let(:l1) { world.line_segment.build(start_point: world.point.new(0,100), end_point: world.point.new(100,100)) }
-      let(:c1) { CurveSegment.build(world, {
-        start_point: world.point.new(0,75), cubic_bezier: CubicBezier.new(world, {
-          end_point: world.point.new(100,80), control_point_1: world.point.new(50,200),
-          control_point_2: world.point.new(50,205)
-        })
-      }) }
-
-      let(:c2) { CurveSegment.build(world, {
-        start_point: world.point.new(0,75), cubic_bezier: CubicBezier.new(world, {
-          end_point: world.point.new(100,75), control_point_1: world.point.new(50,200),
-          control_point_2: world.point.new(50,200)
-        })
-      }) }
-
-      it "knows that l1 intersects c1 twice" do
-        intersection_point_1 = world.point.new(91.963262, 100)
-        intersection_point_2 = world.point.new(10.007413, 100)
-
-        actual = subject.check(l1, c1)
-
-        expect(actual.length).to eq(2)
-        expect(actual.first).to approximate(intersection_point_1).within(0.000001)
-        expect(actual.last).to approximate(intersection_point_2).within(0.000001)
-      end
-
-      it "knows that l1 intersects c2 twice (analytic solutions fail)" do
-        intersection_point_1 = world.point.new(10.051583, 100)
-        intersection_point_2 = world.point.new(89.948417, 100)
-
-        actual = subject.check(l1, c2)
-
-        expect(actual.length).to eq(2)
-        expect(actual.first).to approximate(intersection_point_1).within(0.000001)
-        expect(actual.last).to approximate(intersection_point_2).within(0.000001)
-      end
-    end
-
-    describe "curve/line intersections" do
+    describe "curves" do
       # Affinity Designer mostly rounds to 3 d.p. in its SVG output, but rounds
       # to 1 d.p. in the UI. In my experience 1 d.p. is closer to the mark than
       # 3 d.p. when comparing Draught intersections with Affinity Designer
@@ -98,20 +61,28 @@ module Draught
       let(:tolerance) { Tolerance.new(0.1) }
       let(:world) { World.new(tolerance) }
 
-      def fixture_path(name)
-        (Pathname.new(__dir__)/'../fixtures/intersection')/name
+      describe "curve/line intersections" do
+        specify "2 intersections, with an analytic solution" do
+          is_expected.to find_intersections_of('line', 'curve').in('intersection/curve-line/2-intersection.svg')
+        end
+
+        specify "2 intersections, with no analytic solution" do
+          is_expected.to find_intersections_of('line', 'curve').in('intersection/curve-line/2-intersection-no-analytic.svg')
+        end
+
+        specify "3 intersections" do
+          is_expected.to find_intersections_of('line', 'curve').in('intersection/curve-line/3-intersection.svg')
+        end
       end
 
-      specify "2 intersections, with an analytic solution" do
-        expect('intersection/curve-line/2-intersection.svg').to have_intersecting('line', 'curve')
-      end
+      describe "curve/curve intersections" do
+        specify "2 intersections" do
+          is_expected.to find_intersections_of('curve-1', 'curve-2').in('intersection/curve-curve/2-intersection.svg')
+        end
 
-      specify "2 intersections, with no analytic solution" do
-        expect('intersection/curve-line/2-intersection-no-analytic.svg').to have_intersecting('line', 'curve')
-      end
-
-      specify "3 intersections" do
-        expect('intersection/curve-line/3-intersection.svg').to have_intersecting('line', 'curve')
+        specify "6 intersections" do
+          is_expected.to find_intersections_of('curve-1', 'curve-2').in('intersection/curve-curve/6-intersection.svg').debug
+        end
       end
     end
   end
