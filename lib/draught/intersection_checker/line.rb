@@ -8,14 +8,14 @@ module Draught
     # and https://www.topcoder.com/community/data-science/data-science-tutorials/geometry-concepts-line-intersection-and-its-applications/#line_line_intersection
     # @api private
     class Line
-      def self.check(world, segment_1, segment_2, tolerance)
-        new(world, segment_1, segment_2, tolerance).check
+      def self.check(world, segment_1, segment_2)
+        new(world, segment_1, segment_2).check
       end
 
-      attr_reader :world, :segment_1, :segment_2, :tolerance
+      attr_reader :world, :segment_1, :segment_2
 
-      def initialize(world, segment_1, segment_2, tolerance)
-        @world, @segment_1, @segment_2, @tolerance = world, segment_1, segment_2, tolerance
+      def initialize(world, segment_1, segment_2)
+        @world, @segment_1, @segment_2 = world, segment_1, segment_2
       end
 
       def check
@@ -33,8 +33,8 @@ module Draught
       def point_on_segment?(segment)
         xs = segment.points.map(&:x)
         ys = segment.points.map(&:y)
-        xs_range = Draught::RangeWithTolerance.new(xs.min..xs.max, tolerance)
-        ys_range = Draught::RangeWithTolerance.new(ys.min..ys.max, tolerance)
+        xs_range = Draught::RangeWithTolerance.new(xs.min..xs.max, world.tolerance)
+        ys_range = Draught::RangeWithTolerance.new(ys.min..ys.max, world.tolerance)
         xs_range.include?(intersection_point.x) && ys_range.include?(intersection_point.y)
       end
 

@@ -121,6 +121,10 @@ module Draught
       true
     end
 
+    def line
+      self
+    end
+
     def curve?
       false
     end

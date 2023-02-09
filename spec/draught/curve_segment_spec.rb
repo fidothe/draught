@@ -161,6 +161,16 @@ module Draught
       end
     end
 
+    describe "splitting a curve" do
+      specify "uses DeCasteljau under the hood" do
+        expect(subject.split(0.5)).to eq(DeCasteljau.split(world, subject, 0.5))
+      end
+    end
+
+    specify "can convert itself into a line" do
+      expect(subject.line).to eq(world.line_segment.build(start_point: subject.start_point, end_point: subject.end_point))
+    end
+
     describe "pretty printing" do
       specify "a generates its pathlike start-point plus cubic string" do
         expect(subject).to pp_as("(Pc 0,0 C 1,2 3,2 4,0)\n")

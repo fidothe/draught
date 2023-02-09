@@ -38,7 +38,8 @@ module Draught
 
         it "knows that l1 and l5 should not intersect at a finer tolerance" do
           tolerance = Tolerance.with_delta(0.000_000_000_1)
-          expect(subject.check(l1, l5, tolerance)).to eq([])
+          world = World.new(tolerance)
+          expect(described_class.new(world).check(l1, l5)).to eq([])
         end
       end
 

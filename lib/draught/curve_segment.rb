@@ -139,6 +139,17 @@ module Draught
       extrema_axis_value_computer(:x, t)
     end
 
+    # @param t [Float] the t value of the curve to split at
+    # @return [Array<CurveSegment>] a two-item array containing the pre- and post-split curves
+    def split(t)
+      de_casteljau.split(self, t)
+    end
+
+    # @return [LineSegment] the line between start and end point
+    def line
+      world.line_segment.build(start_point: start_point, end_point: end_point)
+    end
+
     def pretty_print(q)
       q.group(1, '(Pc', ')') do
         q.seplist([start_point, cubic_bezier], ->() { }) do |pointish|
@@ -158,6 +169,10 @@ module Draught
     end
 
     private
+
+    def de_casteljau
+      @de_casteljau ||= DeCasteljau.new(world)
+    end
 
     def extrema_axis_value_computer(axis, t)
       return start_point.send(axis) if t == 0

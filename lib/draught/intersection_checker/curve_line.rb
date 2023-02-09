@@ -1,29 +1,29 @@
 require_relative '../transformations'
 require_relative '../vector'
 require_relative '../range_with_tolerance'
-require_relative '../de_casteljau'
 require_relative '../renderer/svg'
+require_relative 'iterative_intersection_finder'
 
 module Draught
   class IntersectionChecker
     class CurveLine
       TAU = 2 * Math::PI
-      def self.check(world, segment_1, segment_2, tolerance)
+      def self.check(world, segment_1, segment_2)
         curve_segment = segment_1.curve? ? segment_1 : segment_2
         line_segment = segment_1.line? ? segment_1 : segment_2
 
-        new(world, curve_segment, line_segment, tolerance).check
+        new(world, curve_segment, line_segment).check
       end
 
-      attr_reader :world, :curve_segment, :line_segment, :tolerance
+      attr_reader :world, :curve_segment, :line_segment
 
-      def initialize(world, curve_segment, line_segment, tolerance)
-        @world, @curve_segment, @line_segment, @tolerance = world, curve_segment, line_segment, tolerance
+      def initialize(world, curve_segment, line_segment)
+        @world, @curve_segment, @line_segment = world, curve_segment, line_segment
       end
 
       def check
         if d_zero?
-          return IterativeIntersectionFinder.check(world, curve_segment, line_segment, tolerance)
+          return IterativeIntersectionFinder.check(world, curve_segment, line_segment)
         end
         curve_potential_intersection_points.select { |point|
           x_intersection_range.include?(point.x) && y_intersection_range.include?(point.y)
@@ -31,11 +31,11 @@ module Draught
       end
 
       def x_intersection_range
-        RangeWithTolerance.new(line_segment.lower_left.x..line_segment.lower_right.x, tolerance)
+        RangeWithTolerance.new(line_segment.lower_left.x..line_segment.lower_right.x, world.tolerance)
       end
 
       def y_intersection_range
-        RangeWithTolerance.new(line_segment.lower_left.y..line_segment.upper_left.y, tolerance)
+        RangeWithTolerance.new(line_segment.lower_left.y..line_segment.upper_left.y, world.tolerance)
       end
 
       def curve_potential_intersection_points
@@ -126,56 +126,6 @@ module Draught
 
       def cuberoot(val)
         val < 0 ? -Math.cbrt(-val) : Math.cbrt(val)
-      end
-    end
-
-    class IterativeIntersectionFinder
-      def self.check(world, curve, line, tolerance)
-        new(world, curve, line, tolerance).check
-      end
-
-      attr_reader :world, :curve, :line, :tolerance
-
-      def initialize(world, curve, line, tolerance)
-        @world, @curve, @line, @tolerance = world, curve, line, tolerance
-      end
-
-      # https://jeremykun.com/2013/05/11/bezier-curves-and-picasso/
-      # var curve = [[1,2], [5,5], [4,0], [9,3]];
-      def is_curve_flat?
-        flatness_tolerance = 10 # anything below 50 is roughly good-looking
-        ax = 3.0 * curve.control_point_1.x - 2.0 * curve.start_point.x - curve.end_point.x
-        ax =  ax * ax
-        ay = 3.0 * curve.control_point_1.y - 2.0 * curve.start_point.y - curve.end_point.y
-        ay = ay * ay
-        bx = 3.0 * curve.control_point_2.x - curve.start_point.x - 2.0 * curve.end_point.x
-        bx = bx * bx
-        by = 3.0 * curve.control_point_2.y - curve.start_point.y - 2.0 * curve.end_point.y
-        by = by * by
-
-        [ax, bx].max + [ay, by].max <= flatness_tolerance
-      end
-
-      def curve_as_line
-        world.line_segment.build(start_point: curve.start_point, end_point: curve.end_point)
-      end
-
-      def check
-        if is_curve_flat? # turn the curve fragment into a line and just line-line check
-          IntersectionChecker::Line.check(world, curve_as_line, line, tolerance)
-        else
-          return [] unless curve.overlaps?(line)
-          # split curve and line
-          split_curves = DeCasteljau.split(world, curve, 0.5)
-          split_lines = line.split(0.5)
-          split_curves.flat_map { |c|
-            split_lines.map { |l|
-              [c, l]
-            }
-          }.flat_map { |c, l|
-            self.class.check(world, c, l, tolerance)
-          }.compact
-        end
       end
     end
   end

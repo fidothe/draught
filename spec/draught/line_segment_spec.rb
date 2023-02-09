@@ -69,6 +69,44 @@ module Draught
         end
       end
 
+      describe "splitting a line segment by t value produces correctly sized pairs of lines" do
+        let(:input) { LineSegment.build(world, length: 8, radians: 0) }
+        let(:split) { input.split(t) }
+        let(:pre) { split[0] }
+        let(:post) { split[1] }
+
+        context "at t=0.25" do
+          let(:t) { 0.25 }
+
+          specify { expect(pre.length).to eq(2) }
+          specify { expect(pre.start_point).to eq(input.start_point) }
+          specify { expect(post.length).to eq(6) }
+          specify { expect(post.end_point).to eq(input.end_point) }
+        end
+
+        context "at t=0.5" do
+          let(:t) { 0.5 }
+
+          specify { expect(pre.length).to eq(4) }
+          specify { expect(pre.start_point).to eq(input.start_point) }
+          specify { expect(post.length).to eq(4) }
+          specify { expect(post.end_point).to eq(input.end_point) }
+        end
+
+        context "at t=0.75" do
+          let(:t) { 0.75 }
+
+          specify { expect(pre.length).to eq(6) }
+          specify { expect(pre.start_point).to eq(input.start_point) }
+          specify { expect(post.length).to eq(2) }
+          specify { expect(post.end_point).to eq(input.end_point) }
+        end
+      end
+
+      specify "returns itself if #line is called" do
+        expect(subject.line).to be(subject)
+      end
+
       context "preservation of metadata" do
         subject { LineSegment.build(world, length: length, radians: radians, metadata: metadata) }
 
