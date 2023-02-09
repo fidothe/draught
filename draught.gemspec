@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Matt Patterson"]
   spec.email         = ["matt@reprocessed.org"]
 
-  spec.summary       = %q{A library for creating 2D vector graphics as PDF.}
+  spec.summary       = %q{A library for creating 2D vector graphics as SVG or PDF.}
   spec.homepage      = "https://github.com/fidothe/draught"
   spec.license       = "MIT"
 
@@ -21,10 +21,10 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "prawn", "~> 2.1"
-  spec.add_development_dependency "bundler", "~> 2"
+  spec.add_dependency 'nokogiri', '>= 1.13.10'
+  spec.add_development_dependency "bundler", "~> 2", ">= 2.2.33"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
-  spec.add_development_dependency 'nokogiri'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'yard'
 end
