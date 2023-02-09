@@ -4,7 +4,7 @@ module Draught
   RSpec.describe Style do
     context "instances" do
       let(:args) { {stroke_color: 'black', stroke_width: '1pt', fill: 'none'} }
-      subject { described_class.new(args) }
+      subject { described_class.new(**args) }
 
       specify "report their stroke colour" do
         expect(subject.stroke_color).to eq('black')
