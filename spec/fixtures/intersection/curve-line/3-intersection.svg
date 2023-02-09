@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 10000 3000" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:1.5;">
+    <path id="curve" d="M0,3000C5735.48,2532.54 -7602.34,-2399.03 10000,3000" style="fill:none;stroke:black;stroke-width:1px;"/>
+    <path id="line" d="M950,300L950,3000" style="fill:none;stroke:black;stroke-width:1px;stroke-linecap:round;"/>
+    <path id="expected" d="M950,503.915L950,1267.07C891.593,1731.22 648.821,2006.95 950,2838.56" style="fill:none;stroke:black;stroke-width:1px;stroke-linecap:round;"/>
+</svg>

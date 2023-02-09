@@ -1,3 +1,5 @@
+require 'securerandom'
+
 RSpec.shared_examples "a pathlike thing" do
   it "can return an array of its points" do
     expect(subject.points).to eq(points)
@@ -33,22 +35,22 @@ RSpec.shared_examples "a pathlike thing" do
 
   describe "comparison" do
     it "compares equal to a (0,0) translation of itself" do
-      expect(subject.translate(Draught::Vector::NULL)).to eq(subject)
+      expect(subject.translate(world.vector.null)).to eq(subject)
     end
 
     it "does not compare equal to a (1,1) translation of itself" do
-      expect(subject.translate(Draught::Vector.new(1,1))).not_to eq(subject)
+      expect(subject.translate(world.vector.new(1,1))).not_to eq(subject)
     end
 
     it "compares approximately equal to a slightly nudged translation of itself" do
-      approx_pathlike = subject.translate(Draught::Vector.new(0.000001, 0.000001))
+      approx_pathlike = subject.translate(world.vector.new(0.000001, 0.000001))
       expect(subject.approximates?(approx_pathlike, 0.00001)).to be(true)
     end
   end
 
   describe "translation and transformation" do
     specify "translating a Path using a Point produces a new Path with appropriately translated Points" do
-      translation = Draught::Vector.new(2,1)
+      translation = world.vector.new(2,1)
       expected = points.map { |p| p.translate(translation) }
 
       expect(subject.translate(translation).points).to eq(expected)
@@ -61,6 +63,69 @@ RSpec.shared_examples "a pathlike thing" do
       expected = points.map { |p| p.transform(transformation) }
 
       expect(subject.transform(transformation).points).to eq(expected)
+    end
+  end
+
+  describe "metadata" do
+    let(:name) { SecureRandom.hex(10) }
+    let(:style) { Draught::Style.new(stroke_color: 'hot pink') }
+    let(:annotation) { ['score'] }
+    let(:metadata) {
+      Draught::Metadata::Instance.new(name: name, style: style, annotation: annotation)
+    }
+
+    context "metadata-only changes" do
+      specify "a copy of the object using a new metadata instance can be made" do
+        metadata_updated = subject.with_metadata(metadata)
+
+        expect(metadata_updated.metadata).to be(metadata)
+        expect(metadata_updated).to eq(subject)
+      end
+
+      context "creating a copy with only a partial metadata update" do
+        specify "allows a name-only update" do
+          renamed = subject.with_name(name)
+
+          expect(renamed.name).to eq(name)
+          expect(renamed).to eq(subject)
+        end
+
+        specify "allows a style-only update" do
+          restyled = subject.with_style(style)
+
+          expect(restyled.style).to be(style)
+          expect(restyled).to eq(subject)
+        end
+
+        specify "allows an annotation-only update" do
+          annotated = subject.with_annotation(annotation)
+
+          expect(annotated.annotation).to eq(annotation)
+          expect(annotated).to eq(subject)
+        end
+      end
+
+      describe "preserving metadata through transform, translate, and slice access" do
+        let(:updated) { subject.with_metadata(metadata) }
+
+        specify "translating a Pathlike preserves its metadata" do
+          translation = world.vector.new(2,1)
+
+          expect(updated.translate(translation).metadata).to be(metadata)
+        end
+
+        specify "transforming a Pathlike preserves its metadata" do
+          transformation = Draught::Transformations::Affine.new(
+            Matrix[[2,0,0],[0,2,0],[0,0,1]]
+          )
+
+          expect(updated.transform(transformation).metadata).to be(metadata)
+        end
+
+        specify "slice access of a Pathlike preserves metadata in the resulting Path" do
+          expect(updated[0..1].metadata).to be(metadata)
+        end
+      end
     end
   end
 

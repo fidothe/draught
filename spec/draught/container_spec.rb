@@ -1,3 +1,4 @@
+require 'draught/world'
 require 'draught/container'
 require 'draught/boxlike_examples'
 require 'draught/spec_box'
@@ -6,8 +7,9 @@ require 'draught/transformations'
 
 module Draught
   RSpec.describe Container do
-    let(:box) { SpecBox.new(lower_left: Point::ZERO, width: 200, height: 100) }
-    subject { Container.new(box, min_gap: 50) }
+    let(:world) { World.new }
+    let(:box) { SpecBox.new(world, lower_left: world.point.zero, width: 200, height: 100) }
+    subject { Container.new(world, box, min_gap: 50) }
 
     it_should_behave_like "a basic rectangular box-like thing"
 

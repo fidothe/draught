@@ -2,8 +2,8 @@ require 'draught/transformations/composer'
 
 RSpec.shared_examples "transformation object fundamentals" do
   context "transformation object fundamentals" do
-    it "responds to #call(), taking a single Point argument and returning the Point result of applying the transform" do
-      expect(subject.call(input_point)).
+    it "responds to #call(), taking as arguments a Point and a World, and returning the Point result of applying the transform" do
+      expect(subject.call(input_point, world)).
         to eq(expected_point)
     end
 
@@ -33,6 +33,6 @@ end
 
 RSpec.shared_examples "producing a transform-compatible version of itself" do
   it "produces a correctly functioning transform in response to #to_transform" do
-    expect(subject.to_transform.call(input_point)).to eq(expected_point)
+    expect(subject.to_transform.call(input_point, world)).to eq(expected_point)
   end
 end

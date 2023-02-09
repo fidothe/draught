@@ -6,22 +6,23 @@ module Draught
     extend Forwardable
     include Boxlike
 
-    attr_reader :box, :min_gap
+    attr_reader :world, :box, :min_gap
 
     def_delegators :box, :lower_left, :width, :height, :containers
 
-    def initialize(box, opts = {})
+    def initialize(world, box, opts = {})
+      @world = world
       @box = box
       @min_gap = opts.fetch(:min_gap, 0)
     end
 
     def translate(point)
-      self.class.new(box.translate(point), {min_gap: min_gap})
+      self.class.new(world, box.translate(point), {min_gap: min_gap})
     end
 
     def transform(transformer)
-      transformed_min_gap = Point.new(min_gap,0).transform(transformer).x
-      self.class.new(box.transform(transformer), {min_gap: transformed_min_gap})
+      transformed_min_gap = world.point.new(min_gap,0).transform(transformer).x
+      self.class.new(world, box.transform(transformer), {min_gap: transformed_min_gap})
     end
 
     def ==(other)

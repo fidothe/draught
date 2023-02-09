@@ -6,7 +6,7 @@
 >
 > [Oxford English Dictionary](http://www.oed.com/view/Entry/57521?result=2&rskey=9oHsDI)
 
-Draught is a library for creating vector graphics as PDFs. It's grown out of generating shapes that can be laser cut, and that's still its focus.
+Draught is a library for creating vector graphics as SVGs and PDFs. It's grown out of generating shapes that can be laser cut, and that's still its focus.
 
 TODO: Explain the fundamental concepts
 
@@ -32,19 +32,21 @@ Example docs are bad and I will fix them.
 
 Also having to require everything individually.
 
-Create a simple straight line and add it to a sheet, then generate a PDF with it:
+Create a simple straight line and add it to a sheet, then generate an SVG with it:
 
 ```ruby
+require 'draught/world'
 require 'draught/line_segment'
 require 'draught/bounding_box'
 require 'draught/sheet'
-require 'draught/renderer'
+require 'draught/renderer/svg'
 
-line_segment = Draught::LineSegment.horizontal(100).translate(Draught::Vector.new(100,100))
-box = Draught::BoundingBox.new(line_segment)
-sheet = Draught::Sheet.new(width: 300, height: 200, containers: [box])
+world = Draught::World.new
+line_segment = world.line_segment.horizontal(100).translate(world.vector.new(100,100))
+box = Draught::BoundingBox.new(world, [line_segment])
+sheet = Draught::Sheet.new(world, width: 300, height: 200, containers: [box])
 
-renderer = Draught::Renderer.render_to_file(sheet, './example.pdf')
+renderer = Draught::Renderer::SVG.render_to_file('./example.svg', sheet)
 ```
 
 ## Development

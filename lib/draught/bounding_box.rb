@@ -5,9 +5,10 @@ module Draught
   class BoundingBox
     include Boxlike
 
-    attr_reader :paths
+    attr_reader :world, :paths
 
-    def initialize(*paths)
+    def initialize(world, paths)
+      @world = world
       @paths = paths
     end
 
@@ -20,19 +21,19 @@ module Draught
     end
 
     def lower_left
-      @lower_left ||= Point.new(x_min, y_min)
+      @lower_left ||= world.point.new(x_min, y_min)
     end
 
     def translate(point)
-      self.class.new(*paths.map { |path| path.translate(point) })
+      self.class.new(world, paths.map { |path| path.translate(point) })
     end
 
     def transform(transformer)
-      self.class.new(*paths.map { |path| path.transform(transformer) })
+      self.class.new(world, paths.map { |path| path.transform(transformer) })
     end
 
     def zero_origin
-      move_to(Point::ZERO)
+      move_to(world.point.zero)
     end
 
     def ==(other)

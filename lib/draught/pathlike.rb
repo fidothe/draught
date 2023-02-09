@@ -1,5 +1,9 @@
+require_relative 'metadata'
+
 module Draught
   module Pathlike
+    include Metadata::Methods
+
     def points
       raise NotImplementedError, "Pathlike objects must return an array of their points"
     end

@@ -5,6 +5,11 @@ module Draught
   module Boxlike
     POSITION_METHODS = [:lower_left, :lower_centre, :lower_right, :centre_right, :upper_right, :upper_centre, :upper_left, :centre_left, :centre]
 
+    # @return [World] the World
+    def world
+      raise NotImplementedError, "includers of Boxlike must implement #world"
+    end
+
     def lower_left
       raise NotImplementedError, "includers of Boxlike must implement #lower_left"
     end
@@ -22,35 +27,35 @@ module Draught
     end
 
     def lower_right
-      @lower_right ||= lower_left.translate(Draught::Vector.new(width, 0))
+      @lower_right ||= lower_left.translate(world.vector.new(width, 0))
     end
 
     def upper_right
-      @upper_right ||= lower_left.translate(Draught::Vector.new(width, height))
+      @upper_right ||= lower_left.translate(world.vector.new(width, height))
     end
 
     def upper_left
-      @upper_left ||= lower_left.translate(Draught::Vector.new(0, height))
+      @upper_left ||= lower_left.translate(world.vector.new(0, height))
     end
 
     def centre_left
-      @centre_left ||= lower_left.translate(Draught::Vector.new(0, height/2.0))
+      @centre_left ||= lower_left.translate(world.vector.new(0, height/2.0))
     end
 
     def lower_centre
-      @lower_centre ||= lower_left.translate(Draught::Vector.new(width/2.0, 0))
+      @lower_centre ||= lower_left.translate(world.vector.new(width/2.0, 0))
     end
 
     def centre_right
-      @centre_right ||= lower_right.translate(Draught::Vector.new(0, height / 2.0))
+      @centre_right ||= lower_right.translate(world.vector.new(0, height / 2.0))
     end
 
     def upper_centre
-      @upper_centre ||= upper_left.translate(Draught::Vector.new(width/2.0, 0))
+      @upper_centre ||= upper_left.translate(world.vector.new(width/2.0, 0))
     end
 
     def centre
-      @centre ||= lower_left.translate(Draught::Vector.new(width/2.0, height/2.0))
+      @centre ||= lower_left.translate(world.vector.new(width/2.0, height/2.0))
     end
 
     def corners
@@ -76,12 +81,12 @@ module Draught
     def move_to(point, opts = {})
       reference_position_method = opts.fetch(:position, :lower_left)
       if invalid_position_method?(reference_position_method)
-        raise ArgumentError, ":position option must be a valid position (one of #{POSITION_METHODS.map(&:inspect).join(', ')}), rather than #{opts[:position].inspect}" 
+        raise ArgumentError, ":position option must be a valid position (one of #{POSITION_METHODS.map(&:inspect).join(', ')}), rather than #{opts[:position].inspect}"
       end
 
       reference_point = send(reference_position_method)
-      translation = Draught::Vector.translation_between(reference_point, point)
-      return self if translation == Draught::Vector::NULL
+      translation = world.vector.translation_between(reference_point, point)
+      return self if translation == world.vector.null
       translate(translation)
     end
 

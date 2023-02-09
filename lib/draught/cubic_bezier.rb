@@ -1,12 +1,19 @@
 require_relative './pointlike'
 
 module Draught
+  # Represents a simple Cubic Bezier curve in the way that PostScript/PDF and
+  # SVG think about it - an end point plus the two control points, with the
+  # curve beginning at whatever the previous point in a path was.
+  #
+  # To represent an entire Cubic Bezier curve standalone, you can use
+  # {CurveSegment}, which defers to this class when needed.
   class CubicBezier
     include Pointlike
 
-    attr_reader :end_point, :control_point_1, :control_point_2
+    attr_reader :world, :end_point, :control_point_1, :control_point_2
 
-    def initialize(args = {})
+    def initialize(world, args = {})
+      @world = world
       @end_point = args.fetch(:end_point)
       @control_point_1 = args.fetch(:control_point_1)
       @control_point_2 = args.fetch(:control_point_2)
@@ -44,7 +51,16 @@ module Draught
       new_args = Hash[args_hash.map { |k, point|
         [k, point.transform(transformer)]
       }]
-      self.class.new(new_args)
+      self.class.new(world, new_args)
+    end
+
+    def pretty_print(q)
+      q.group(1, 'C', '') do
+        q.seplist([control_point_1, control_point_2, end_point], ->() { }) do |pointish|
+          q.breakable
+          q.pp pointish
+        end
+      end
     end
 
     private

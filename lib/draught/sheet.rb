@@ -5,11 +5,12 @@ module Draught
   class Sheet
     include Boxlike
 
-    attr_reader :containers, :lower_left, :width, :height
+    attr_reader :world, :containers, :lower_left, :width, :height
 
-    def initialize(opts = {})
+    def initialize(world, opts = {})
+      @world = world
       @containers = opts.fetch(:containers)
-      @lower_left = opts.fetch(:lower_left, Point::ZERO)
+      @lower_left = opts.fetch(:lower_left, world.point.zero)
       @width = opts.fetch(:width)
       @height = opts.fetch(:height)
     end
@@ -17,15 +18,17 @@ module Draught
     def translate(point)
       tr_lower_left = lower_left.translate(point)
       tr_containers = containers.map { |container| container.translate(point) }
-      self.class.new(containers: tr_containers, lower_left: tr_lower_left, width: width, height: height)
+      self.class.new(world, {
+        containers: tr_containers, lower_left: tr_lower_left, width: width, height: height
+      })
     end
 
     def transform(transformer)
       tr_lower_left = lower_left.transform(transformer)
       tr_containers = containers.map { |container| container.transform(transformer) }
-      extent = Point.new(width, height).transform(transformer)
+      extent = world.point.new(width, height).transform(transformer)
       tr_width, tr_height = extent.x, extent.y
-      self.class.new({
+      self.class.new(world, {
         containers: tr_containers, lower_left: tr_lower_left, width: tr_width, height: tr_height
       })
     end

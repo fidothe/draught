@@ -1,35 +1,32 @@
-require_relative './vector'
 require_relative './pointlike'
+require_relative './tolerance/x_y_comparable'
+require_relative './vector'
+require_relative './approximately'
 require 'matrix'
 
 module Draught
   class Point
-    def self.from_matrix(matrix)
-      x, y = matrix.to_a.flatten
-      Point.new(x, y)
-    end
-
     include Pointlike
+    include Tolerance::XYComparable
 
-    attr_reader :x, :y
+    attr_reader :x, :y, :world, :tolerance
 
-    def initialize(x, y)
-      @x, @y = x, y
+    def initialize(x, y, world)
+      @x, @y, @world, @tolerance = x, y, world, world.tolerance
     end
 
     def point_type
       :point
     end
 
-    def ==(other)
-      other.point_type == point_type &&
-        other.x == x && other.y == y
+    def compare_compatible?(other)
+      other.point_type == point_type
     end
 
     def approximates?(other, delta)
       other.point_type == point_type &&
-        ((other.x - x).abs <= delta) &&
-        ((other.y - y).abs <= delta)
+        Approximately.equal?(other.x, x, delta) &&
+        Approximately.equal?(other.y, y, delta)
     end
 
     def translate(vector)
@@ -37,7 +34,12 @@ module Draught
     end
 
     def translation_to(point)
-      Vector.translation_between(self, point)
+      world.vector.translation_between(self, point)
+    end
+
+    # @return [Vector] a vector form of this point (Vector(self.x,self.y))
+    def to_vector
+      world.vector.new(x, y)
     end
 
     def to_matrix
@@ -45,9 +47,13 @@ module Draught
     end
 
     def transform(transformation)
-      transformation.call(self)
+      transformation.call(self, world)
     end
 
-    ZERO = new(0, 0)
+    def pretty_print(q)
+      q.group(1, '', '') do
+        q.text "#{x},#{y}"
+      end
+    end
   end
 end

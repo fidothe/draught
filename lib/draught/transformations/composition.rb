@@ -11,8 +11,8 @@ module Draught
         @transforms = transforms
       end
 
-      def call(point)
-        transforms.inject(point) { |result_point, transform| transform.call(result_point) }
+      def call(point, world)
+        transforms.inject(point) { |result_point, transform| transform.call(result_point, world) }
       end
 
       def affine?

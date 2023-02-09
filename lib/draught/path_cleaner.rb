@@ -2,12 +2,12 @@ require_relative 'path'
 
 module Draught
   class PathCleaner
-    def self.dedupe(path)
-      Path.new(new(path.points).dedupe)
+    def self.dedupe(world, path)
+      world.path.new(points: new(path.points).dedupe, metadata: path.metadata)
     end
 
-    def self.simplify(path)
-      Path.new(new(path.points).simplify)
+    def self.simplify(world, path)
+      world.path.new(points: new(path.points).simplify, metadata: path.metadata)
     end
 
     attr_reader :input_points

@@ -1,8 +1,8 @@
 module Draught
   module Transformations
     module Common
-      def call(point)
-        raise NotImplementedError, "Classes including Transformations::Common must implement #call, taking a Point and returning a new, transformed, Point"
+      def call(point, world)
+        raise NotImplementedError, "Classes including Transformations::Common must implement #call, taking a Point and a World, and returning a new, transformed, Point"
       end
 
       def affine?
