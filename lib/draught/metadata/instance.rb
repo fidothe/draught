@@ -50,7 +50,7 @@ module Draught
       # return a copy of this object with a name, replacing any existing name
       #
       # @param name [String] the name to use
-      # @return [CurveSegment] the copy of this Metadata::Instance with new name
+      # @return [Metadata::Instance] the copy of this Metadata::Instance with new name
       def with_name(name)
         self.class.new(style: style, annotation: annotation, name: name)
       end

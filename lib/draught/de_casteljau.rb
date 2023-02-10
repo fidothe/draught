@@ -1,5 +1,3 @@
-require 'draught/line_segment'
-
 module Draught
   class DeCasteljau
     def self.split(world, curve_segment, t)
@@ -26,21 +24,21 @@ module Draught
     private
 
     def curve_segment_before_split(start_point, rank_1, rank_2, end_point)
-      CurveSegment.build(world, {
+      world.curve_segment.build(
         start_point: start_point,
         control_point_1: rank_1.first,
         control_point_2: rank_2.first,
         end_point: end_point
-      })
+      )
     end
 
     def curve_segment_after_split(start_point, rank_1, rank_2, end_point)
-      CurveSegment.build(world, {
+      world.curve_segment.build(
         start_point: start_point,
         control_point_1: rank_2.last,
         control_point_2: rank_1.last,
         end_point: end_point
-      })
+      )
     end
 
     def split_points(segments, t)

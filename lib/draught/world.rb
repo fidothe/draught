@@ -4,8 +4,8 @@ require_relative './vector_builder'
 require_relative './arc_builder'
 require_relative './circle_builder'
 require_relative './path_builder'
-require_relative './line_segment_builder'
-require_relative './curve_segment_builder'
+require_relative './segment/line/builder'
+require_relative './segment/curve/builder'
 
 module Draught
   # The World represents the environment in which all objects are created.
@@ -55,12 +55,12 @@ module Draught
 
     # @return [LineSegmentBuilder] the builder for producing LineSegment objects
     def line_segment
-      @line_segment ||= LineSegmentBuilder.new(self)
+      @line_segment ||= Segment::Line::Builder.new(self)
     end
 
     # @return [CurveSegmentBuilder] the builder for producing CurveSegment objects
     def curve_segment
-      @curve_segment ||= CurveSegmentBuilder.new(self)
+      @curve_segment ||= Segment::Curve::Builder.new(self)
     end
   end
 end

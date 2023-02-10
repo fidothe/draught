@@ -1,7 +1,7 @@
 require 'draught/intersection_checker'
 require 'draught/world'
-require 'draught/line_segment'
-require 'draught/curve_segment'
+require 'draught/segment/line'
+require 'draught/segment/curve'
 require 'intersection_helper'
 
 module Draught

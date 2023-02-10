@@ -1,12 +1,12 @@
 require 'draught/world'
-require 'draught/curve_segment'
+require 'draught/segment/curve'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
 
-module Draught
-  RSpec.describe CurveSegment do
-    let(:world) { World.new }
-    let(:metadata) { Metadata::Instance.new(name: 'name') }
+module Draught::Segment
+  RSpec.describe Curve do
+    let(:world) { Draught::World.new }
+    let(:metadata) { Draught::Metadata::Instance.new(name: 'name') }
     let(:start_point) { world.point.zero }
     let(:end_point) { world.point.new(4,0) }
     let(:control_point_1) { world.point.new(1,2) }
@@ -15,10 +15,10 @@ module Draught
       end_point: end_point, control_point_1: control_point_1,
       control_point_2: control_point_2
     } }
-    let(:cubic) { CubicBezier.new(world, cubic_opts) }
+    let(:cubic) { Draught::CubicBezier.new(world, cubic_opts) }
     let(:segment_opts) { {start_point: start_point, cubic_bezier: cubic} }
 
-    subject { CurveSegment.build(world, segment_opts) }
+    subject { Curve.build(world, segment_opts) }
 
     context "metadata" do
       it "can be initialized with a Metadata" do
@@ -28,7 +28,7 @@ module Draught
       end
 
       specify "has a blank Metadata by default" do
-        expect(subject.metadata).to be(Metadata::BLANK)
+        expect(subject.metadata).to be(Draught::Metadata::BLANK)
       end
     end
 
@@ -44,11 +44,11 @@ module Draught
 
     it_should_behave_like "a pathlike thing" do
       let(:points) { [start_point, cubic] }
-      subject { CurveSegment.build(world, segment_opts) }
+      subject { Curve.build(world, segment_opts) }
     end
 
     it_should_behave_like "a basic rectangular box-like thing" do
-      subject { CurveSegment.build(world, segment_opts) }
+      subject { Curve.build(world, segment_opts) }
     end
 
     it "knows it's not a line" do
@@ -61,13 +61,13 @@ module Draught
 
     describe "building a Curve Segment from a hash" do
       it "can be handed a start_point and cubic_bezier" do
-        expect(CurveSegment.build(world, {
+        expect(Curve.build(world, {
           start_point: start_point, cubic_bezier: cubic
         })).to eq(subject)
       end
 
       it "can be handed start, end and cubic control points" do
-        expect(CurveSegment.build(world, {
+        expect(Curve.build(world, {
           start_point: start_point, end_point: end_point,
           control_point_1: control_point_1,
           control_point_2: control_point_2
@@ -76,17 +76,17 @@ module Draught
     end
 
     context "building a Curve Segment from a two-item Path" do
-      it "generates the CurveSegment correctly" do
+      it "generates the Curve correctly" do
         path = world.path.new(points: [start_point, cubic])
 
-        expect(CurveSegment.from_path(world, path)).to eq(path)
+        expect(Curve.from_path(world, path)).to eq(path)
       end
 
       it "blows up for a > 2-item Path" do
         path = world.path.new(points: [start_point, cubic, world.point.new(6,6)])
 
         expect {
-          CurveSegment.from_path(world, path)
+          Curve.from_path(world, path)
         }.to raise_error(ArgumentError)
       end
 
@@ -94,7 +94,7 @@ module Draught
         path = world.path.new(points: [world.point.zero])
 
         expect {
-          CurveSegment.from_path(world, path)
+          Curve.from_path(world, path)
         }.to raise_error(ArgumentError)
       end
 
@@ -102,7 +102,7 @@ module Draught
         path = world.path.new(points: [cubic, start_point])
 
         expect {
-          CurveSegment.from_path(world, path)
+          Curve.from_path(world, path)
         }.to raise_error(ArgumentError)
       end
 
@@ -110,7 +110,7 @@ module Draught
         path = world.path.new(points: [start_point, end_point])
 
         expect {
-          CurveSegment.from_path(world, path)
+          Curve.from_path(world, path)
         }.to raise_error(ArgumentError)
       end
     end
@@ -163,7 +163,7 @@ module Draught
 
     describe "splitting a curve" do
       specify "uses DeCasteljau under the hood" do
-        expect(subject.split(0.5)).to eq(DeCasteljau.split(world, subject, 0.5))
+        expect(subject.split(0.5)).to eq(Draught::DeCasteljau.split(world, subject, 0.5))
       end
     end
 

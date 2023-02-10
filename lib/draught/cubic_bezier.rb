@@ -6,7 +6,7 @@ module Draught
   # curve beginning at whatever the previous point in a path was.
   #
   # To represent an entire Cubic Bezier curve standalone, you can use
-  # {CurveSegment}, which defers to this class when needed.
+  # {Segment::Curve}, which defers to this class when needed.
   class CubicBezier
     include Pointlike
 

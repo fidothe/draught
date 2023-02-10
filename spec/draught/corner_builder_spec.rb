@@ -1,7 +1,7 @@
 require 'draught/corner_builder'
 require 'draught/world'
 require 'draught/arc_builder'
-require 'draught/line_segment'
+require 'draught/segment/line'
 require 'draught/path_builder'
 
 module Draught

@@ -1,5 +1,5 @@
 require 'draught/world'
-require 'draught/curve_segment'
+require 'draught/segment/curve'
 require 'draught/de_casteljau'
 
 module Draught
@@ -16,7 +16,7 @@ module Draught
     let(:cubic) { CubicBezier.new(world, cubic_opts) }
     let(:segment_opts) { {start_point: start_point, cubic_bezier: cubic} }
 
-    let(:curve_segment) { CurveSegment.build(world, segment_opts) }
+    let(:curve_segment) { world.curve_segment.build(segment_opts) }
 
     describe "splitting the curve at t = 0.5" do
       let(:mid_point) { world.point.new(2, 1.5) }
@@ -26,14 +26,14 @@ module Draught
       let(:right_cp_2) { world.point.new(3.5, 1) }
 
       let(:left_split_segment) {
-        CurveSegment.build(world, {
+        world.curve_segment.build(
           start_point: start_point, end_point: mid_point, control_point_1: left_cp_1, control_point_2: left_cp_2
-        })
+        )
       }
       let(:right_split_segment) {
-        CurveSegment.build(world, {
+        world.curve_segment.build(
           start_point: mid_point, end_point: end_point, control_point_1: right_cp_1, control_point_2: right_cp_2
-        })
+        )
       }
 
       specify "generates the expected left-hand curve segment from the split" do
@@ -53,14 +53,14 @@ module Draught
       let(:right_cp_2) { world.point.new(3.2, 1.6) }
 
       let(:left_split_segment) {
-        CurveSegment.build(world, {
+        world.curve_segment.build(
           start_point: start_point, end_point: mid_point, control_point_1: left_cp_1, control_point_2: left_cp_2
-        })
+        )
       }
       let(:right_split_segment) {
-        CurveSegment.build(world, {
+        world.curve_segment.build(
           start_point: mid_point, end_point: end_point, control_point_1: right_cp_1, control_point_2: right_cp_2
-        })
+        )
       }
 
       specify "generates the expected left-hand curve segment from the split" do

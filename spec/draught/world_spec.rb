@@ -35,9 +35,9 @@ module Draught
         expect(builder.world).to be(subject)
       end
 
-      specify "provides a LineSegmentBuilder" do
+      specify "provides a Builder for Line Segments" do
         builder = subject.line_segment
-        expect(builder).to be_a(LineSegmentBuilder)
+        expect(builder).to be_a(Segment::Line::Builder)
         expect(builder.world).to be(subject)
       end
 
@@ -53,9 +53,9 @@ module Draught
         expect(builder.world).to be(subject)
       end
 
-      specify "provides a CurveSegmentBuilder" do
+      specify "provides a Builder for Curve Segments" do
         builder = subject.curve_segment
-        expect(builder).to be_a(CurveSegmentBuilder)
+        expect(builder).to be_a(Segment::Curve::Builder)
         expect(builder.world).to be(subject)
       end
     end
