@@ -3,7 +3,7 @@ require_relative './point_builder'
 require_relative './vector_builder'
 require_relative './arc_builder'
 require_relative './circle_builder'
-require_relative './path_builder'
+require_relative './path/builder'
 require_relative './segment/line/builder'
 require_relative './segment/curve/builder'
 
@@ -50,7 +50,7 @@ module Draught
 
     # @return [PathBuilder] the builder for producing Path objects
     def path
-      @path ||= PathBuilder.new(self)
+      @path ||= Path::Builder.new(self)
     end
 
     # @return [LineSegmentBuilder] the builder for producing LineSegment objects

@@ -1,10 +1,10 @@
 require 'draught/world'
 require 'draught/point'
 require 'draught/style'
-require 'draught/path_builder'
+require 'draught/path/builder'
 
 module Draught
-  RSpec.describe PathBuilder do
+  RSpec.describe Path::Builder do
     let(:world) { World.new }
     let(:p1) { world.point.new(1,1) }
     let(:p2) { world.point.new(2,2) }

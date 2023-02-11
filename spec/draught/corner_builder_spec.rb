@@ -2,7 +2,6 @@ require 'draught/corner_builder'
 require 'draught/world'
 require 'draught/arc_builder'
 require 'draught/segment/line'
-require 'draught/path_builder'
 
 module Draught
   RSpec.describe CornerBuilder do

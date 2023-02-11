@@ -29,9 +29,9 @@ module Draught
         expect(builder.world).to be(subject)
       end
 
-      specify "provides a PathBuilder" do
+      specify "provides a Path Builder" do
         builder = subject.path
-        expect(builder).to be_a(PathBuilder)
+        expect(builder).to be_a(Path::Builder)
         expect(builder.world).to be(subject)
       end
 
