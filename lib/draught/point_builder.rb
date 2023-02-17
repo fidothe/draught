@@ -14,9 +14,13 @@ module Draught
       Point.new(x, y, world)
     end
 
+    def build(x, y)
+      Point.new(x, y, world)
+    end
+
     def from_matrix(matrix)
       x, y = matrix.to_a.flatten
-      new(x, y)
+      build(x, y)
     end
   end
 end

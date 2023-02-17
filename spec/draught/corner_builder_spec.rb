@@ -5,6 +5,8 @@ require 'draught/segment/line'
 
 module Draught
   RSpec.describe CornerBuilder do
+    let(:tolerance) { Tolerance.new(0.000001) }
+    # let(:world) { World.new(tolerance) }
     let(:world) { World.new }
     subject { described_class.new(world) }
     let(:arc_builder) { ArcBuilder.new(world) }
@@ -16,43 +18,45 @@ module Draught
         let(:down) { world.line_segment.vertical(-100) }
 
         specify "when the incoming line_segment is left-right and the outgoing line_segment is bottom-to-top" do
-          expected = world.path.build { |p|
-            p << world.point.zero
-            p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector.new(90,0))
-            p << world.point.new(100,100)
+          expected = world.path.build {
+            points world.point.zero
+            points world.arc.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector(90,0))
+            points world.point(100,100)
           }
 
           joined = subject.join_rounded(horizontal, up, radius: 10)
 
-          expect(joined).to approximate(expected).within(0.00001)
+          expect(joined).to eq(expected)
         end
 
         specify "when the incoming line_segment is left-right and the outgoing line_segment is top-to-bottom" do
-          expected = world.path.build { |p|
-            p << world.point.zero
-            p << arc_builder.degrees(angle: -90, radius: 10, starting_angle: -90).path.translate(world.vector.new(90,0))
-            p << world.point.new(100,-100)
+          expected = world.path.build {
+            points world.point.zero
+            points world.arc.degrees(angle: -90, radius: 10, starting_angle: -90).path.translate(world.vector(90,0))
+            points world.point(100,-100)
           }
 
           joined = subject.join_rounded(horizontal, down, radius: 10)
 
-          expect(joined).to approximate(expected).within(0.00001)
+          expect(joined).to eq(expected)
         end
 
         specify "when the incoming line_segment is at a 45º angle top-left - bottom-right" do
-          expected = world.path.build { |p|
-            p << world.line_segment.build(radians: deg_to_rad(-45), length: 90)
-            p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: -135).path.
-              translate(world.vector.translation_between(world.point.zero, p.last))[1..-1]
-            p << world.line_segment.build(radians: deg_to_rad(45), length: 90).
-              translate(world.vector.translation_between(world.point.zero, p.last))[1]
+          plus_45 = deg_to_rad(45)
+          minus_45 = deg_to_rad(-45)
+          expected = world.path.build {
+            points world.line_segment(radians: minus_45, length: 90)
+            points world.arc.degrees(angle: 90, radius: 10, starting_angle: -135).path.
+              translate(world.vector.translation_between(world.point.zero, last_point)).subpaths.first.points[1..-1]
+            points world.line_segment(radians: plus_45, length: 90).
+              translate(world.vector.translation_between(world.point.zero, last_point)).points[1]
           }
 
-          incoming = world.line_segment.build(radians: deg_to_rad(-45), length: 100)
-          outgoing = world.line_segment.build(radians: deg_to_rad(45), length: 100)
+          incoming = world.line_segment(radians: minus_45, length: 100)
+          outgoing = world.line_segment(radians: plus_45, length: 100)
           joined = subject.join_rounded(incoming, outgoing, radius: 10)
 
-          expect(joined).to approximate(expected).within(0.00001)
+          expect(joined).to eq(expected)
         end
 
         context "handling Metadata" do
@@ -80,60 +84,61 @@ module Draught
       context "the two paths meet at an acute angle" do
         specify "when the incoming line_segment is left-right and the outgoing line_segment is 45º from bottom-right to top-left" do
           arc = arc_builder.degrees(angle: 135, radius: 10, starting_angle: -90).path
-          expected = world.path.build { |p|
-            p << world.point.zero << arc.translate(world.vector.new(75.857864,0))
-            p << world.line_segment.build(radians: deg_to_rad(135), length: 100).translate(world.vector.new(100,0))[1]
-          }
 
+          expected = world.path.build {
+            points world.point.zero, arc.translate(world.vector(75.857864,0))
+            points world.line_segment(radians: deg_to_rad(135), length: 100).translate(world.vector(100,0)).points[1]
+          }
           h = world.line_segment.horizontal(100)
-          l45 = world.line_segment.build(radians: deg_to_rad(135), length: 100)
+          l45 = world.line_segment(radians: deg_to_rad(135), length: 100)
           joined = subject.join_rounded(h, l45, radius: 10)
 
-          expect(joined).to approximate(expected).within(0.00001)
+          expect(joined).to eq(expected)
         end
 
         specify "when the incoming line_segment is right-left and the outgoing line_segment is 45º from bottom-left to top-right" do
           arc = arc_builder.degrees(angle: -135, radius: 10, starting_angle: -270).path
-          expected = world.path.build { |p|
-            p << world.point.zero << arc.translate(world.vector.new(-75.857864,0))
-            p << world.line_segment.build(radians: deg_to_rad(45), length: 100).translate(world.vector.new(-100,0))[1]
+          expected = world.path.build {
+            points world.point.zero, arc.translate(world.vector(-75.857864,0))
+            points world.line_segment(radians: deg_to_rad(45), length: 100).translate(world.vector(-100,0)).points[1]
           }
 
           h = world.line_segment.horizontal(-100)
-          l45 = world.line_segment.build(radians: deg_to_rad(45), length: 100)
+          l45 = world.line_segment(radians: deg_to_rad(45), length: 100)
           joined = subject.join_rounded(h, l45, radius: 10)
 
-          expect(joined).to approximate(expected).within(0.00001)
+          expect(joined).to eq(expected)
         end
       end
 
       context "the two paths meet at an obtuse angle" do
         specify "when the incoming line_segment is left-right and the outgoing line_segment is 135º from bottom-left to top-right" do
           arc = arc_builder.degrees(angle: 45, radius: 10, starting_angle: -90).path
-          expected = world.path.build { |p|
-            p << world.point.zero << arc.translate(world.vector.new(95.857864,0))
-            p << world.line_segment.build(radians: deg_to_rad(45), length: 100).translate(world.vector.new(100,0))[1]
+          expected = world.path.build {
+            points world.point.zero, arc.translate(world.vector.new(95.857864,0))
+            points world.line_segment(radians: deg_to_rad(45), length: 100).translate(world.vector.new(100,0)).points[1]
           }
 
           h = world.line_segment.horizontal(100)
           l135 = world.line_segment.build(radians: deg_to_rad(45), length: 100)
           joined = subject.join_rounded(h, l135, radius: 10)
 
-          expect(joined).to approximate(expected).within(0.00001)
+          expect(joined).to eq(expected)
         end
 
         specify "when the incoming line_segment is right-left and the outgoing line_segment is 135º from bottom-right to top-left" do
           arc = arc_builder.degrees(angle: -45, radius: 10, starting_angle: 90).path
-          expected = world.path.build { |p|
-            p << world.point.zero << arc.translate(world.vector.new(-95.857864,0))
-            p << world.line_segment.build(radians: deg_to_rad(135), length: 100).translate(world.vector.new(-100,0))[1]
+          expected = world.path.build {
+            points world.point.zero
+            points arc.translate(world.vector.new(-95.857864,0))
+            points world.line_segment(radians: deg_to_rad(135), length: 100).translate(world.vector(-100,0)).points[1]
           }
 
           h = world.line_segment.horizontal(-100)
-          l135 = world.line_segment.build(radians: deg_to_rad(135), length: 100)
+          l135 = world.line_segment(radians: deg_to_rad(135), length: 100)
           joined = subject.join_rounded(h, l135, radius: 10)
 
-          expect(joined).to approximate(expected).within(0.00001)
+          expect(joined).to eq(expected)
         end
       end
     end
@@ -144,18 +149,17 @@ module Draught
       let(:down) { world.line_segment.vertical(-100) }
 
       specify "when asked to connect three paths" do
-        expected = world.path.build { |p|
-          p << world.point.zero << world.point.new(0,-90)
-          p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 180).path.translate(world.vector.new(0,-90))[1..-1]
-          p << world.point.new(90,-100)
-          p << arc_builder.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector.new(90,-100))[1..-1]
-          p << world.point.new(100,0)
+        expected = world.path.build {
+          points world.point.zero
+          points world.arc.degrees(angle: 90, radius: 10, starting_angle: 180).path.translate(world.vector.new(0,-90))
+          points world.arc.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector.new(90,-100))
+          points world.point.new(100,0)
         }
 
-        ref = world.path.connect(down, horizontal, up)
+        # joined = world.path.connect(down, horizontal, up)
         joined = subject.join_rounded(down, horizontal, up, radius: 10)
 
-        expect(joined).to approximate(expected).within(0.00001)
+        expect(joined).to eq(expected)
       end
     end
   end

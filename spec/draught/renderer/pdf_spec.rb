@@ -7,7 +7,7 @@ require 'tmpdir'
 module Draught::Renderer
   RSpec.describe PDF do
     let(:world) { Draught::World.new }
-    let(:path) { world.path.build { |p| p << world.point.new(0,0); p << world.point.new(50,50) } }
+    let(:path) { world.path.simple(points: [world.point(0,0), world.point(50,50)]) }
     let(:container) { Draught::Container.new(world, path, min_gap: 50) }
     let(:sheet) {
       Draught::SheetBuilder.sheet(world, max_width: 150, max_height: 150, boxes: [container])

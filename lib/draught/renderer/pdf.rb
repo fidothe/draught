@@ -18,12 +18,14 @@ module Draught
         end
 
         def draw_closed_path(path)
-          points = path.points.dup
-          close_and_stroke do
-            self.line_width = 0.003
-            move_to(*point_tuple(points.shift))
-            points.each do |pointlike|
-              draw_pointlike(pointlike)
+          path.subpaths.each do |subpath|
+            points = subpath.points.dup
+            close_and_stroke do
+              self.line_width = 0.003
+              move_to(*point_tuple(points.shift))
+              points.each do |pointlike|
+                draw_pointlike(pointlike)
+              end
             end
           end
         end

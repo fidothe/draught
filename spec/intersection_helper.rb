@@ -58,8 +58,8 @@ module IntersectionHelper
       expected_style = Draught::Style.new(stroke_width: '10px', stroke_color: 'rgb(255,107,1)', fill: 'none')
       actual_style = Draught::Style.new(stroke_width: '1px', stroke_color: 'rgb(2,171,255)', fill: 'none')
 
-      expected_path = world.path.new(points: sorted_expected).with_style(expected_style).with_name('expected')
-      actual_path = world.path.new(points: sorted_actual).with_style(actual_style).with_name('actual')
+      expected_path = world.path.simple(points: sorted_expected).with_style(expected_style).with_name('expected')
+      actual_path = world.path.simple(points: sorted_actual).with_style(actual_style).with_name('actual')
       box = Draught::BoundingBox.new(world, [segment_1.with_style(curve_style), segment_2.with_style(curve_style), expected_path, actual_path])
       Draught::Renderer::SVG.render_to_file(path, box)
     end
@@ -75,7 +75,7 @@ module IntersectionHelper
     end
 
     def path_is_line?(path)
-      path.points.all? { |point| point.point_type == :point }
+      path.subpaths.first.points.all? { |point| point.point_type == :point }
     end
 
     def path_is_curve?(path)
@@ -99,7 +99,7 @@ module IntersectionHelper
     # normalization process is required where any cubics get their end point
     # taken and used instead.
     def normalize_expected(pathlike)
-      pathlike.points.map { |pointlike|
+      pathlike.subpaths.first.points.map { |pointlike|
         case pointlike
         when Draught::CubicBezier
           pointlike.end_point

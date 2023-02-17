@@ -12,33 +12,45 @@ module Draught
           @world = world
         end
 
-        def horizontal(width, args = {})
-          build(build_args({end_point: world.point.new(width, 0)}, args))
+        def horizontal(width, metadata: nil)
+          build(end_point: world.point.new(width, 0), metadata: metadata)
         end
 
-        def vertical(height, args = {})
-          build(build_args({end_point: world.point.new(0, height)}, args))
+        def vertical(height, metadata: nil)
+          build(end_point: world.point.new(0, height), metadata: metadata)
         end
 
-        def build(args = {})
-          Line.build(world, args)
+        def build(**kwargs)
+          Line.build(world, **kwargs)
         end
 
-        def from_to(p1, p2, args = {})
-          build(build_args({start_point: p1, end_point: p2}, args))
+        def from_to(p1, p2, metadata: nil)
+          build(start_point: p1, end_point: p2, metadata: metadata)
         end
 
-        def from_path(path)
-          if path.number_of_points != 2
-            raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
+        def from_path(path_or_subpath)
+          case path_or_subpath
+          when Draught::Subpath
+            from_subpath(path_or_subpath)
+          else
+            if path_or_subpath.number_of_subpaths != 1
+              raise ArgumentError, "path must contain exactly 1 subpath, this contained #{path_or_subpath.number_of_subpaths}"
+            end
+            from_subpath(path_or_subpath.subpaths.first, metadata: path_or_subpath.metadata)
           end
-          build(build_args({start_point: path.first, end_point: path.last}, {metadata: path.metadata}))
         end
 
         private
 
         def build_args(required_args, optional_args)
           required_args.merge(optional_args.select { |k,_| k == :metadata })
+        end
+
+        def from_subpath(subpath, metadata: nil)
+          if subpath.number_of_points != 2
+            raise ArgumentError, "path's 1 subpath must contain exactly 2 points, this contained #{subpath.number_of_points}"
+          end
+          build(start_point: subpath.first, end_point: subpath.last, metadata: metadata)
         end
       end
     end

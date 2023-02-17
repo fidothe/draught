@@ -1,4 +1,5 @@
 require 'draught/world'
+require 'draught/extent_examples'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
 require 'draught/segment/line'
@@ -22,14 +23,14 @@ module Draught::Segment
         it "by moving the end point in" do
           expected = Line.build(world, length: 8, radians: radians)
 
-          expect(subject.extend(by: -2, at: :end)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: -2, at: :end)).to eq(expected)
         end
 
         it "by moving the start point out" do
           line_segment = Line.build(world, length: 8, radians: radians)
-          expected = line_segment.translate(world.vector.translation_between(line_segment.last, subject.last))
+          expected = line_segment.translate(world.vector.translation_between(line_segment.end_point, subject.end_point))
 
-          expect(subject.extend(by: -2, at: :start)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: -2, at: :start)).to eq(expected)
         end
       end
 
@@ -37,35 +38,35 @@ module Draught::Segment
         it "by moving the end point out" do
           expected = Line.build(world, length: 12, radians: radians)
 
-          expect(subject.extend(by: 2, at: :end)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: 2, at: :end)).to eq(expected)
         end
 
         it "by moving the start point out" do
           line_segment = Line.build(world, length: 12, radians: radians)
-          expected = line_segment.translate(world.vector.translation_between(line_segment.last, subject.last))
+          expected = line_segment.translate(world.vector.translation_between(line_segment.end_point, subject.end_point))
 
-          expect(subject.extend(by: 2, at: :start)).to approximate(expected).within(0.00001)
+          expect(subject.extend(by: 2, at: :start)).to eq(expected)
         end
       end
 
       it "defaults to moving the end point" do
         expected = Line.build(world, length: 12, radians: radians)
 
-        expect(subject.extend(by: 2)).to approximate(expected).within(0.00001)
+        expect(subject.extend(by: 2)).to eq(expected)
       end
 
       context "altering length by specifying explicitly" do
         it "by moving the end point" do
           expected = Line.build(world, length: 20, radians: radians)
 
-          expect(subject.extend(to: 20, at: :end)).to approximate(expected).within(0.00001)
+          expect(subject.extend(to: 20, at: :end)).to eq(expected)
         end
 
         it "by moving the start point out" do
           line_segment = Line.build(world, length: 5, radians: radians)
-          expected = line_segment.translate(world.vector.translation_between(line_segment.last, subject.last))
+          expected = line_segment.translate(world.vector.translation_between(line_segment.end_point, subject.end_point))
 
-          expect(subject.extend(to: 5, at: :start)).to approximate(expected).within(0.00001)
+          expect(subject.extend(to: 5, at: :start)).to eq(expected)
         end
       end
 
@@ -131,7 +132,7 @@ module Draught::Segment
         it "by moving the end point" do
           expected = Line.build(world, length: 8, radians: radians).end_point
 
-          expect(subject.compute_point(0.8)).to approximate(expected).within(0.00001)
+          expect(subject.compute_point(0.8)).to eq(expected)
         end
       end
     end
@@ -146,18 +147,25 @@ module Draught::Segment
       subject { Line.build(world, end_point: world.point.new(2,2)) }
 
       it "returns a Path when [Range]-style access is used" do
-        expect(subject[0..0]).to eq(world.path.new(points: [world.point.zero]))
+        expect(subject[0..0]).to eq(world.path.new(subpaths: subject.subpaths))
       end
 
       it "returns a Path when [start, length]-style access is used" do
-        expect(subject[1,1]).to eq(world.path.new(points: [world.point.new(2,2)]))
+        expect(subject[0,1]).to eq(world.path.new(subpaths: subject.subpaths))
       end
     end
 
     it_should_behave_like "a pathlike thing" do
+      subject { described_class.build(world, end_point: end_point) }
       let(:end_point) { world.point.new(4,4) }
-      let(:points) { [world.point.zero, end_point] }
-      subject { Line.build(world, end_point: end_point) }
+      let(:subpaths_points) { subject.subpaths.map(&:points) }
+      let(:subpaths) { subject.subpaths }
+    end
+
+    it_should_behave_like "it has an extent" do
+      subject { described_class.build(world, end_point: upper_right) }
+      let(:lower_left) { world.point.zero }
+      let(:upper_right) { world.point(1,2) }
     end
 
     it_should_behave_like "a basic rectangular box-like thing" do

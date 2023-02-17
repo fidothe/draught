@@ -11,14 +11,14 @@ module Draught
     subject { VectorBuilder.new(world) }
 
     specify "can generate a Vector" do
-      vector = subject.new(1,2)
+      vector = subject.build(1,2)
       expect(vector.x).to eq(1)
       expect(vector.y).to eq(2)
       expect(vector.world).to be(world)
     end
 
     specify "provides a null (0,0) vector via a method" do
-      expect(subject.null).to eq(subject.new(0,0))
+      expect(subject.null).to eq(subject.build(0,0))
     end
 
     it "can create from an x,y pair" do
@@ -69,11 +69,11 @@ module Draught
         p1 = point_builder.new(1,2)
         p2 = point_builder.new(3,1)
 
-        expect(subject.translation_between(p1, p2)).to eq(subject.new(2,-1))
+        expect(subject.translation_between(p1, p2)).to eq(subject.build(2,-1))
       end
 
       it "can construct a vector representing the translation between a point and (0,0)" do
-        expect(subject.translation_to_zero(point_builder.new(1,2))).to eq(subject.new(-1,-2))
+        expect(subject.translation_to_zero(point_builder.new(1,2))).to eq(subject.build(-1,-2))
       end
     end
   end

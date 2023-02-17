@@ -30,19 +30,19 @@ module Draught
 
       def corner_top_line_segment
         @corner_top_line_segment ||= begin
-          corner_top_line_segment = world.line_segment.build({
+          corner_top_line_segment = world.line_segment.build(
             start_point: incoming_corner_line_segment.start_point, end_point: outgoing_corner_line_segment.end_point
-          })
+          )
           corner_top_line_segment.extend(to: corner_top_line_segment.length / 2.0)
         end
       end
 
       def incoming_corner_line_segment
-        @incoming_corner_line_segment ||= zeroed_unit_line_segment(incoming_line_segment, :last)
+        @incoming_corner_line_segment ||= zeroed_unit_line_segment(incoming_line_segment, :end_point)
       end
 
       def outgoing_corner_line_segment
-        @outgoing_corner_line_segment ||= zeroed_unit_line_segment(outgoing_line_segment, :first)
+        @outgoing_corner_line_segment ||= zeroed_unit_line_segment(outgoing_line_segment, :start_point)
       end
 
       def zeroed_unit_line_segment(segment, zero_to_point)
@@ -61,18 +61,18 @@ module Draught
       end
 
       def clockwise?
-        if aligned_zeroed_line_segments[0].x > aligned_zeroed_line_segments[1].x
-          aligned_zeroed_line_segments[0].y < aligned_zeroed_line_segments[2].y
+        if aligned_zeroed_joined_points[0].x > aligned_zeroed_joined_points[1].x
+          aligned_zeroed_joined_points[0].y < aligned_zeroed_joined_points[2].y
         else
-          aligned_zeroed_line_segments[0].y > aligned_zeroed_line_segments[2].y
+          aligned_zeroed_joined_points[0].y > aligned_zeroed_joined_points[2].y
         end
       end
 
-      def aligned_zeroed_line_segments
-        @aligned_zeroed_line_segments ||= begin
-          joined_line_segments = world.path.connect(incoming_line_segment, outgoing_line_segment)
-          zeroed_joined_line_segments = joined_line_segments.translate(world.vector.translation_to_zero(joined_line_segments.first))
-          zeroed_joined_line_segments.transform(Transformations.rotate(incoming_line_segment.radians * -1))
+      def aligned_zeroed_joined_points
+        @aligned_zeroed_joined_points ||= begin
+          joined_line_subpath = world.path.connect(incoming_line_segment, outgoing_line_segment).subpaths.first
+          zeroed_joined_line_segments = joined_line_subpath.translate(world.vector.translation_to_zero(joined_line_subpath.first))
+          zeroed_joined_line_segments.transform(Transformations.rotate(incoming_line_segment.radians * -1)).points
         end
       end
     end

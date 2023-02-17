@@ -1,5 +1,6 @@
 require_relative './line/from_point'
 require_relative './line/from_angles'
+require_relative '../extent'
 require_relative '../pathlike'
 require_relative '../boxlike'
 
@@ -14,8 +15,9 @@ module Draught
 
       include Boxlike
       include Pathlike
+      include Extent::InstanceMethods
 
-      def self.build(world, args)
+      def self.build(world, **args)
         builder_class = args.has_key?(:end_point) ? FromPoint : FromAngles
         line_segment_args = builder_class.build(world, args)
         new(world, line_segment_args)
@@ -66,17 +68,16 @@ module Draught
 
         x = mt * start_point.x + t * end_point.x
         y = mt * start_point.y + t * end_point.y
-        world.point.new(x, y)
+        world.point(x, y)
       end
 
       def extend(args = {})
         default_args = {at: :end}
         args = default_args.merge(args)
         new_length = args[:to] || length + args[:by]
-        new_line_segment = self.class.build(world, {
+        new_line_segment = self.class.build(world,
           start_point: start_point, length: new_length, radians: radians,
-          metadata: metadata
-        })
+          metadata: metadata)
         args[:at] == :start ? shift_line_segment(new_line_segment) : new_line_segment
       end
 
@@ -84,14 +85,14 @@ module Draught
         if length.nil?
           case index_start_or_range
           when Range
-            world.path.new(points: points[index_start_or_range], metadata: metadata)
+            Path.new(world, subpaths: subpaths[index_start_or_range], metadata: metadata)
           when Numeric
-            points[index_start_or_range]
+            subpaths[index_start_or_range]
           else
             raise TypeError, "requires a Range or Numeric in single-arg form"
           end
         else
-          world.path.new(points: points[index_start_or_range, length], metadata: metadata)
+          Path.new(world, subpaths: subpaths[index_start_or_range, length], metadata: metadata)
         end
       end
 
@@ -103,16 +104,14 @@ module Draught
         transformed_instance(->(arg, point) { [arg, point.transform(transformation)] })
       end
 
-      def lower_left
-        @lower_left ||= world.point.new(x_min, y_min)
+      # @return [Array<Draught::Subpath>] the array-of-1-Subpath for this Pathlike
+      def subpaths
+        @subpaths ||= [subpath]
       end
 
-      def width
-        @width ||= x_max - x_min
-      end
-
-      def height
-        @height ||= y_max - y_min
+      # @return [Draught::Extent] the Extent for this Segment
+      def extent
+        @extent ||= Draught::Extent.new(world, items: points)
       end
 
       def line?
@@ -153,6 +152,10 @@ module Draught
 
       private
 
+      def subpath
+        @subpath ||= Draught::Subpath.new(world, points: points)
+      end
+
       def shift_line_segment(new_line_segment)
         translation = world.vector.translation_between(new_line_segment.end_point, end_point)
         self.class.new(world, {
@@ -166,8 +169,7 @@ module Draught
 
       def transformed_instance(mapper)
         args = transform_args_hash.map(&mapper).to_h
-        args[:metadata] = metadata
-        self.class.build(world, args)
+        self.class.build(world, metadata: metadata, **args)
       end
 
       def transform_args_hash
@@ -176,22 +178,6 @@ module Draught
 
       def compute_coord(coord_set, t)
         (1 - t) * start_point.send(coord_set) + t * end_point.send(coord_set)
-      end
-
-      def x_max
-        @x_max ||= points.map(&:x).max || 0
-      end
-
-      def x_min
-        @x_min ||= points.map(&:x).min || 0
-      end
-
-      def y_max
-        @y_max ||= points.map(&:y).max || 0
-      end
-
-      def y_min
-        @y_min ||= points.map(&:y).min || 0
       end
     end
   end

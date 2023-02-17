@@ -1,5 +1,6 @@
 require_relative '../pathlike'
 require_relative '../boxlike'
+require_relative '../extent'
 require_relative '../point'
 require_relative '../cubic_bezier'
 require_relative '../de_casteljau'
@@ -12,6 +13,7 @@ module Draught
     class Curve
       include Boxlike
       include Pathlike
+      include Extent::InstanceMethods
 
       class << self
         def build(world, args = {})
@@ -22,21 +24,7 @@ module Draught
               metadata: args.fetch(:metadata, nil)
             }
           end
-          new(world, args)
-        end
-
-        def from_path(world, path)
-          if path.number_of_points != 2
-            raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
-          end
-          unless path.first.is_a?(Point)
-            raise ArgumentError, "the first point on the path must be a Point instance, this was #{path.first.inspect}"
-          end
-          unless path.last.is_a?(CubicBezier)
-            raise ArgumentError, "the last point on the path must be a CubicBezier instance, this was #{path.last.inspect}"
-          end
-
-          build(world, start_point: path.first, cubic_bezier: path.last)
+          new(world, **args)
         end
       end
 
@@ -52,11 +40,8 @@ module Draught
       # @param args [Hash] the Path arguments.
       # @option args [Array<Draught::Point>] :points ([]) the points of the Path
       # @option args [Draught::Metadata::Instance] :metadata (nil) Metadata that should be attached to the CurveSegment
-      def initialize(world, args)
-        @world = world
-        @start_point = args.fetch(:start_point)
-        @cubic_bezier = args.fetch(:cubic_bezier)
-        @metadata = args.fetch(:metadata, nil)
+      def initialize(world, start_point:, cubic_bezier:, metadata: nil)
+        @world, @start_point, @cubic_bezier, @metadata = world, start_point, cubic_bezier, metadata
       end
 
       def control_point_1
@@ -79,14 +64,14 @@ module Draught
         if length.nil?
           case index_start_or_range
           when Range
-            world.path.new(points: points[index_start_or_range], metadata: metadata)
+            world.path.new(subpaths: subpaths[index_start_or_range], metadata: metadata)
           when Numeric
-            points[index_start_or_range]
+            subpaths[index_start_or_range]
           else
             raise TypeError, "requires a Range or Numeric in single-arg form"
           end
         else
-          world.path.new(points: points[index_start_or_range, length], metadata: metadata)
+          world.path.new(subpaths: subpaths[index_start_or_range, length], metadata: metadata)
         end
       end
 
@@ -98,16 +83,14 @@ module Draught
         transformed_instance(->(arg, point) { [arg, point.transform(transformation)] })
       end
 
-      def lower_left
-        @lower_left ||= world.point.new(x_min, y_min)
+      # @return [Array<Draught::Subpath>] the array-of-1-Subpath for this Pathlike
+      def subpaths
+        @subpaths ||= [subpath]
       end
 
-      def width
-        @width ||= x_max - x_min
-      end
-
-      def height
-        @height ||= y_max - y_min
+      # @return [Draught::Extent] the Extent for this Segment
+      def extent
+        @extent ||= Draught::Extent.new(world, items: extrema_points)
       end
 
       def line?
@@ -163,11 +146,14 @@ module Draught
       # @param style [Metadata::Instance] the metadata to use
       # @return [Segment::Curve] the copy of this curve segment with new metadata
       def with_metadata(metadata)
-        args = transform_args_hash.merge(metadata: metadata)
-        self.class.new(world, args)
+        self.class.new(world, metadata: metadata, **transform_args_hash)
       end
 
       private
+
+      def subpath
+        @subpath ||= Draught::Subpath.new(world, points: points)
+      end
 
       def de_casteljau
         @de_casteljau ||= Draught::DeCasteljau.new(world)
@@ -203,8 +189,7 @@ module Draught
 
       def transformed_instance(mapper)
         args = transform_args_hash.map(&mapper).to_h
-        args[:metadata] = metadata
-        self.class.build(world, args)
+        self.class.build(world, metadata: metadata, **args)
       end
 
       def transform_args_hash
@@ -213,22 +198,6 @@ module Draught
 
       def all_points
         [start_point, control_point_1, control_point_2, end_point]
-      end
-
-      def x_max
-        @x_max ||= extrema_points.map(&:x).max || 0
-      end
-
-      def x_min
-        @x_min ||= extrema_points.map(&:x).min || 0
-      end
-
-      def y_max
-        @y_max ||= extrema_points.map(&:y).max || 0
-      end
-
-      def y_min
-        @y_min ||= extrema_points.map(&:y).min || 0
       end
 
       def extrema_points

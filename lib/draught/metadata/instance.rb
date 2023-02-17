@@ -54,6 +54,12 @@ module Draught
       def with_name(name)
         self.class.new(style: style, annotation: annotation, name: name)
       end
+
+      # @param other [Metadata::Instance]
+      # @return [Boolean] whether this instance has the same values as other
+      def ==(other)
+        self.equal?(other) || self.class === other && [:style, :annotation, :name].all? { |meth| self.public_send(meth) == other.public_send(meth) }
+      end
     end
 
     BLANK = Instance.new

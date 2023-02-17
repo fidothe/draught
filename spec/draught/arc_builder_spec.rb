@@ -10,7 +10,7 @@ module Draught
     subject { ArcBuilder.new(world) }
 
     describe "creating an Arc" do
-      let(:arc) { subject.new(radians: radians, radius: 100) }
+      let(:arc) { subject.build(radians: radians, radius: 100) }
 
       it "defaults to a starting angle of 0 radians" do
         expect(arc.starting_angle).to eq(0)
@@ -26,7 +26,7 @@ module Draught
 
       context "handling Metadata" do
         let(:arc) {
-          subject.new(radians: radians, radius: 100, metadata: metadata)
+          subject.build(radians: radians, radius: 100, metadata: metadata)
         }
 
         specify "produces an Arc with the correct Metadata" do

@@ -16,7 +16,7 @@ module Draught
     let(:cubic) { CubicBezier.new(world, cubic_opts) }
     let(:segment_opts) { {start_point: start_point, cubic_bezier: cubic} }
 
-    let(:curve_segment) { world.curve_segment.build(segment_opts) }
+    let(:curve_segment) { world.curve_segment.build(**segment_opts) }
 
     describe "splitting the curve at t = 0.5" do
       let(:mid_point) { world.point.new(2, 1.5) }

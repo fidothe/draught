@@ -1,4 +1,5 @@
 require 'draught/world'
+require 'draught/subpath'
 require 'draught/parser/svg'
 require 'pathname'
 
@@ -16,6 +17,10 @@ module Draught::Parser
       world.curve_segment.build(start_point: p1, control_point_1: c1, control_point_2: c2, end_point: p2)
     end
 
+    def subpath(*points)
+      Draught::Subpath.new(world, points: points)
+    end
+
     let(:world) { Draught::World.new }
 
     context "parsing a document containing a simple path" do
@@ -29,10 +34,20 @@ module Draught::Parser
           expect(actual.paths.size).to eq(1)
         end
 
-        specify "the path consists of the correct points" do
+        specify "the path consists of a single subpath containing the correct points" do
+          expected = world.path.build {
+            points p(0,0), p(100,0), p(200,100)
+          }
           path = subject.parse!.paths.first
 
-          expect(path.points).to eq([p(0,0), p(100,0), p(200,100)])
+          expect(path).to eq(expected)
+        end
+
+        specify "the subpath contains the correct points" do
+          path = subject.parse!.paths.first
+          subpath = path.subpaths.first
+
+          expect(subpath.points).to eq([p(0,0), p(100,0), p(200,100)])
         end
       end
 
@@ -48,14 +63,15 @@ module Draught::Parser
 
         specify "the path consists of the correct points" do
           path = subject.parse!.paths.first
+          subpath = path.subpaths.first
 
-          expect(path.points).to eq(c(p(0,0), p(28,106), p(153,53), p(100,0)).points)
+          expect(subpath.points).to eq(c(p(0,0), p(28,106), p(153,53), p(100,0)).points)
         end
       end
     end
 
     context "parsing a document containing multiple simple paths" do
-      context "an SVG containing 1 path with 3 points" do
+      context "an SVG containing 2 paths with 3 points" do
         subject { described_class.new(world, fixture('multiple-simple-paths.svg').open('r:utf-8')) }
         let(:actual) { subject.parse! }
 
@@ -66,14 +82,16 @@ module Draught::Parser
 
         specify "paths[0] is the first path in SVG document order" do
           path = actual.paths[0]
+          subpath = path.subpaths.first
 
-          expect(path.points).to eq([p(0,0), p(100,0), p(200,100)])
+          expect(subpath.points).to eq([p(0,0), p(100,0), p(200,100)])
         end
 
         specify "paths[1] is the second path in SVG document order" do
           path = actual.paths[1]
+          subpath = path.subpaths.first
 
-          expect(path.points).to eq([p(0,-100), p(-100,100), p(200,200)])
+          expect(subpath.points).to eq([p(0,-100), p(-100,100), p(200,200)])
         end
       end
     end

@@ -9,7 +9,7 @@ module Draught::Segment
     subject { described_class.new(world) }
 
     describe "building a Line between two Points" do
-      let(:finish) { world.point.new(4,4) }
+      let(:finish) { world.point(4,4) }
       let(:line_segment) { subject.build(end_point: finish, metadata: metadata) }
 
       it "knows how long it is" do
@@ -33,42 +33,42 @@ module Draught::Segment
       end
 
       specify "a Line at 0º should have radians == 0" do
-        line_segment = subject.build(end_point: world.point.new(10,0))
+        line_segment = subject.build(end_point: world.point(10,0))
 
         expect(line_segment.radians).to be_within(0.0001).of(0)
       end
 
       context "angles < 90º" do
         it "copes with a Line of angle ~89.9º" do
-          line_segment = subject.build(end_point: world.point.new(0.007,4))
+          line_segment = subject.build(end_point: world.point(0.007,4))
 
           expect(line_segment.length).to be_within(0.01).of(4)
           expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(89.9))
         end
 
         it "copes with a Line of angle 60º" do
-          line_segment = subject.build(end_point: world.point.new(2.31,4))
+          line_segment = subject.build(end_point: world.point(2.31,4))
 
           expect(line_segment.length).to be_within(0.01).of(4.62)
           expect(line_segment.radians).to be_within(0.001).of(deg_to_rad(60))
         end
 
         it "copes with a Line of angle 45º" do
-          line_segment = subject.build(end_point: world.point.new(4,4))
+          line_segment = subject.build(end_point: world.point(4,4))
 
           expect(line_segment.length).to be_within(0.01).of(5.66)
           expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(45))
         end
 
         it "copes with a Line of angle 30º" do
-          line_segment = subject.build(end_point: world.point.new(4,2.31))
+          line_segment = subject.build(end_point: world.point(4,2.31))
 
           expect(line_segment.length).to be_within(0.01).of(4.62)
           expect(line_segment.radians).to be_within(0.001).of(deg_to_rad(30))
         end
 
         it "copes with a Line of angle ~1º" do
-          line_segment = subject.build(end_point: world.point.new(4,0.0699))
+          line_segment = subject.build(end_point: world.point(4,0.0699))
 
           expect(line_segment.length).to be_within(0.01).of(4)
           expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(1))
@@ -77,42 +77,42 @@ module Draught::Segment
 
       context "angles >= 90º" do
         it "copes with a Line of angle 90º" do
-          line_segment = subject.build(end_point: world.point.new(0,4))
+          line_segment = subject.build(end_point: world.point(0,4))
 
           expect(line_segment.length).to be_within(0.01).of(4)
           expect(line_segment.radians).to eq(deg_to_rad(90))
         end
 
         it "copes with a Line of angle < 180º" do
-          line_segment = subject.build(end_point: world.point.new(-4,4))
+          line_segment = subject.build(end_point: world.point(-4,4))
 
           expect(line_segment.length).to be_within(0.01).of(5.66)
           expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(135))
         end
 
         it "copes with a Line of angle 180º" do
-          line_segment = subject.build(end_point: world.point.new(-4,0))
+          line_segment = subject.build(end_point: world.point(-4,0))
 
           expect(line_segment.length).to be_within(0.01).of(4)
           expect(line_segment.radians).to eq(deg_to_rad(180))
         end
 
         it "copes with a Line of angle < 270º" do
-          line_segment = subject.build(end_point: world.point.new(-4,-4))
+          line_segment = subject.build(end_point: world.point(-4,-4))
 
           expect(line_segment.length).to be_within(0.01).of(5.66)
           expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(225))
         end
 
         it "copes with a Line of angle 270º" do
-          line_segment = subject.build(end_point: world.point.new(0,-4))
+          line_segment = subject.build(end_point: world.point(0,-4))
 
           expect(line_segment.length).to be_within(0.01).of(4)
           expect(line_segment.radians).to eq(deg_to_rad(270))
         end
 
         it "copes with a Line of angle < 360º" do
-          line_segment = subject.build(end_point: world.point.new(4,-4))
+          line_segment = subject.build(end_point: world.point(4,-4))
 
           expect(line_segment.length).to be_within(0.01).of(5.66)
           expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(315))
@@ -122,7 +122,7 @@ module Draught::Segment
 
     describe "generating horizontal Line objects" do
       specify "a line_segment of width N is like a Path with points at (0,0) and (N,0)" do
-        expected = world.path.build { |p| p << world.point.zero << world.point.new(10, 0) }
+        expected = world.path.build { points p(0,0), p(10, 0) }
 
         expect(subject.horizontal(10)).to eq(expected)
       end
@@ -136,7 +136,7 @@ module Draught::Segment
 
     describe "generating vertical Line objects" do
       specify "a line_segment of height N is like a Path with points at (0,0) and (0,N)" do
-        expected = world.path.build { |p| p << world.point.zero << world.point.new(0, 10) }
+        expected = world.path.build { points p(0,0), p(0, 10) }
 
         expect(subject.vertical(10)).to eq(expected)
       end
@@ -170,35 +170,31 @@ module Draught::Segment
         let(:length) { 5.656854 }
 
         it "treats a 360º angle as 0º" do
-          expected = subject.build(end_point: world.point.new(length, 0))
+          expected = subject.build(end_point: world.point(length, 0))
 
           expect(subject.build(length: length, radians: deg_to_rad(360))).to eq(expected)
         end
 
         it "treats a > 360º angle properly" do
-          expected = subject.build(end_point: world.point.new(-4,4))
+          expected = subject.build(end_point: world.point(-4,4))
 
-          expect(subject.build({
-            length: length, radians: deg_to_rad(495)
-          })).to approximate(expected).within(0.00001)
+          expect(subject.build(length: length, radians: deg_to_rad(495))).to eq(expected)
         end
 
         it "treats a > 360º right-angle properly" do
-          expected = subject.build(end_point: world.point.new(0,length))
+          expected = subject.build(end_point: world.point(0,length))
 
           expect(subject.build(length: length, radians: deg_to_rad(450))).to eq(expected)
         end
 
         it "treats a > 720º angle properly" do
-          expected = subject.build(end_point: world.point.new(4,-4))
+          expected = subject.build(end_point: world.point(4,-4))
 
-          expect(subject.build({
-            length: length, radians: deg_to_rad(1035)
-          })).to approximate(expected).within(0.00001)
+          expect(subject.build(length: length, radians: deg_to_rad(1035))).to eq(expected)
         end
 
         it "treats a > 720º right-angle properly" do
-          expected = subject.build(end_point: world.point.new(0,-length))
+          expected = subject.build(end_point: world.point(0,-length))
 
           expect(subject.build(length: length, radians: deg_to_rad(630))).to eq(expected)
         end
@@ -206,10 +202,8 @@ module Draught::Segment
 
       context "handling Metadata" do
         let(:line_segment) {
-          subject.build({
-            length: 50, radians: deg_to_rad(45),
-            metadata: metadata
-          })
+          subject.build(length: 50, radians: deg_to_rad(45),
+            metadata: metadata)
         }
 
         specify "passes Metadata in correctly" do
@@ -220,56 +214,98 @@ module Draught::Segment
 
     describe "generating Line objects that don't start at 0,0" do
       it "can generate a Line from points" do
-        line_segment = subject.build(start_point: world.point.new(1,1), end_point: world.point.new(5,5))
+        line_segment = subject.build(start_point: world.point(1,1), end_point: world.point(5,5))
 
         expect(line_segment.radians).to be_within(0.00001).of(Math::PI/4)
         expect(line_segment.length).to be_within(0.01).of(5.66)
       end
 
       it "can generate a Line from angle/length and start point" do
-        line_segment = subject.build(start_point: world.point.new(1,1), radians: Math::PI/4, length: 5.656854)
+        line_segment = subject.build(start_point: world.point(1,1), radians: Math::PI/4, length: 5.656854)
 
-        expect(line_segment).to approximate(world.path.new(points: [world.point.new(1,1), world.point.new(5,5)])).within(0.00001)
+        expect(line_segment).to eq(world.path.build { points p(1,1), p(5,5) })
       end
     end
 
-    describe "building a Line from a two-item Path" do
-      it "generates the Line correctly" do
-        path = world.path.new(points: [world.point.zero, world.point.new(4,4)])
+    describe "building a Line from a two-item Path or Subpath" do
+      context "given a Path" do
+        it "generates the Line correctly" do
+          path = world.path.simple(points: [world.point.zero, world.point(4,4)])
 
-        expect(subject.from_path(path)).to eq(path)
+          expect(subject.from_path(path)).to eq(path)
+        end
+
+        it "blows up for a > 2-point Path" do
+          path = world.path.simple(points: [world.point.zero, world.point(4,4), world.point(6,6)])
+
+          expect {
+            subject.from_path(path)
+          }.to raise_error(ArgumentError)
+        end
+
+        it "blows up for a > 1-subpath Path" do
+          path = world.path.build {
+            subpath {
+              points world.point.zero, p(4,4)
+            }
+            subpath {
+              points p(6,6)
+            }
+          }
+
+          expect {
+            subject.from_path(path)
+          }.to raise_error(ArgumentError)
+        end
+
+        it "blows up for a < 2-point Path" do
+          path = world.path.simple(points: [world.point.zero])
+
+          expect {
+            subject.from_path(path)
+          }.to raise_error(ArgumentError)
+        end
+
+        specify "the path's metadata is taken" do
+          path = world.path.simple(points: [world.point.zero, world.point(4,4)], metadata: metadata)
+          line_segment = subject.from_path(path)
+
+          expect(line_segment.metadata).to be(metadata)
+        end
       end
 
-      it "blows up for a > 2-item Path" do
-        path = world.path.new(points: [world.point.zero, world.point.new(4,4), world.point.new(6,6)])
+      context "given a Subpath" do
+        it "generates the Line correctly" do
+          path = world.path.simple(points: [world.point.zero, world.point(4,4)])
+          subpath = path.subpaths.first
 
-        expect {
-          subject.from_path(path)
-        }.to raise_error(ArgumentError)
-      end
+          expect(subject.from_path(subpath)).to eq(path)
+        end
 
-      it "blows up for a < 2-item Path" do
-        path = world.path.new(points: [world.point.zero])
+        it "blows up for a > 2-point Subpath" do
+          subpath = world.path.simple(points: [world.point.zero, world.point(4,4), world.point(6,6)]).subpaths.first
 
-        expect {
-          subject.from_path(path)
-        }.to raise_error(ArgumentError)
-      end
+          expect {
+            subject.from_path(subpath)
+          }.to raise_error(ArgumentError)
+        end
 
-      specify "the path's metadata is taken" do
-        path = world.path.new(points: [world.point.zero, world.point.new(4,4)], metadata: metadata)
-        line_segment = subject.from_path(path)
+        it "blows up for a < 2-point Subpath" do
+          subpath = world.path.simple(points: [world.point.zero]).subpaths.first
 
-        expect(line_segment.metadata).to be(metadata)
+          expect {
+            subject.from_path(subpath)
+          }.to raise_error(ArgumentError)
+        end
       end
     end
 
     describe "building a Line from two points" do
       let(:p1) { world.point.zero }
-      let(:p2) { world.point.new(4,4) }
+      let(:p2) { world.point(4,4) }
 
       it "generates the Line correctly" do
-        path = world.path.new(points: [p1, p2])
+        path = world.path.simple(points: [p1, p2])
 
         expect(subject.from_to(p1, p2)).to eq(path)
       end

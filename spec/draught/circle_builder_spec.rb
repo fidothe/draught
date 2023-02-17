@@ -7,7 +7,7 @@ module Draught
     subject { CircleBuilder.new(world) }
 
     describe "creating a Circle" do
-      let(:circle) { subject.new(radius: 100) }
+      let(:circle) { subject.build(radius: 100) }
 
       it "reports its radius" do
         expect(circle.radius).to eq(100)
@@ -16,7 +16,7 @@ module Draught
       context "handling Style and Annotation" do
         let(:metadata) { Metadata::Instance.new(name: 'name') }
         let(:circle) {
-          subject.new(radius: 100, metadata: metadata)
+          subject.build(radius: 100, metadata: metadata)
         }
 
         specify "produces a Circle with the correct Metadata" do

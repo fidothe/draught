@@ -1,5 +1,6 @@
 require 'draught/world'
 require 'draught/segment/curve'
+require 'draught/extent_examples'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
 
@@ -8,21 +9,21 @@ module Draught::Segment
     let(:world) { Draught::World.new }
     let(:metadata) { Draught::Metadata::Instance.new(name: 'name') }
     let(:start_point) { world.point.zero }
-    let(:end_point) { world.point.new(4,0) }
-    let(:control_point_1) { world.point.new(1,2) }
-    let(:control_point_2) { world.point.new(3,2) }
+    let(:end_point) { world.point(4,0) }
+    let(:control_point_1) { world.point(1,2) }
+    let(:control_point_2) { world.point(3,2) }
     let(:cubic_opts) { {
       end_point: end_point, control_point_1: control_point_1,
       control_point_2: control_point_2
     } }
-    let(:cubic) { Draught::CubicBezier.new(world, cubic_opts) }
+    let(:cubic) { Draught::CubicBezier.new(world, **cubic_opts) }
     let(:segment_opts) { {start_point: start_point, cubic_bezier: cubic} }
 
-    subject { Curve.build(world, segment_opts) }
+    subject { Curve.build(world, **segment_opts) }
 
     context "metadata" do
       it "can be initialized with a Metadata" do
-        path = described_class.new(world, segment_opts.merge(metadata: metadata))
+        path = described_class.new(world, metadata: metadata, **segment_opts)
 
         expect(path.metadata).to be(metadata)
       end
@@ -34,17 +35,24 @@ module Draught::Segment
 
     describe "[] access" do
       it "returns a Path when [Range]-style access is used" do
-        expect(subject[0..0]).to eq(world.path.new(points: [world.point.zero]))
+        expect(subject[0..0]).to eq(world.path.new(subpaths: subject.subpaths))
       end
 
       it "returns a Path when [start, length]-style access is used" do
-        expect(subject[1,1]).to eq(world.path.new(points: [cubic]))
+        expect(subject[0,1]).to eq(world.path.new(subpaths: subject.subpaths))
       end
     end
 
     it_should_behave_like "a pathlike thing" do
-      let(:points) { [start_point, cubic] }
-      subject { Curve.build(world, segment_opts) }
+      subject { described_class.build(world, segment_opts) }
+      let(:subpaths_points) { subject.subpaths.map(&:points) }
+      let(:subpaths) { subject.subpaths }
+    end
+
+    it_should_behave_like "it has an extent" do
+      subject { described_class.build(world, segment_opts) }
+      let(:lower_left) { world.point.zero }
+      let(:upper_right) { world.point(4,1.5) }
     end
 
     it_should_behave_like "a basic rectangular box-like thing" do
@@ -61,57 +69,17 @@ module Draught::Segment
 
     describe "building a Curve Segment from a hash" do
       it "can be handed a start_point and cubic_bezier" do
-        expect(Curve.build(world, {
+        expect(Curve.build(world,
           start_point: start_point, cubic_bezier: cubic
-        })).to eq(subject)
+        )).to eq(subject)
       end
 
       it "can be handed start, end and cubic control points" do
-        expect(Curve.build(world, {
+        expect(Curve.build(world,
           start_point: start_point, end_point: end_point,
           control_point_1: control_point_1,
           control_point_2: control_point_2
-        })).to eq(subject)
-      end
-    end
-
-    context "building a Curve Segment from a two-item Path" do
-      it "generates the Curve correctly" do
-        path = world.path.new(points: [start_point, cubic])
-
-        expect(Curve.from_path(world, path)).to eq(path)
-      end
-
-      it "blows up for a > 2-item Path" do
-        path = world.path.new(points: [start_point, cubic, world.point.new(6,6)])
-
-        expect {
-          Curve.from_path(world, path)
-        }.to raise_error(ArgumentError)
-      end
-
-      it "blows up for a < 2-item Path" do
-        path = world.path.new(points: [world.point.zero])
-
-        expect {
-          Curve.from_path(world, path)
-        }.to raise_error(ArgumentError)
-      end
-
-      it "blows up if the first item isn't a Point" do
-        path = world.path.new(points: [cubic, start_point])
-
-        expect {
-          Curve.from_path(world, path)
-        }.to raise_error(ArgumentError)
-      end
-
-      it "blows up if the last item isn't a CubicBezier" do
-        path = world.path.new(points: [start_point, end_point])
-
-        expect {
-          Curve.from_path(world, path)
-        }.to raise_error(ArgumentError)
+        )).to eq(subject)
       end
     end
 

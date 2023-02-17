@@ -1,17 +1,21 @@
 require 'securerandom'
 
 RSpec.shared_examples "a pathlike thing" do
-  it "can return an array of its points" do
-    expect(subject.points).to eq(points)
+  specify "can return an enumerable of its subpaths" do
+    expect(subject.subpaths).to respond_to(:each)
   end
 
-  it "reports how many points it has" do
-    expect(subject.number_of_points).to eq(points.length)
+  specify "reports how many subpaths it has" do
+    expect(subject.number_of_subpaths).to eq(subpaths_points.length)
+  end
+
+  specify "returns subpaths correctly" do
+    expect(subject.subpaths.map { |sp| sp.points }).to eq(subpaths_points)
   end
 
   describe "being enumerable enough" do
-    it "provides []-index access to its points" do
-      expect(subject[0]).to eq(subject.points.first)
+    it "provides []-index access to its subpaths" do
+      expect(subject[0]).to eq(subject.subpaths.first)
     end
 
     it "provides meaningful [Range] access" do
@@ -27,9 +31,9 @@ RSpec.shared_examples "a pathlike thing" do
     end
 
     context "provides first and last readers" do
-      specify { expect(subject.first).to eq(points.first) }
+      specify { expect(subject.first).to eq(subpaths.first) }
 
-      specify { expect(subject.last).to eq(points.last) }
+      specify { expect(subject.last).to eq(subpaths.last) }
     end
   end
 
@@ -41,28 +45,27 @@ RSpec.shared_examples "a pathlike thing" do
     it "does not compare equal to a (1,1) translation of itself" do
       expect(subject.translate(world.vector.new(1,1))).not_to eq(subject)
     end
-
-    it "compares approximately equal to a slightly nudged translation of itself" do
-      approx_pathlike = subject.translate(world.vector.new(0.000001, 0.000001))
-      expect(subject.approximates?(approx_pathlike, 0.00001)).to be(true)
-    end
   end
 
   describe "translation and transformation" do
+    def map_subpaths_points(&block)
+      subpaths_points.map { |subpath_points| subpath_points.map(&block) }
+    end
+
     specify "translating a Path using a Point produces a new Path with appropriately translated Points" do
       translation = world.vector.new(2,1)
-      expected = points.map { |p| p.translate(translation) }
+      expected = map_subpaths_points { |p| p.translate(translation) }
 
-      expect(subject.translate(translation).points).to eq(expected)
+      expect(subject.translate(translation).subpaths.map(&:points)).to eq(expected)
     end
 
     specify "transforming a Path generates a new Path by applying the transformation to every Point in the Path" do
       transformation = Draught::Transformations::Affine.new(
         Matrix[[2,0,0],[0,2,0],[0,0,1]]
       )
-      expected = points.map { |p| p.transform(transformation) }
+      expected = map_subpaths_points { |p| p.transform(transformation) }
 
-      expect(subject.transform(transformation).points).to eq(expected)
+      expect(subject.transform(transformation).subpaths.map(&:points)).to eq(expected)
     end
   end
 

@@ -1,5 +1,6 @@
 require 'draught/circle'
 require 'draught/world'
+require 'draught/extent_examples'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
 
@@ -34,7 +35,13 @@ module Draught
     end
 
     it_should_behave_like "a pathlike thing" do
-      let(:points) { subject.path.points }
+      let(:subpaths_points) { [subject.points] }
+      let(:subpaths) { subject.subpaths }
+    end
+
+    it_should_behave_like "it has an extent" do
+      let(:lower_left) { world.point(0,0) }
+      let(:upper_right) { world.point(200,200) }
     end
 
     it_should_behave_like "a basic rectangular box-like thing"

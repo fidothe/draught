@@ -13,6 +13,10 @@ module Draught
       Vector.new(x, y, world)
     end
 
+    def build(x, y)
+      Vector.new(x, y, world)
+    end
+
     def from_xy(x, y)
       new(x, y)
     end

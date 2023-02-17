@@ -5,6 +5,7 @@ require_relative './path'
 require_relative './transformations'
 require_relative './pathlike'
 require_relative './boxlike'
+require_relative './extent'
 require 'forwardable'
 
 module Draught
@@ -20,6 +21,7 @@ module Draught
     extend Forwardable
     include Pathlike
     include Boxlike
+    include Extent::InstanceMethods
 
     attr_reader :world, :radius, :starting_angle, :radians, :start_point
     # @!attribute [r] world
@@ -33,34 +35,39 @@ module Draught
     # @!attribute [r] start_point
     #   @return [Point] the Point the arc path starts at
     # @!attribute [r] metadata
-    #   @return [Metadata] Metadata for the arc
+    #   @return [Metadata::Instance] Metadata for the arc
 
-    def_delegators :path, :points, :"[]", :width, :height, :lower_left, :lower_right, :upper_left, :upper_right
+    def_delegators :path, :"[]"
 
     # @param world [World] the world
-    # @param args [Hash] the arc arguments.
-    # @option args [Number] :radius The radius
-    # @option args [Number] :starting_angle (0) the angle at which the arc begins
-    # @option args [Number] :radians (0) the size of the arc
-    # @option args [Draught::Point] :start_point (0,0) the point the arc should start at
-    # @option args [Draught::Metadata::Instance] :metadata (nil) Metadata for the Arc that should be attached to the Arc
-    def initialize(world, args = {})
-      @world = world
-      @radius = args.fetch(:radius)
-      @starting_angle = args.fetch(:starting_angle, 0)
-      @radians = args.fetch(:radians)
-      @start_point = args.fetch(:start_point, world.point.zero)
-      @metadata = args.fetch(:metadata, nil)
+    # @param radius [Number] the Arc's radius
+    # @param starting_angle [Number] (0) the angle at which the arc begins
+    # @param radians [Number] the size of the arc
+    # @param start_point [Draught::Point] (0,0) the point the arc should start at
+    # @param metadata [Draught::Metadata::Instance] (nil) Metadata for the Arc
+    def initialize(world, radius:, starting_angle: 0, radians:, start_point: nil, metadata: nil)
+      @world, @radius, @starting_angle, @radians, @metadata = world, radius, starting_angle, radians, metadata
+      @start_point = start_point.nil? ? world.point.zero : start_point
     end
 
     # @return [Path]
     def path
-      @path ||= world.path.new(points: [start_point] + cubic_beziers, metadata: metadata)
+      @path ||= world.path.new(subpaths: subpaths, metadata: metadata)
+    end
+
+    # @return [Array<Subpath>] the array-of-1-subpaths for the arc
+    def subpaths
+      @subpaths ||= [subpath]
     end
 
     # @return [Array<CubicBezier>]
     def cubic_beziers
-      @cubic_beziers ||= segments.map { |s| s.cubic_bezier.transform(transformer) }
+      @cubic_beziers ||= segments.map(&:cubic_bezier)
+    end
+
+    # @return [Array<Pointlike>] the starting Point and following CubicBeziers
+    def points
+      @points ||= [start_point] + cubic_beziers
     end
 
     # return a copy of this object with a different Metadata attached
@@ -68,7 +75,12 @@ module Draught
     # @param style [Metadata::Instance] the metadata to use
     # @return [Arc] the copy of this Arc with new metadata
     def with_metadata(metadata)
-      self.class.new(world, new_args.merge(metadata: metadata))
+      self.class.new(world, radius: radius, radians: radians, starting_angle: starting_angle, start_point: start_point, metadata: metadata)
+    end
+
+    # @return [Draught::Extent] the Extent for this Arc
+    def extent
+      @extent ||= Draught::Extent.from_pathlike(world, items: segments)
     end
 
     def translate(vector)
@@ -93,26 +105,32 @@ module Draught
 
     private
 
-    def new_args
-      {radius: radius, radians: radians, starting_angle: starting_angle, start_point: start_point, metadata: metadata}
+    def subpath
+      @subpath ||= Draught::Subpath.new(world, points: points)
     end
 
     def untranslated_start_point
-      segments.first.first_point
+      untranslated_segments.first.start_point
     end
 
     def segments
-      @segments ||= begin
-        remaining_angle = positive_radians
-        start = starting_angle
-        segments = []
-        while remaining_angle > LARGEST_SEGMENT_RADIANS
-          remaining_angle = remaining_angle - LARGEST_SEGMENT_RADIANS
-          segments << SegmentBuilder.new(world, LARGEST_SEGMENT_RADIANS, start, radius)
-          start = positive_radians + starting_angle - remaining_angle
-        end
-        segments << SegmentBuilder.new(world, remaining_angle, start, radius)
+      @segments ||= untranslated_segments.map { |segment| segment.transform(transformer) }
+    end
+
+    def untranslated_segments
+      @untranslated_segments ||= build_segments
+    end
+
+    def build_segments
+      remaining_angle = positive_radians
+      start = starting_angle
+      segments = []
+      while remaining_angle > LARGEST_SEGMENT_RADIANS
+        remaining_angle = remaining_angle - LARGEST_SEGMENT_RADIANS
+        segments << SegmentBuilder.build(world, LARGEST_SEGMENT_RADIANS, start, radius)
+        start = positive_radians + starting_angle - remaining_angle
       end
+      segments << SegmentBuilder.build(world, remaining_angle, start, radius)
     end
 
     def positive_radians
@@ -143,6 +161,10 @@ module Draught
     # Based on learnings from http://www.tinaja.com/glib/bezcirc2.pdf,
     # via http://www.whizkidtech.redprince.net/bezier/circle/
     class SegmentBuilder
+      def self.build(world, sweep, start, radius)
+        new(world, sweep, start, radius).segment
+      end
+
       attr_reader :world, :sweep, :start, :radius
 
       def initialize(world, sweep, start, radius)
@@ -161,6 +183,10 @@ module Draught
         @cubic_bezier ||= CubicBezier.new(world, {
           end_point: end_point, control_point_1: control_point_1, control_point_2: control_point_2
         })
+      end
+
+      def segment
+        Segment::Curve.new(world, start_point: first_point, cubic_bezier: cubic_bezier)
       end
 
       private

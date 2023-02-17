@@ -47,7 +47,7 @@ module Draught
 
     def new_segments(points)
       (0..(points.length - 2)).map { |start|
-        world.line_segment.build(Hash[[:start_point, :end_point].zip(points[start, 2])])
+        world.line_segment.build(start_point: points[start], end_point: points[start + 1])
       }
     end
 

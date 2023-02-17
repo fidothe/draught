@@ -51,8 +51,16 @@ module Draught
       end
 
       def path(element)
-        points = parse_path_d(element['d'])
-        world.path.new(points: points, metadata: parse_metadata(element))
+        parsed_subpaths = parse_path_d(element['d'])
+        parsed_metadata = parse_metadata(element)
+        world.path.build {
+          metadata parsed_metadata
+          parsed_subpaths.each do |parsed_subpath|
+            subpath {
+              points parsed_subpath
+            }
+          end
+        }
       end
 
       def dispatch(element)
@@ -106,34 +114,41 @@ module Draught
           new(world, d).parse!
         end
 
-        attr_reader :world, :d
+        attr_reader :world, :d, :subpaths
 
         def initialize(world, d)
           @world, @d = world, d
+          @subpaths = []
+        end
+
+        def current_subpath
+          subpaths.last
+        end
+
+        def add_subpath!
+          @subpaths << []
         end
 
         def parse!
-          points = []
           d.scan(D_TOKENIZER) { |cmd, points_str|
-            points += send(CMD_MAP[cmd], points_str)
+            send(CMD_MAP[cmd], points_str)
           }
-          points
+          subpaths
         end
 
+        # The M/m commands move to a point without drawing and start a Subpath
         def m(points_str)
-          points = []
+          add_subpath!
           points_str.scan(POINTS_TOKENIZER) { |x, y|
-            points << world.point.new(x.to_f, y.to_f)
+            current_subpath << world.point.new(x.to_f, y.to_f)
           }
-          points
         end
 
+        # L/l draw a line between two points
         def l(points_str)
-          points = []
           points_str.scan(POINTS_TOKENIZER) { |x, y|
-            points << world.point.new(x.to_f, y.to_f)
+            current_subpath << world.point.new(x.to_f, y.to_f)
           }
-          points
         end
 
         def c(points_str)
@@ -141,7 +156,7 @@ module Draught
           points_str.scan(POINTS_TOKENIZER) { |x, y|
             points << world.point.new(x.to_f, y.to_f)
           }
-          [Draught::CubicBezier.new(world, control_point_1: points[0], control_point_2: points[1], end_point: points[2])]
+          current_subpath << Draught::CubicBezier.new(world, control_point_1: points[0], control_point_2: points[1], end_point: points[2])
         end
       end
     end

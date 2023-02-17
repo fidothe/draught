@@ -4,8 +4,8 @@ module Draught
   module Pathlike
     include Metadata::Methods
 
-    def points
-      raise NotImplementedError, "Pathlike objects must return an array of their points"
+    def subpaths
+      raise NotImplementedError, "Pathlike objects must implement #subpaths to return any Subpaths they contain"
     end
 
     def translate(vector)
@@ -20,30 +20,25 @@ module Draught
       raise NotImplementedError, "Pathlike objects must implement [] access on their points, returning a new instance"
     end
 
-    def number_of_points
-      points.length
+    def number_of_subpaths
+      subpaths.length
     end
 
     def first
-      points.first
+      subpaths.first
     end
 
     def last
-      points.last
+      subpaths.last
     end
 
     def empty?
-      points.empty?
+      subpaths.empty? || subpaths.all? { |subpath| subpath.empty? }
     end
 
     def ==(other)
-      return false if number_of_points != other.number_of_points
-      points.zip(other.points).all? { |a, b| a == b }
-    end
-
-    def approximates?(other, delta)
-      return false if number_of_points != other.number_of_points
-      points.zip(other.points).all? { |a, b| a.approximates?(b, delta) }
+      return false if number_of_subpaths != other.number_of_subpaths
+      subpaths.zip(other.subpaths).all? { |a, b| a == b }
     end
 
     def paths
