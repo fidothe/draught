@@ -9,8 +9,8 @@ module Draught
       # and https://www.topcoder.com/community/data-science/data-science-tutorials/geometry-concepts-line-intersection-and-its-applications/#line_line_intersection
       # @api private
       class LineLine
-        def self.find(world, segment_1, segment_2)
-          new(world, segment_1, segment_2).find
+        def self.intersections(world, segment_1, segment_2)
+          new(world, segment_1, segment_2).intersections
         end
 
         attr_reader :world, :segment_1, :segment_2
@@ -19,7 +19,7 @@ module Draught
           @world, @segment_1, @segment_2 = world, segment_1, segment_2
         end
 
-        def find
+        def intersections
           return [] if segments_parallel?
           return [] unless point_on_both_segments?
           [intersection_point]

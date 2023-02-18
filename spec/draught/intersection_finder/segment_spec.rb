@@ -20,26 +20,26 @@ module Draught
       let(:l5) { world.line_segment.build(start_point: world.point.new(2,0), end_point: wonky_point)}
 
       it "knows that l1 and l2 insersect at (2,2)" do
-        expect(subject.find(l1, l2)).to eq([world.point.new(2,2)])
+        expect(subject.intersections(l1, l2)).to eq([world.point.new(2,2)])
       end
 
       it "knows that l1 and l3 don't insersect" do
-        expect(subject.find(l1, l3)).to eq([])
+        expect(subject.intersections(l1, l3)).to eq([])
       end
 
       it "knows that l1 and l4 don't intersect" do
-        expect(subject.find(l1, l4)).to eq([])
+        expect(subject.intersections(l1, l4)).to eq([])
       end
 
       context "tolerances" do
         it "knows that l1 and l5 should intersect at the default tolerance, despite the tiny discrepancy" do
-          expect(subject.find(l1, l5)).to eq([wonky_point])
+          expect(subject.intersections(l1, l5)).to eq([wonky_point])
         end
 
         it "knows that l1 and l5 should not intersect at a finer tolerance" do
           tolerance = Tolerance.with_delta(0.000_000_000_1)
           world = World.new(tolerance)
-          expect(described_class.new(world).find(l1, l5)).to eq([])
+          expect(described_class.new(world).intersections(l1, l5)).to eq([])
         end
       end
 
@@ -48,7 +48,7 @@ module Draught
         let(:l2) { world.line_segment.build(start_point: world.point.new(6.25,100.0), end_point: world.point.new(12.5,100.0)) }
 
         specify "should report a sane intersection" do
-          expect(subject.find(l1, l2)).to eq([world.point.new(10.05158253,100)])
+          expect(subject.intersections(l1, l2)).to eq([world.point.new(10.05158253,100)])
         end
       end
     end

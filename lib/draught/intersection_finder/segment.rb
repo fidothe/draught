@@ -11,13 +11,13 @@ module Draught
         @world = world
       end
 
-      def find(segment_1, segment_2)
+      def intersections(segment_1, segment_2)
         if segment_1.line? && segment_2.line?
-          LineLine.find(world, segment_1, segment_2)
+          LineLine.intersections(world, segment_1, segment_2)
         elsif segment_1.curve? && segment_2.curve?
-          Iterative.find(world, segment_1, segment_2)
+          Iterative.intersections(world, segment_1, segment_2)
         else
-          CurveLine.find(world, segment_1, segment_2)
+          CurveLine.intersections(world, segment_1, segment_2)
         end
       end
     end

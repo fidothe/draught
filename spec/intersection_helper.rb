@@ -39,7 +39,7 @@ module IntersectionHelper
     end
 
     def actual
-      @actual ||= checker.find(segment_1, segment_2)
+      @actual ||= checker.intersections(segment_1, segment_2)
     end
 
     def sorted_expected

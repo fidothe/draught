@@ -4,8 +4,8 @@ module Draught
       class Iterative
         FLATNESS_TOLERANCE = 0.01
 
-        def self.find(world, curve_1, curve_2)
-          new(world, curve_1, curve_2).find
+        def self.intersections(world, curve_1, curve_2)
+          new(world, curve_1, curve_2).intersections
         end
 
         attr_reader :world, :curve_1, :curve_2
@@ -14,9 +14,9 @@ module Draught
           @world, @curve_1, @curve_2 = world, curve_1, curve_2
         end
 
-        def find
+        def intersections
           if both_curves_flat?
-            LineLine.find(world, curve_1.line, curve_2.line)
+            LineLine.intersections(world, curve_1.line, curve_2.line)
           else
             return [] unless curve_1.overlaps?(curve_2)
             # split curve 1 and 2
@@ -27,7 +27,7 @@ module Draught
                 [c1, c2]
               }
             }.flat_map { |c1, c2|
-              self.class.find(world, c1, c2)
+              self.class.intersections(world, c1, c2)
             }.compact
           end
         end

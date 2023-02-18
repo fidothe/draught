@@ -9,11 +9,11 @@ module Draught
     class Segment
       class CurveLine
         TAU = 2 * Math::PI
-        def self.find(world, segment_1, segment_2)
+        def self.intersections(world, segment_1, segment_2)
           curve_segment = segment_1.curve? ? segment_1 : segment_2
           line_segment = segment_1.line? ? segment_1 : segment_2
 
-          new(world, curve_segment, line_segment).find
+          new(world, curve_segment, line_segment).intersections
         end
 
         attr_reader :world, :curve_segment, :line_segment
@@ -22,9 +22,9 @@ module Draught
           @world, @curve_segment, @line_segment = world, curve_segment, line_segment
         end
 
-        def find
+        def intersections
           if d_zero?
-            return Iterative.find(world, curve_segment, line_segment)
+            return Iterative.intersections(world, curve_segment, line_segment)
           end
           curve_potential_intersection_points.select { |point|
             x_intersection_range.include?(point.x) && y_intersection_range.include?(point.y)
