@@ -3,6 +3,7 @@ require 'draught/segment/curve'
 require 'draught/extent_examples'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
+require 'svg_fixture_helper'
 
 module Draught::Segment
   RSpec.describe Curve do
@@ -67,7 +68,7 @@ module Draught::Segment
       expect(subject.curve?).to be(true)
     end
 
-    describe "building a Curve Segment from a hash" do
+    describe "building a Curve Segment" do
       it "can be handed a start_point and cubic_bezier" do
         expect(Curve.build(world,
           start_point: start_point, cubic_bezier: cubic
@@ -125,6 +126,21 @@ module Draught::Segment
 
         it "has the correct height" do
           expect(subject.height).to be_within(0.0001).of(750)
+        end
+      end
+    end
+
+    describe "projecting points onto the curve", :svg_fixture do
+      svg_fixture('curves/point-projection.svg') {
+        fetch_all(name: /^[a-z0-9_-]+$/)
+        map_paths { |world, path| world.curve_segment.from_path(path) }
+      }.each do |world, curve, name|
+        specify "correctly projects points from the curve #{name} back onto itself" do
+          100.times do
+            t = Kernel.rand
+            point = curve.compute_point(t)
+            expect(curve.project_point(point)).to be_within(0.0001).of(t)
+          end
         end
       end
     end

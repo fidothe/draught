@@ -127,13 +127,21 @@ module Draught::Segment
           end
         end
       end
+    end
 
-      context "computing a point on the line with t (0..1, like Bezier curves)" do
-        it "by moving the end point" do
-          expected = Line.build(world, length: 8, radians: radians).end_point
+    describe "computing and projecting points on the line" do
+      subject { Line.build(world, start_point: p(0,0), end_point: p(10,10)) }
 
-          expect(subject.compute_point(0.8)).to eq(expected)
-        end
+      specify "computing a point on the line with t in the range 0..1" do
+        expect(subject.compute_point(0.8)).to eq(p(8,8))
+      end
+
+      specify "projecting a point already on the line onto it" do
+        expect(subject.project_point(subject.compute_point(0.8))).to eq(0.8)
+      end
+
+      specify "projecting a point not on the line but perpendicular to the line onto it" do
+        expect(subject.project_point(p(10,0))).to eq(0.5)
       end
     end
 

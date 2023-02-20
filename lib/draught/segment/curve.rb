@@ -11,6 +11,10 @@ module Draught
     # <https://pomax.github.io/bezierinfo/> and `bezier.js` library
     # <https://github.com/Pomax/bezierjs>
     class Curve
+      LUT_SIZE = 100
+      LUT_STEP_SIZE = 1.0/LUT_SIZE
+
+
       include Boxlike
       include Pathlike
       include Extent::InstanceMethods
@@ -101,6 +105,10 @@ module Draught
         true
       end
 
+      # Turn a t value into its Point value
+      #
+      # @param t [Float] the value of t on the curve
+      # @return [Draught::Point] the point on the curve at t
       def compute_point(t)
         return start_point if t == 0
         return end_point if t == 1
@@ -111,6 +119,17 @@ module Draught
         y = compute_axis_value(:y, a, b, c, d)
 
         world.point.new(x, y)
+      end
+
+      # Project a point (x,y) onto the curve (t)
+      #
+      # @param point [Draught::Point] the point to project
+      # @return [Float] the t value of the closest point on the curve to +point+
+      def project_point(point)
+        closest_lut_t, closest_lut_point = lut.min_by { |t, lut_point| point_distance(lut_point, point) }
+        current_min_distance = point_distance(closest_lut_point, point)
+
+        find_closest(point, current_min_distance, closest_lut_t)
       end
 
       def compute_y_axis_value(t)
@@ -150,6 +169,58 @@ module Draught
       end
 
       private
+
+      def lut
+        @lut ||= generate_lut
+      end
+
+      def generate_lut
+        lut = []
+        LUT_SIZE.times.inject(0) { |t, _|
+          lut << [t, compute_point(t)]
+          t + LUT_STEP_SIZE
+        }
+        lut.to_h
+      end
+
+      def point_distance(point_1, point_2)
+        Math.sqrt((point_1.x - point_2.x) ** 2 + (point_1.y - point_2.y) ** 2)
+      end
+
+      def find_closest(point, current_min_distance, t)
+        step_size = LUT_STEP_SIZE / 100
+        # this min step size reliably gives 4 d.p. accuracy, and descreaing it
+        # really doesn't get any better accuracy...
+        min_step_size = 0.01 / (2 * lut.size)
+        min_t, max_t = [t - LUT_STEP_SIZE, 0].max, [t + LUT_STEP_SIZE, 1].min
+
+        _, closest_t = find_closest_step(
+          point: point, step_size: step_size, min_step_size: min_step_size,
+          current_min_distance: current_min_distance, current_min_t: t,
+          min_t: min_t, max_t: max_t
+        )
+        closest_t
+      end
+
+      def find_closest_step(point:, step_size:, min_step_size:, current_min_distance:, current_min_t:, min_t:, max_t:)
+        return [current_min_distance, current_min_t] if step_size < min_step_size
+
+        local_min_distance, local_min_t  = (min_t..max_t).step(step_size).map { |t|
+          [point_distance(point, compute_point(t)), t]
+        }.min_by { |distance, t| distance }
+
+        if local_min_distance < current_min_distance
+          find_closest_step(point: point, step_size: 2 * step_size / 100,
+            min_step_size: min_step_size,
+            current_min_distance: local_min_distance,
+            current_min_t: local_min_t,
+            min_t: local_min_t - step_size,
+            max_t: local_min_t + step_size
+          )
+        else
+          [current_min_distance, current_min_t]
+        end
+      end
 
       def subpath
         @subpath ||= Draught::Subpath.new(world, points: points)

@@ -71,6 +71,27 @@ module Draught
         world.point(x, y)
       end
 
+      # def project_point(point)
+      #   x_t = (point.x - start_point.x) / (end_point.x - start_point.x).to_f
+      #   y_t = (point.y - start_point.y) / (end_point.y - start_point.y).to_f
+      #   raise ArgumentError, "Point #{point} is not on the line #{self}" unless x_t == y_t
+      #   x_t
+      # end
+
+      # cribbing from https://math.stackexchange.com/questions/2193720/find-a-point-on-a-line-segment-which-is-the-closest-to-other-point-not-on-the-li
+      def project_point(point)
+        v_x = (end_point.x - start_point.x).to_f
+        v_y = (end_point.y - start_point.y).to_f
+        u_x = (start_point.x - point.x).to_f
+        u_y = (start_point.y - point.y).to_f
+        vu = (v_x * u_x) + (v_y * u_y)
+        vv = (v_x ** 2) + (v_y ** 2)
+        t = -vu / vv
+
+        return t if t >= 0 && t <= 1
+        t < 0 ? 0 : 1
+      end
+
       def extend(args = {})
         default_args = {at: :end}
         args = default_args.merge(args)
