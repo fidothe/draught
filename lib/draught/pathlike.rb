@@ -4,8 +4,8 @@ module Draught
   module Pathlike
     include Metadata::Methods
 
-    def subpaths
-      raise NotImplementedError, "Pathlike objects must implement #subpaths to return any Subpaths they contain"
+    def points
+      raise NotImplementedError, "Pathlike objects must implement #points to return any Points they contain"
     end
 
     def translate(vector)
@@ -20,25 +20,34 @@ module Draught
       raise NotImplementedError, "Pathlike objects must implement [] access on their points, returning a new instance"
     end
 
-    def number_of_subpaths
-      subpaths.length
+    def number_of_points
+      points.length
     end
 
     def first
-      subpaths.first
+      points.first
     end
 
     def last
-      subpaths.last
+      points.last
     end
 
     def empty?
-      subpaths.empty? || subpaths.all? { |subpath| subpath.empty? }
+      points.empty?
     end
 
     def ==(other)
-      return false if number_of_subpaths != other.number_of_subpaths
-      subpaths.zip(other.subpaths).all? { |a, b| a == b }
+      return false if number_of_points != other.number_of_points
+      points.zip(other.points).all? { |a, b| a == b }
+    end
+
+    # Standard Pathlikes represent simple paths, so they have no subpaths. For
+    # rendering (for example), we need to consider subpaths, so by default all
+    # Pathlikes simply return an array of themself
+    #
+    # @return [Array<Pathlike>] an array containing this pathlike
+    def subpaths
+      [self]
     end
 
     def paths

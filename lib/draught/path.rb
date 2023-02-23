@@ -2,23 +2,18 @@ require 'forwardable'
 require_relative './extent'
 require_relative './boxlike'
 require_relative './pathlike'
-require_relative './subpath'
 
 module Draught
   # A Path is a representation of a line or shape – a series of points connected
   # by lines or curves.
   #
-  # Paths are made up of one or more distinct connected point series, or
-  # subpaths. A simple straight line is a single subpath with two points. A
-  # square is a series of 4 points where the last point connects back to the
-  # first ('closed'). A Square with a smaller hole in the middle is a single
-  # path containing two subpaths - one for the bounds of the square, and one for
-  # the hole.
+  # Paths are made up of one or more distinct connected point series. Unlike SVG
+  # Paths, Draught Paths can only contain a single set of connected points.
+  # Compound paths (paths containing subpaths) are handled separately.
   #
-  # Subpaths don't have to overlap, it's fine for them to define separate
-  # ('disjoint') shapes. A path is considered as a single unit when applying
-  # transformations and translation: the subpaths are fixed in their
-  # relationship with each other.
+  # A simple straight line is a single subpath with two points. A square is a
+  # series of 4 points where the last point connects back to the first
+  # ('closed').
   #
   # Paths are immutable, so operations that seem like they modify a path are
   # actually creating a copy of the original path with the modifications.
@@ -30,35 +25,42 @@ module Draught
     include Pathlike
     include Extent::InstanceMethods
 
-    attr_reader :world, :subpaths
+    attr_reader :world, :points
     # @!attribute [r] world
     #   @return [World] the World
-    # @!attribute [r] subpaths
-    #   @return [Array<Subpath>] the Points that make up the Path
+    # @!attribute [r] points
+    #   @return [Array<Point>] the Points that make up the Path
     # @!attribute [r] metadata
     #   @return [Metadata] Metadata for the Path
 
     # @param world [World] the world
-    # @param subpaths [Array<Draught::Subpath>] the Path's Subpaths
+    # @param points [Array<Point>] the Path's Points
     # @param metadata [Draught::Metadata] a Metadata object that should be attached to the Path
-    def initialize(world, subpaths: [], metadata: nil)
-      @world, @subpaths, @metadata = world, subpaths, metadata
+    def initialize(world, points: [], metadata: nil)
+      @world, @points, @metadata = world, points, metadata
     end
 
-    def <<(point)
-      append(point)
+    def <<(*points)
+      append(*points)
     end
 
-    def append(*paths_or_subpaths)
-      new_instance_with_added_subpaths do |new_subpaths|
-        paths_or_subpaths.inject(new_subpaths) { |new_subpaths, path_or_subpath| new_subpaths.append(*path_or_subpath.subpaths) }
+    # Create a new Path by appending the given points to the end of the current Path.
+    #
+    # @param paths_or_points [Array<Pathlike, Pointlike>] the points to append, or paths whose points should be appended
+    # @return [Path] a new Path with the given points appended
+    def append(*paths_or_points)
+      new_instance_with_added_points do |existing_points|
+        existing_points.append(*flatten_points_sources(paths_or_points))
       end
     end
 
-    def prepend(*paths_or_subpaths)
-      new_instance_with_added_subpaths do |new_subpaths|
-        to_prepend = paths_or_subpaths.inject([]) { |to_prepend, path_or_subpath| to_prepend.append(*path_or_subpath.subpaths) }
-        new_subpaths.prepend(*to_prepend)
+    # Create a new Path by prepending the given points to the end of the current Path.
+    #
+    # @param paths_or_points [Array<Pathlike, Pointlike>] the points to append, or paths whose points should be appended
+    # @return [Path] a new Path with the given points prepended
+    def prepend(*paths_or_points)
+      new_instance_with_added_points do |existing_points|
+        existing_points.prepend(*flatten_points_sources(paths_or_points))
       end
     end
 
@@ -66,35 +68,35 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          new_instance_with_subpaths(subpaths[index_start_or_range])
+          new_instance_with_points(points[index_start_or_range])
         when Numeric
-          subpaths[index_start_or_range]
+          points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        new_instance_with_subpaths(subpaths[index_start_or_range, length])
+        new_instance_with_points(points[index_start_or_range, length])
       end
     end
 
     # @return [Extent] the extent of this Path
     def extent
-      @extent ||= Extent.from_pathlike(world, items: subpaths)
+      @extent ||= Extent.new(world, items: points)
     end
 
     def translate(vector)
-      new_instance_with_subpaths(subpaths.map { |s| s.translate(vector) })
+      new_instance_with_points(points.map { |p| p.translate(vector) })
     end
 
     def transform(transformer)
-      new_instance_with_subpaths(subpaths.map { |s| s.transform(transformer) })
+      new_instance_with_points(points.map { |p| p.transform(transformer) })
     end
 
     def pretty_print(q)
       q.group(1, '(P', ')') do
-        q.seplist(subpaths, ->() { }) do |subpath|
+        q.seplist(points, ->() { }) do |point|
           q.breakable
-          q.pp subpath
+          q.pp point
         end
       end
     end
@@ -104,19 +106,32 @@ module Draught
     # @param style [Metadata::Instance] the Metadata to use
     # @return [Path] the copy of this Path with the new metadata
     def with_metadata(metadata)
-      self.class.new(world, subpaths: subpaths, metadata: metadata)
+      self.class.new(world, points: points, metadata: metadata)
     end
 
     private
 
-    def new_instance_with_added_subpaths
-      new_subpaths = subpaths.dup
-      yield(new_subpaths)
-      new_instance_with_subpaths(new_subpaths)
+    # Take an array of paths, points, or arrays of them, and return an array of
+    # Points. Used to flatten arguments to #append and #prepend.
+    def flatten_points_sources(paths_or_points)
+      new_points = paths_or_points.lazy.flat_map { |path_or_point|
+        case path_or_point
+        when Pathlike
+          path_or_point.points
+        else
+          path_or_point
+        end
+      }
     end
 
-    def new_instance_with_subpaths(subpaths)
-      self.class.new(world, subpaths: subpaths, metadata: metadata)
+    def new_instance_with_added_points
+      new_points = points.dup
+      yield(new_points)
+      new_instance_with_points(new_points)
+    end
+
+    def new_instance_with_points(points)
+      self.class.new(world, points: points, metadata: metadata)
     end
   end
 end

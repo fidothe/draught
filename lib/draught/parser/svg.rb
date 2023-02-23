@@ -53,14 +53,12 @@ module Draught
       def path(element)
         parsed_subpaths = parse_path_d(element['d'])
         parsed_metadata = parse_metadata(element)
-        world.path.build {
-          metadata parsed_metadata
-          parsed_subpaths.each do |parsed_subpath|
-            subpath {
-              points parsed_subpath
-            }
-          end
-        }
+        if parsed_subpaths.length == 1
+          world.path.build {
+            metadata parsed_metadata
+            points parsed_subpaths.first
+          }
+        end
       end
 
       def dispatch(element)

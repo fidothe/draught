@@ -75,7 +75,7 @@ module IntersectionHelper
     end
 
     def path_is_line?(path)
-      path.subpaths.first.points.all? { |point| point.point_type == :point }
+      path.points.all? { |point| point.point_type == :point }
     end
 
     def path_is_curve?(path)
@@ -99,7 +99,7 @@ module IntersectionHelper
     # normalization process is required where any cubics get their end point
     # taken and used instead.
     def normalize_expected(pathlike)
-      pathlike.subpaths.first.points.map { |pointlike|
+      pathlike.points.map { |pointlike|
         case pointlike
         when Draught::CubicBezier
           pointlike.end_point

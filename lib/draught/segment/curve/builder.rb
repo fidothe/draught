@@ -25,21 +25,17 @@ module Draught
         end
 
         def from_path(path)
-          if path.number_of_subpaths != 1
-            raise ArgumentError, "path must contain exactly 1 subpath, this contained #{path.number_of_subpaths}"
+          if path.number_of_points != 2
+            raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
           end
-          subpath = path.subpaths.first
-          if subpath.number_of_points != 2
-            raise ArgumentError, "path's 1 subpath must contain exactly 2 points, this contained #{subpath.number_of_points}"
-          end
-          unless subpath.first.is_a?(Point)
+          unless path.first.is_a?(Point)
             raise ArgumentError, "the first point on the path must be a Point instance, this was #{path.first.inspect}"
           end
-          unless subpath.last.is_a?(CubicBezier)
+          unless path.last.is_a?(CubicBezier)
             raise ArgumentError, "the last point on the path must be a CubicBezier instance, this was #{path.last.inspect}"
           end
 
-          build(start_point: subpath.first, cubic_bezier: subpath.last, metadata: path.metadata)
+          build(start_point: path.first, cubic_bezier: path.last, metadata: path.metadata)
         end
       end
     end

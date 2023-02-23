@@ -1,39 +1,38 @@
 require 'securerandom'
+require 'draught/segmentlike'
 
 RSpec.shared_examples "a pathlike thing" do
-  specify "can return an enumerable of its subpaths" do
-    expect(subject.subpaths).to respond_to(:each)
+  specify "can return an enumerable of its points" do
+    expect(subject.points).to respond_to(:each)
   end
 
-  specify "reports how many subpaths it has" do
-    expect(subject.number_of_subpaths).to eq(subpaths_points.length)
-  end
-
-  specify "returns subpaths correctly" do
-    expect(subject.subpaths.map { |sp| sp.points }).to eq(subpaths_points)
+  specify "reports how many points it has" do
+    expect(subject.number_of_points).to eq(subject.points.length)
   end
 
   describe "being enumerable enough" do
-    it "provides []-index access to its subpaths" do
-      expect(subject[0]).to eq(subject.subpaths.first)
-    end
+    context "[] access" do
+      it "provides []-index access to its points" do
+        expect(subject[0]).to eq(points.first)
+      end
 
-    it "provides meaningful [Range] access" do
-      expect {
-        subject[0..1]
-      }.not_to raise_error
-    end
+      it "provides meaningful [Range] access" do
+        expect {
+          subject[0..1]
+        }.not_to raise_error
+      end
 
-    it "provides meaningful [start, length] access" do
-      expect {
-        subject[0, 1]
-      }.not_to raise_error
+      it "provides meaningful [start, length] access" do
+        expect {
+          subject[0, 1]
+        }.not_to raise_error
+      end
     end
 
     context "provides first and last readers" do
-      specify { expect(subject.first).to eq(subpaths.first) }
+      specify { expect(subject.first).to eq(points.first) }
 
-      specify { expect(subject.last).to eq(subpaths.last) }
+      specify { expect(subject.last).to eq(points.last) }
     end
   end
 
@@ -48,24 +47,20 @@ RSpec.shared_examples "a pathlike thing" do
   end
 
   describe "translation and transformation" do
-    def map_subpaths_points(&block)
-      subpaths_points.map { |subpath_points| subpath_points.map(&block) }
-    end
-
     specify "translating a Path using a Point produces a new Path with appropriately translated Points" do
       translation = world.vector.new(2,1)
-      expected = map_subpaths_points { |p| p.translate(translation) }
+      expected = points.map { |p| p.translate(translation) }
 
-      expect(subject.translate(translation).subpaths.map(&:points)).to eq(expected)
+      expect(subject.translate(translation).points).to eq(expected)
     end
 
     specify "transforming a Path generates a new Path by applying the transformation to every Point in the Path" do
       transformation = Draught::Transformations::Affine.new(
         Matrix[[2,0,0],[0,2,0],[0,0,1]]
       )
-      expected = map_subpaths_points { |p| p.transform(transformation) }
+      expected = points.map { |p| p.transform(transformation) }
 
-      expect(subject.transform(transformation).subpaths.map(&:points)).to eq(expected)
+      expect(subject.transform(transformation).points).to eq(expected)
     end
   end
 
@@ -133,6 +128,10 @@ RSpec.shared_examples "a pathlike thing" do
   end
 
   context "renderer methods" do
+    specify "can return an enumerable of its subpaths" do
+      expect(subject.subpaths).to respond_to(:each)
+    end
+
     it "returns an array including :path for #box_type" do
       expect(subject.box_type).to include(:path)
     end

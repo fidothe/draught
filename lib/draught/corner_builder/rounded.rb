@@ -14,8 +14,8 @@ module Draught
       def initialize(world, args)
         @world = world
         @radius = args.fetch(:radius)
-        @incoming = subpath_from_arg(args.fetch(:incoming))
-        @outgoing = subpath_from_arg(args.fetch(:outgoing))
+        @incoming = args.fetch(:incoming)
+        @outgoing = args.fetch(:outgoing)
         @metadata = args.fetch(:metadata, nil)
       end
 
@@ -32,16 +32,6 @@ module Draught
 
       def metadata
         @metadata ||= Metadata::BLANK
-      end
-
-      def subpath_from_arg(path_or_subpath)
-        case path_or_subpath
-        when Draught::Subpath
-          path_or_subpath
-        else
-          raise ArgumentError, "Cannot join paths containing more than one subpath" if path_or_subpath.number_of_subpaths > 1
-          path_or_subpath.subpaths.first
-        end
       end
 
       def incoming_before_final_segment

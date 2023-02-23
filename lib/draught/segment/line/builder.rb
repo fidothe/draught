@@ -28,29 +28,17 @@ module Draught
           build(start_point: p1, end_point: p2, metadata: metadata)
         end
 
-        def from_path(path_or_subpath)
-          case path_or_subpath
-          when Draught::Subpath
-            from_subpath(path_or_subpath)
-          else
-            if path_or_subpath.number_of_subpaths != 1
-              raise ArgumentError, "path must contain exactly 1 subpath, this contained #{path_or_subpath.number_of_subpaths}"
-            end
-            from_subpath(path_or_subpath.subpaths.first, metadata: path_or_subpath.metadata)
+        def from_path(path, metadata: nil)
+          if path.number_of_points != 2
+            raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
           end
+          build(start_point: path.first, end_point: path.last, metadata: metadata || path.metadata)
         end
 
         private
 
         def build_args(required_args, optional_args)
           required_args.merge(optional_args.select { |k,_| k == :metadata })
-        end
-
-        def from_subpath(subpath, metadata: nil)
-          if subpath.number_of_points != 2
-            raise ArgumentError, "path's 1 subpath must contain exactly 2 points, this contained #{subpath.number_of_points}"
-          end
-          build(start_point: subpath.first, end_point: subpath.last, metadata: metadata)
         end
       end
     end

@@ -35,8 +35,7 @@ module Draught
     end
 
     it_should_behave_like "a pathlike thing" do
-      let(:subpaths_points) { [subject.points] }
-      let(:subpaths) { subject.subpaths }
+      let(:points) { subject.points }
     end
 
     it_should_behave_like "it has an extent" do

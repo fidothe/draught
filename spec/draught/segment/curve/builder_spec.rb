@@ -72,22 +72,6 @@ module Draught::Segment
         expect(subject.from_path(path)).to eq(expected_curve_segment)
       end
 
-      it "blows up for a > 1-subpath Path" do
-        start_point_a, cubic_bezier_a = start_point, cubic_bezier # scoping
-        path = world.path.build {
-          subpath {
-            points start_point_a, cubic_bezier_a
-          }
-          subpath {
-            points p(6,6)
-          }
-        }
-
-        expect {
-          subject.from_path(path)
-        }.to raise_error(ArgumentError)
-      end
-
       it "blows up for a > 2-item Path" do
         path = world.path.simple(points: [start_point, cubic_bezier, world.point.new(6,6)])
 

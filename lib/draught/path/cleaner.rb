@@ -4,30 +4,20 @@ module Draught
   class Path
     class Cleaner
       def self.dedupe(world, path)
-        deduped_subpaths = path.subpaths.map { |subpath|
-          new(subpath.points).dedupe
-        }
+        deduped = new(path.points).dedupe
+
         world.path.build {
           metadata path.metadata
-          deduped_subpaths.each do |deduped_subpath|
-            subpath {
-              points deduped_subpath
-            }
-          end
+          points deduped
         }
       end
 
       def self.simplify(world, path)
-        simplified_subpaths = path.subpaths.map { |subpath|
-          new(subpath.points).simplify
-        }
+        simplified = new(path.points).simplify
+
         world.path.build {
           metadata path.metadata
-          simplified_subpaths.each do |simplified_subpath|
-            subpath {
-              points simplified_subpath
-            }
-          end
+          points simplified
         }
       end
 

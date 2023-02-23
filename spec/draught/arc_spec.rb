@@ -180,8 +180,7 @@ module Draught
 
     it_should_behave_like "a pathlike thing" do
       subject { described_class.new(world, radius: 100, radians: deg_to_rad(90)) }
-      let(:subpaths_points) { [subject.points] }
-      let(:subpaths) { subject.subpaths }
+      let(:points) { subject.points }
     end
 
     it_should_behave_like "it has an extent" do

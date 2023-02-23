@@ -36,18 +36,17 @@ module Draught::Segment
 
     describe "[] access" do
       it "returns a Path when [Range]-style access is used" do
-        expect(subject[0..0]).to eq(world.path.new(subpaths: subject.subpaths))
+        expect(subject[0..0]).to eq(world.path.new(points: [subject.first]))
       end
 
       it "returns a Path when [start, length]-style access is used" do
-        expect(subject[0,1]).to eq(world.path.new(subpaths: subject.subpaths))
+        expect(subject[0,1]).to eq(world.path.new(points: [subject.first]))
       end
     end
 
     it_should_behave_like "a pathlike thing" do
       subject { described_class.build(world, segment_opts) }
-      let(:subpaths_points) { subject.subpaths.map(&:points) }
-      let(:subpaths) { subject.subpaths }
+      let(:points) { subject.points }
     end
 
     it_should_behave_like "it has an extent" do

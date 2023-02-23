@@ -122,9 +122,9 @@ module Draught
 
       # @param pathlike [Draught::Pathlike] the pathlike to generate a def for
       def path_def_value(pathlike)
-        pathlike.subpaths.flat_map { |subpath|
-          first = subpath.points[0]
-          rest = subpath.points[1..-1]
+        pathlike.subpaths.flat_map { |subpath_points|
+          first = subpath_points[0]
+          rest = subpath_points[1..-1]
           path_def = rest.chunk_while { |before, after|
             before.class === after
           }.flat_map(&method(:render_pointlike_chunks))

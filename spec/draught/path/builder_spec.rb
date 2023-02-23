@@ -1,7 +1,6 @@
 require 'draught/world'
 require 'draught/point'
 require 'draught/style'
-require 'draught/subpath'
 require 'draught/path/builder'
 
 module Draught
@@ -9,38 +8,33 @@ module Draught
     let(:world) { World.new }
     let(:p1) { world.point(1,1) }
     let(:p2) { world.point(2,2) }
-    let(:subpath_1) { subpath(p1, p2) }
     let(:metadata) { Metadata::Instance.new(name: 'name') }
     subject { described_class.new(world) }
-
-    def subpath(*points)
-      Draught::Subpath.new(world, points: points)
-    end
 
     describe "creating a new Path" do
       specify "which is empty" do
         path = subject.new
-        expect(path.subpaths).to eq([])
+        expect(path.points).to eq([])
         expect(path.world).to be(world)
       end
 
-      specify "from an array of Subpaths" do
-        path = subject.new(subpaths: [subpath_1])
-        expect(path.subpaths).to eq([subpath_1])
+      specify "from an array of Points" do
+        path = subject.new(points: [p1, p2])
+        expect(path.points).to eq([p1, p2])
         expect(path.world).to be(world)
       end
 
       specify "including Metadata" do
-        path = subject.new(subpaths: [subpath_1], metadata: metadata)
+        path = subject.new(points: [p1, p2], metadata: metadata)
         expect(path.metadata).to be(metadata)
       end
     end
 
-    describe "creating a simple path with a single subpath" do
-      specify "permits passing just the points, no Subpath objects" do
+    describe "creating a simple path" do
+      specify "only requires passing points" do
         path = subject.simple(points: [p1, p2])
 
-        expect(path.subpaths).to eq([subpath_1])
+        expect(path.points).to eq([p1, p2])
         expect(path.world).to be(world)
       end
 
@@ -53,7 +47,7 @@ module Draught
     describe "building a path via a DSL" do
       context "a single subpath" do
         let(:expected_path) {
-          subject.new(subpaths: [subpath(p1, p2)])
+          subject.new(points: [p1, p2])
         }
 
         it "executes a DSL block and returns a Path" do
@@ -65,7 +59,7 @@ module Draught
           expect(path).to eq(expected_path)
         end
 
-        it "#points DSL method can be called multiple times, appending to the first subpath" do
+        it "#points DSL method can be called multiple times, appending to the path" do
           p1a, p2a = p1, p2 # scoping for #build
           path = subject.build {
             points p1a
@@ -75,38 +69,8 @@ module Draught
           expect(path).to eq(expected_path)
         end
 
-        specify "adding a Subpath object as if it were a Point appends the Subpath's Points" do
-          subpath_1a = subpath_1 # scoping for #build
-          path = subject.build {
-            points subpath_1a
-          }
-
-          expect(path).to eq(expected_path)
-        end
-
         context "appending a Pathlike as if it were a Point" do
-          let(:p3) { world.point(3,3) }
-          let(:p4) { world.point(4,4) }
-
-          specify "explodes if the path has more than one Subpath" do
-            p1a, p2a, p3a, p4a = p1, p2, p3, p4 # scoping for #build
-            incompatible_pathlike = subject.build {
-              subpath {
-                points p1a, p2a
-              }
-              subpath {
-                points p3a, p4a
-              }
-            }
-
-            expect {
-              subject.build {
-                points incompatible_pathlike
-              }
-            }.to raise_error(ArgumentError)
-          end
-
-          specify "appends the points from the Path's first/only Subpath" do
+          specify "appends the points from the Path" do
             p1a, p2a = p1, p2 # scoping for #build
             compatible_path = subject.build {
               points p1a, p2a
@@ -120,7 +84,7 @@ module Draught
           end
         end
 
-        specify "provides a way to access the current last Point in the first subpath" do
+        specify "provides a way to access the current last Point in the path" do
           collector = []
           path = subject.build {
             points p(1,1), p(2,2)
@@ -132,7 +96,7 @@ module Draught
       end
 
       specify "provides a new point shorthand method" do
-        expected_path = subject.new(subpaths: [subpath(p1, p2)])
+        expected_path = subject.new(points: [p1, p2])
 
         path = subject.build {
           points p(1,1), p(2,2)
@@ -160,134 +124,6 @@ module Draught
         }
 
         expect(collector).to eq([subject.world])
-      end
-
-      context "multiple subpaths" do
-        let(:p3) { world.point(3,3) }
-        let(:p4) { world.point(4,4) }
-
-        let(:expected_path) {
-          subject.new(subpaths: [subpath(p1, p2), subpath(p3, p4)])
-        }
-
-        it "executes a DSL block and adds Subpaths to the Path" do
-          p1a, p2a, p3a, p4a = p1, p2, p3, p4 # scoping for #build
-          path = subject.build {
-            subpath {
-              points p1a, p2a
-            }
-            subpath {
-              points p3a, p4a
-            }
-          }
-
-          expect(path).to eq(expected_path)
-        end
-
-        it "#points DSL method can be called multiple times, appending to the subpath" do
-          p1a, p2a, p3a, p4a = p1, p2, p3, p4 # scoping for #build
-          path = subject.build {
-            subpath {
-              points p1a, p2a
-            }
-            subpath {
-              points p3a
-              points p4a
-            }
-          }
-
-          expect(path).to eq(expected_path)
-        end
-
-        specify "adding a Subpath object as if it were a Point appends the Subpath's Points" do
-          subpath_1a, p3a, p4a = subpath_1, p3, p4 # scoping for #build
-          path = subject.build {
-            subpath {
-              points subpath_1a
-            }
-            subpath {
-              points p3a
-              points p4a
-            }
-          }
-
-          expect(path).to eq(expected_path)
-        end
-
-        context "appending a Pathlike as if it were a Point" do
-          specify "explodes if the path has more than one Subpath" do
-            p1a, p2a, p3a, p4a = p1, p2, p3, p4 # scoping for #build
-            incompatible_pathlike = subject.build {
-              subpath {
-                points p1a, p2a
-              }
-              subpath {
-                points p3a, p4a
-              }
-            }
-
-            expect {
-              subject.build {
-                subpath {
-                  points incompatible_pathlike
-                }
-              }
-            }.to raise_error(ArgumentError)
-          end
-
-          specify "appends the points from the Path's first/only Subpath" do
-            p1a, p2a = p1, p2 # scoping for #build
-            compatible_path = subject.build {
-              points p1a, p2a
-            }
-
-            path = subject.build {
-              subpath {
-                points compatible_path
-              }
-            }
-
-            expect(path).to eq(compatible_path)
-          end
-        end
-
-        specify "provides a way to access the current last Point in the subpath" do
-          collector = []
-          path = subject.build {
-            points p(3,3)
-            subpath {
-              points p(1,1), p(2,2)
-              collector << last_point
-            }
-          }
-
-          expect(collector).to eq([p2])
-        end
-
-        specify "the World is still accessible" do
-          collector = []
-          subject.build {
-            subpath {
-              collector << self.world
-            }
-          }
-
-          expect(collector).to eq([subject.world])
-        end
-
-        specify "the #p convenience Point creator is still available" do
-          p1a, p2a = p1, p2 # scoping for #build
-          expected_path = subject.build { points p1a, p2a, world.point(5,5) }
-
-          path = subject.build {
-            subpath {
-              points p1a, p2a
-              points p(5,5)
-            }
-          }
-
-          expect(path).to eq(expected_path)
-        end
       end
 
       context "handling Metadata" do
@@ -404,22 +240,6 @@ module Draught
       let(:spaced_horizontal) { subject.build {
         points p(2,0), p(3,0)
       } }
-
-      specify "does not allow you try to connect Paths with more than one Subpath" do
-        bad_path = subject.build {
-          subpath {
-            points p(4,4), p(5,4)
-          }
-          subpath {
-            points p(4,5), p(5,5)
-          }
-        }
-
-        expect {
-          subject.connect(horizontal, diagonal, bad_path, spaced_horizontal)
-        }.to raise_error(ArgumentError)
-      end
-
 
       it "connects by translating the first point of the next path onto the last point of the previous and eliminating duplicates" do
         expected = subject.build { points p(0,0), p(1,0), p(2,1), p(3,1) }

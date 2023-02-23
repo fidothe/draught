@@ -70,8 +70,8 @@ module Draught
 
       def aligned_zeroed_joined_points
         @aligned_zeroed_joined_points ||= begin
-          joined_line_subpath = world.path.connect(incoming_line_segment, outgoing_line_segment).subpaths.first
-          zeroed_joined_line_segments = joined_line_subpath.translate(world.vector.translation_to_zero(joined_line_subpath.first))
+          joined_line_path = world.path.connect(incoming_line_segment, outgoing_line_segment)
+          zeroed_joined_line_segments = joined_line_path.translate(world.vector.translation_to_zero(joined_line_path.first))
           zeroed_joined_line_segments.transform(Transformations.rotate(incoming_line_segment.radians * -1)).points
         end
       end

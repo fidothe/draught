@@ -46,10 +46,10 @@ module Draught
           minus_45 = deg_to_rad(-45)
           expected = world.path.build {
             points world.line_segment(radians: minus_45, length: 90)
-            points world.arc.degrees(angle: 90, radius: 10, starting_angle: -135).path.
-              translate(world.vector.translation_between(world.point.zero, last_point)).subpaths.first.points[1..-1]
+            points world.arc.degrees(angle: 90, radius: 10, starting_angle: -135).
+              translate(world.vector.translation_between(world.point.zero, last_point))[1..-1]
             points world.line_segment(radians: plus_45, length: 90).
-              translate(world.vector.translation_between(world.point.zero, last_point)).points[1]
+              translate(world.vector.translation_between(world.point.zero, last_point))[1]
           }
 
           incoming = world.line_segment(radians: minus_45, length: 100)

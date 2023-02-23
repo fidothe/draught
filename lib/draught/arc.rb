@@ -52,12 +52,7 @@ module Draught
 
     # @return [Path]
     def path
-      @path ||= world.path.new(subpaths: subpaths, metadata: metadata)
-    end
-
-    # @return [Array<Subpath>] the array-of-1-subpaths for the arc
-    def subpaths
-      @subpaths ||= [subpath]
+      @path ||= world.path.new(points: points, metadata: metadata)
     end
 
     # @return [Array<CubicBezier>]
@@ -104,10 +99,6 @@ module Draught
     end
 
     private
-
-    def subpath
-      @subpath ||= Draught::Subpath.new(world, points: points)
-    end
 
     def untranslated_start_point
       untranslated_segments.first.start_point

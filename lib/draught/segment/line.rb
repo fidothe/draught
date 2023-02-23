@@ -3,6 +3,8 @@ require_relative './line/from_angles'
 require_relative '../extent'
 require_relative '../pathlike'
 require_relative '../boxlike'
+require_relative '../segmentlike'
+
 
 module Draught
   module Segment
@@ -15,6 +17,7 @@ module Draught
 
       include Boxlike
       include Pathlike
+      include Segmentlike
       include Extent::InstanceMethods
 
       def self.build(world, **args)
@@ -106,14 +109,14 @@ module Draught
         if length.nil?
           case index_start_or_range
           when Range
-            Path.new(world, subpaths: subpaths[index_start_or_range], metadata: metadata)
+            Path.new(world, points: points[index_start_or_range], metadata: metadata)
           when Numeric
-            subpaths[index_start_or_range]
+            points[index_start_or_range]
           else
             raise TypeError, "requires a Range or Numeric in single-arg form"
           end
         else
-          Path.new(world, subpaths: subpaths[index_start_or_range, length], metadata: metadata)
+          Path.new(world, points: points[index_start_or_range, length], metadata: metadata)
         end
       end
 
@@ -123,11 +126,6 @@ module Draught
 
       def transform(transformation)
         transformed_instance(->(arg, point) { [arg, point.transform(transformation)] })
-      end
-
-      # @return [Array<Draught::Subpath>] the array-of-1-Subpath for this Pathlike
-      def subpaths
-        @subpaths ||= [subpath]
       end
 
       # @return [Draught::Extent] the Extent for this Segment
@@ -172,10 +170,6 @@ module Draught
       end
 
       private
-
-      def subpath
-        @subpath ||= Draught::Subpath.new(world, points: points)
-      end
 
       def shift_line_segment(new_line_segment)
         translation = world.vector.translation_between(new_line_segment.end_point, end_point)

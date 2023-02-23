@@ -1,5 +1,4 @@
 require 'draught/world'
-require 'draught/subpath'
 require 'draught/extent'
 
 RSpec.shared_examples "an extent" do

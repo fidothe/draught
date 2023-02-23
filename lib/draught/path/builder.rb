@@ -20,7 +20,7 @@ module Draught
       # @param points [Array<Draught::Point>] the points for the subpath
       # @param metadata [Draught::Metadata::Instance] the Path's metadata
       def simple(points:, metadata: nil)
-        Path.new(world, subpaths: [Draught::Subpath.new(world, points: points)], metadata: metadata)
+        Path.new(world, points: points, metadata: metadata)
       end
 
       def build(&block)
@@ -29,21 +29,35 @@ module Draught
 
       def connect(*paths, metadata: nil)
         paths = paths.reject(&:empty?)
-        raise ArgumentError, "Cannot connect Paths which contain more than one Subpath" if paths.any? { |path| path.subpaths.length > 1 }
-        subpaths = paths.map { |path| path.subpaths.first }
         path_metadata = metadata
         build {
           metadata(path_metadata) if !path_metadata.nil?
-          points subpaths.shift
-          subpaths.inject(last_point) { |point, subpath|
-            translation = world.vector.translation_between(subpath.first, point)
-            points subpath.translate(translation)[1..-1]
+          points paths.shift
+          paths.inject(last_point) { |point, path|
+            translation = world.vector.translation_between(path.first, point)
+            points path.translate(translation)[1..-1]
             last_point
           }
         }
       end
 
-      module SubpathDSLMethods
+      class PathDSL
+        def self.build(world, block)
+          dsl = new(world)
+          dsl.instance_eval(&block)
+          dsl.send(:build_path_instance)
+        end
+
+        attr_reader :world, :path_points
+        private :path_points
+
+        # @param world [Draught::World] the World
+        def initialize(world)
+          @world = world
+          @path_points = []
+          @metadata = Draught::Metadata::Instance.new
+        end
+
         # convenience Point creator
         #
         # @param x [Number] the X co-ord
@@ -61,62 +75,24 @@ module Draught
           degrees * (Math::PI/180)
         end
 
-        # Add points to the Subpath
+        # Add points to the Path
         #
-        # @param points_or_subpaths [Array<Draught::Point, Draught::Subpath, Draught::Path>]
-        def points(*points_or_paths_or_subpaths)
-          points = points_or_paths_or_subpaths.flat_map { |point_or_path_or_subpath|
-            case point_or_path_or_subpath
-            when Draught::Subpath
-              point_or_path_or_subpath.points
+        # @param points_or_Paths [Array<Draught::Point, Draught::Path>]
+        def points(*points_or_paths)
+          points = points_or_paths.flat_map { |point_or_path|
+            case point_or_path
             when Draught::Pathlike
-              raise ArgumentError, "Can't add points from a path with multiple subpaths to a new subpath" if point_or_path_or_subpath.number_of_subpaths > 1
-              point_or_path_or_subpath.subpaths.first.points
+              point_or_path.points
             else
-              point_or_path_or_subpath
+              point_or_path
             end
           }
-          subpath_points.append(*points)
+          path_points.append(*points)
         end
 
         # Returns the last Point added
         def last_point
-          subpath_points.last
-        end
-
-        private
-
-        # @return [Array<Draught::Point>]
-        def subpath_points
-          raise NotImplementedError, "You need to provide an array to put the points in"
-        end
-      end
-
-      class PathDSL
-        include SubpathDSLMethods
-
-        def self.build(world, block)
-          dsl = new(world)
-          dsl.instance_eval(&block)
-          dsl.send(:build_path_instance)
-        end
-
-        attr_reader :world, :subpath_points
-        private :subpath_points
-
-        # @param world [Draught::World] the World
-        def initialize(world)
-          @world = world
-          @subpath_points = []
-          @subpaths = []
-          @metadata = Draught::Metadata::Instance.new
-        end
-
-        # Add a Subpath to the Path
-        def subpath(&block)
-          dsl = SubpathDSL.new(world)
-          dsl.instance_eval(&block)
-          @subpaths.append(dsl.send(:build_subpath_instance))
+          path_points.last
         end
 
         # Set the Path's complete metadata
@@ -166,8 +142,7 @@ module Draught
         protected
 
         def build_path_instance
-          @subpaths.prepend(Draught::Subpath.new(world, points: subpath_points))
-          Draught::Path.new(world, metadata: @metadata, subpaths: @subpaths.reject { |subpath| subpath.empty? })
+          Draught::Path.new(world, metadata: @metadata, points: path_points)
         end
 
         private
@@ -187,25 +162,6 @@ module Draught
           else
             set_via_instance_or_kwargs(Draught::Style, style_args, nil)
           end
-        end
-      end
-
-      class SubpathDSL
-        include SubpathDSLMethods
-
-        attr_reader :world, :subpath_points
-        private :subpath_points
-
-        # @param world [Draught::World] the World
-        def initialize(world)
-          @world = world
-          @subpath_points = []
-        end
-
-        protected
-
-        def build_subpath_instance
-          Draught::Subpath.new(world, points: subpath_points)
         end
       end
     end

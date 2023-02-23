@@ -227,7 +227,7 @@ module Draught::Segment
       end
     end
 
-    describe "building a Line from a two-item Path or Subpath" do
+    describe "building a Line from a two-item Path" do
       context "given a Path" do
         it "generates the Line correctly" do
           path = world.path.simple(points: [world.point.zero, world.point(4,4)])
@@ -237,21 +237,6 @@ module Draught::Segment
 
         it "blows up for a > 2-point Path" do
           path = world.path.simple(points: [world.point.zero, world.point(4,4), world.point(6,6)])
-
-          expect {
-            subject.from_path(path)
-          }.to raise_error(ArgumentError)
-        end
-
-        it "blows up for a > 1-subpath Path" do
-          path = world.path.build {
-            subpath {
-              points world.point.zero, p(4,4)
-            }
-            subpath {
-              points p(6,6)
-            }
-          }
 
           expect {
             subject.from_path(path)
@@ -272,30 +257,12 @@ module Draught::Segment
 
           expect(line_segment.metadata).to be(metadata)
         end
-      end
 
-      context "given a Subpath" do
-        it "generates the Line correctly" do
+        specify "metadata can be passed in" do
           path = world.path.simple(points: [world.point.zero, world.point(4,4)])
-          subpath = path.subpaths.first
+          line_segment = subject.from_path(path, metadata: metadata)
 
-          expect(subject.from_path(subpath)).to eq(path)
-        end
-
-        it "blows up for a > 2-point Subpath" do
-          subpath = world.path.simple(points: [world.point.zero, world.point(4,4), world.point(6,6)]).subpaths.first
-
-          expect {
-            subject.from_path(subpath)
-          }.to raise_error(ArgumentError)
-        end
-
-        it "blows up for a < 2-point Subpath" do
-          subpath = world.path.simple(points: [world.point.zero]).subpaths.first
-
-          expect {
-            subject.from_path(subpath)
-          }.to raise_error(ArgumentError)
+          expect(line_segment.metadata).to be(metadata)
         end
       end
     end
