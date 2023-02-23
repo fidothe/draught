@@ -8,6 +8,11 @@ module Draught
       raise NotImplementedError, "Pathlike objects must implement #points to return any Points they contain"
     end
 
+    # @return [Draught::Path] a path containing the points of this pathlike
+    def to_path
+      raise NotImplementedError, "Pathlike objects must implement #to_path to return a Draught::Path instance containing their points"
+    end
+
     def translate(vector)
       raise NotImplementedError, "Pathlike objects must implement translation by Vector"
     end
@@ -34,6 +39,37 @@ module Draught
 
     def empty?
       points.empty?
+    end
+
+    # Can this Pathlike be closed (where the last point connects back to the
+    # first point)? Segments, for example, are two-point open paths, and are not
+    # closeable...
+    #
+    # @return [Boolean] true if the pathlike is closeable, false if it is not
+    def closeable?
+      raise NotImplementedError, "Pathlike objects must implement #closeable?, reporting whether they can be closed"
+    end
+
+    # Is this pathlike open?
+    #
+    # @return [Boolean] true if the pathlike is open, false if it is not
+    def open?
+      raise NotImplementedError, "Pathlike objects must implement #open?, reporting whether they are open"
+    end
+
+    # Is this pathlike closed?
+    #
+    # @return [Boolean] true if the pathlike is closed, false if it is not
+    def closed?
+      raise NotImplementedError, "Pathlike objects must implement #closed?, reporting whether they are closed"
+    end
+
+    # Return a copy of this pathlike which has been closed
+    #
+    # @return [Draught::Pathlike] a closed copy of this pathlike
+    # @raise [TypeError] if the pathlike is not closeable
+    def closed
+      raise NotImplementedError, "Pathlike objects must implement #closed, which returns a closed copy of themself."
     end
 
     def ==(other)

@@ -37,7 +37,7 @@ module Draught
     # @!attribute [r] metadata
     #   @return [Metadata::Instance] Metadata for the arc
 
-    def_delegators :path, :"[]"
+    def_delegators :to_path, :"[]"
 
     # @param world [World] the world
     # @param radius [Number] the Arc's radius
@@ -51,7 +51,7 @@ module Draught
     end
 
     # @return [Path]
-    def path
+    def to_path
       @path ||= world.path.new(points: points, metadata: metadata)
     end
 
@@ -63,6 +63,27 @@ module Draught
     # @return [Array<Pointlike>] the starting Point and following CubicBeziers
     def points
       @points ||= [start_point] + cubic_beziers
+    end
+
+    # @return [false] Arcs are not closeable.
+    def closeable?
+      false
+    end
+
+    # Close an open path, but Arcs cannot be closed. Always raises an error.
+    # @raise [TypeError] Arcs cannot be closed.
+    def closed
+      raise TypeError, "Cannot close an Arc"
+    end
+
+    # @return [true] Arcs are always open.
+    def open?
+      true
+    end
+
+    # @return [false] Arcs are never closed.
+    def closed?
+      false
     end
 
     # return a copy of this object with a different Metadata attached
@@ -79,11 +100,11 @@ module Draught
     end
 
     def translate(vector)
-      path.translate(vector)
+      to_path.translate(vector)
     end
 
     def transform(transformer)
-      path.transform(transformer)
+      to_path.transform(transformer)
     end
 
     def box_type

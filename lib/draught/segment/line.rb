@@ -109,15 +109,20 @@ module Draught
         if length.nil?
           case index_start_or_range
           when Range
-            Path.new(world, points: points[index_start_or_range], metadata: metadata)
+            world.path.new(points: points[index_start_or_range], metadata: metadata)
           when Numeric
             points[index_start_or_range]
           else
             raise TypeError, "requires a Range or Numeric in single-arg form"
           end
         else
-          Path.new(world, points: points[index_start_or_range, length], metadata: metadata)
+          world.path.new(points: points[index_start_or_range, length], metadata: metadata)
         end
+      end
+
+      # @return [Draught::Path] a new Path with the same points as this Segment::Line
+      def to_path
+        @path ||= world.path.new(points: points, metadata: metadata)
       end
 
       def translate(vector)

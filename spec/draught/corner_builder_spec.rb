@@ -20,7 +20,7 @@ module Draught
         specify "when the incoming line_segment is left-right and the outgoing line_segment is bottom-to-top" do
           expected = world.path.build {
             points world.point.zero
-            points world.arc.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector(90,0))
+            points world.arc.degrees(angle: 90, radius: 10, starting_angle: 270).translate(world.vector(90,0))
             points world.point(100,100)
           }
 
@@ -32,7 +32,7 @@ module Draught
         specify "when the incoming line_segment is left-right and the outgoing line_segment is top-to-bottom" do
           expected = world.path.build {
             points world.point.zero
-            points world.arc.degrees(angle: -90, radius: 10, starting_angle: -90).path.translate(world.vector(90,0))
+            points world.arc.degrees(angle: -90, radius: 10, starting_angle: -90).translate(world.vector(90,0))
             points world.point(100,-100)
           }
 
@@ -83,7 +83,7 @@ module Draught
 
       context "the two paths meet at an acute angle" do
         specify "when the incoming line_segment is left-right and the outgoing line_segment is 45º from bottom-right to top-left" do
-          arc = arc_builder.degrees(angle: 135, radius: 10, starting_angle: -90).path
+          arc = arc_builder.degrees(angle: 135, radius: 10, starting_angle: -90)
 
           expected = world.path.build {
             points world.point.zero, arc.translate(world.vector(75.857864,0))
@@ -97,7 +97,7 @@ module Draught
         end
 
         specify "when the incoming line_segment is right-left and the outgoing line_segment is 45º from bottom-left to top-right" do
-          arc = arc_builder.degrees(angle: -135, radius: 10, starting_angle: -270).path
+          arc = arc_builder.degrees(angle: -135, radius: 10, starting_angle: -270)
           expected = world.path.build {
             points world.point.zero, arc.translate(world.vector(-75.857864,0))
             points world.line_segment(radians: deg_to_rad(45), length: 100).translate(world.vector(-100,0)).points[1]
@@ -113,7 +113,7 @@ module Draught
 
       context "the two paths meet at an obtuse angle" do
         specify "when the incoming line_segment is left-right and the outgoing line_segment is 135º from bottom-left to top-right" do
-          arc = arc_builder.degrees(angle: 45, radius: 10, starting_angle: -90).path
+          arc = arc_builder.degrees(angle: 45, radius: 10, starting_angle: -90)
           expected = world.path.build {
             points world.point.zero, arc.translate(world.vector.new(95.857864,0))
             points world.line_segment(radians: deg_to_rad(45), length: 100).translate(world.vector.new(100,0)).points[1]
@@ -127,7 +127,7 @@ module Draught
         end
 
         specify "when the incoming line_segment is right-left and the outgoing line_segment is 135º from bottom-right to top-left" do
-          arc = arc_builder.degrees(angle: -45, radius: 10, starting_angle: 90).path
+          arc = arc_builder.degrees(angle: -45, radius: 10, starting_angle: 90)
           expected = world.path.build {
             points world.point.zero
             points arc.translate(world.vector.new(-95.857864,0))
@@ -151,8 +151,8 @@ module Draught
       specify "when asked to connect three paths" do
         expected = world.path.build {
           points world.point.zero
-          points world.arc.degrees(angle: 90, radius: 10, starting_angle: 180).path.translate(world.vector.new(0,-90))
-          points world.arc.degrees(angle: 90, radius: 10, starting_angle: 270).path.translate(world.vector.new(90,-100))
+          points world.arc.degrees(angle: 90, radius: 10, starting_angle: 180).translate(world.vector.new(0,-90))
+          points world.arc.degrees(angle: 90, radius: 10, starting_angle: 270).translate(world.vector.new(90,-100))
           points world.point.new(100,0)
         }
 

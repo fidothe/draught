@@ -5,9 +5,9 @@ module Draught
       false
     end
 
-    # Close an open path, but segments cannot be closed.
+    # Close an open path, but segments cannot be closed. Always raises an error.
     # @raise [TypeError] Segments cannot be closed.
-    def close
+    def closed
       raise TypeError, "Cannot close a segment"
     end
 

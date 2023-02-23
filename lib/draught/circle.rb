@@ -25,7 +25,7 @@ module Draught
     #   @return [Annotation] an Annotation for the Path
 
     def_delegators :arc, :points, :subpaths
-    def_delegators :path, :"[]"
+    def_delegators :to_path, :"[]"
 
     # @param world [World] the world
     # @param radius [Number] the radius
@@ -36,13 +36,34 @@ module Draught
     end
 
     # @return [Path]
-    def path
-      @path ||= arc.path
+    def to_path
+      @path ||= arc.to_path
     end
 
     # @return [Point] the centre of the circle
     def center
       @center ||= world.point(radius, radius)
+    end
+
+    # @return [true] Circles are closeable.
+    def closeable?
+      true
+    end
+
+    # Circles are inherently closed, return self.
+    # @return [Circle] return self
+    def closed
+      self
+    end
+
+    # @return [true] Circles are never open.
+    def open?
+      false
+    end
+
+    # @return [false] Circles are inherently closed.
+    def closed?
+      true
     end
 
     def extent
@@ -69,7 +90,7 @@ module Draught
     end
 
     def transform(transformer)
-      path.transform(transformer)
+      to_path.transform(transformer)
     end
 
     def box_type

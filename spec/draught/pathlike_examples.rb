@@ -1,5 +1,5 @@
 require 'securerandom'
-require 'draught/segmentlike'
+require 'draught/pathlike'
 
 RSpec.shared_examples "a pathlike thing" do
   specify "can return an enumerable of its points" do
@@ -61,6 +61,28 @@ RSpec.shared_examples "a pathlike thing" do
       expected = points.map { |p| p.transform(transformation) }
 
       expect(subject.transform(transformation).points).to eq(expected)
+    end
+  end
+
+  specify "can return a Path copy of itself" do
+    expect(subject.to_path).to be_a(Draught::Pathlike)
+  end
+
+  describe "closedness" do
+    specify "a pathlike object must be able to report whether it can be closed" do
+      expect(subject.closeable?).to be_boolean
+    end
+
+    specify "can report if it is open" do
+      expect(subject.open?).to be_boolean
+    end
+
+    specify "can report if it is closed" do
+      expect(subject.closed?).to be_boolean
+    end
+
+    specify "provides a method for returning a closed copy of itself" do
+      expect { subject.closed }.to_not raise_error(NotImplementedError)
     end
   end
 

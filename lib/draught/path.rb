@@ -35,9 +35,10 @@ module Draught
 
     # @param world [World] the world
     # @param points [Array<Point>] the Path's Points
+    # @param closed [Boolean] whether this Path should be treated as a closed path
     # @param metadata [Draught::Metadata] a Metadata object that should be attached to the Path
-    def initialize(world, points: [], metadata: nil)
-      @world, @points, @metadata = world, points, metadata
+    def initialize(world, points: [], closed: false, metadata: nil)
+      @world, @points, @closed, @metadata = world, points, closed, metadata
     end
 
     def <<(*points)
@@ -79,6 +80,29 @@ module Draught
       end
     end
 
+    # @return [Boolean] true if the Path is closed (the last point connects back to the first point)
+    def closed?
+      @closed
+    end
+
+    # @return [Boolean] true if the Path is open (the last point does not connect back to the first point)
+    def open?
+      !closed?
+    end
+
+    # Can this Path be closed? (yes, all paths can technically be closed)
+    #
+    # @return [Boolean] true
+    def closeable?
+      true
+    end
+
+    # Create a closed copy of this Path, if it's open. Returns itself if it's already closed.
+    def closed
+      return self if closed?
+      self.class.new(world, points: points, metadata: metadata, closed: true)
+    end
+
     # @return [Extent] the extent of this Path
     def extent
       @extent ||= Extent.new(world, items: points)
@@ -100,6 +124,12 @@ module Draught
         end
       end
     end
+
+    # @return [Draught::Path] itself
+    def to_path
+      self
+    end
+
 
     # return a copy of this object with a new Metadata attached
     #

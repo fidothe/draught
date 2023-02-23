@@ -163,6 +163,11 @@ module Draught::Segment
       end
     end
 
+    specify "can return a Path copy of itself" do
+      line = Line.build(world, end_point: world.point.new(2,2))
+      expect(line.to_path).to eq(world.path.simple(points: line.points))
+    end
+
     it_should_behave_like "a pathlike thing" do
       subject { described_class.build(world, end_point: end_point) }
       let(:points) { subject.points }

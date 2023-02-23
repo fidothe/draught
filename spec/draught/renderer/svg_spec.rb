@@ -101,6 +101,20 @@ module Draught::Renderer
           end
         end
 
+        context "from a multi-point closed path" do
+          let(:path) { world.path.simple(points: [p(10,20), p(30,10), p(50,20)], closed: true) }
+          let(:svg_path) { render { |svg| svg.path(path) } }
+          let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
+
+          specify "has the right element name" do
+            expect(element.name).to eq('path')
+          end
+
+          specify "has the right path definition" do
+            expect(element.get_attribute('d')).to eq("M 10,20 L 30,10 50,20 Z")
+          end
+        end
+
         context "handling Style properties" do
           context "when all-nil" do
             let(:path) { world.path.simple(points: [p(10,20), p(30,10), p(50,20)]) }

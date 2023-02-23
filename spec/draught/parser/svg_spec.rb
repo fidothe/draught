@@ -82,6 +82,30 @@ module Draught::Parser
       end
     end
 
+    context "parsing a document with a closed path" do
+      context "an SVG containing 1 closed path" do
+        subject { described_class.new(world, fixture('closed-path.svg').open('r:utf-8')) }
+        let(:actual) { subject.parse! }
+
+        specify "returns a box containing 1 path" do
+          expect(actual).to be_a(Draught::Boxlike)
+          expect(actual.paths.size).to eq(1)
+        end
+
+        specify "the path consists of the correct points" do
+          path = actual.paths.first
+
+          expect(path.points).to eq([p(500,400), p(1800,200), p(2100,1400), p(1200,1600)])
+        end
+
+        specify "the path is closed" do
+          path = actual.paths.first
+
+          expect(path.closed?).to be(true)
+        end
+      end
+    end
+
     context "parsing a document with paths that have class atrributes" do
       context "an SVG containing 2 paths with classes" do
         subject { described_class.new(world, fixture('simple-classes.svg').open('r:utf-8')) }

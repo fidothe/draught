@@ -109,6 +109,34 @@ module Draught
       end
     end
 
+    describe "closed/open paths" do
+      subject { described_class.new(world, points: [world.point(1,1), world.point(1,2), world.point(2,1)]) }
+
+      specify "a Path is closeable" do
+        expect(subject.closeable?).to be(true)
+      end
+
+      specify "is open by default" do
+        expect(subject.open?).to be(true)
+      end
+
+      specify "is not closed by default" do
+        expect(subject.closed?).to be(false)
+      end
+
+      specify "a closed copy can be created" do
+        closed = subject.closed
+        expect(closed.closed?).to be(true)
+        expect(closed).to_not be(subject)
+      end
+
+      specify "a closed path can be created" do
+        path = described_class.new(world, points: [world.point(1,1), world.point(1,2), world.point(2,1)], closed: true)
+
+        expect(path.closed?).to be(true)
+      end
+    end
+
     describe "being enumerable enough" do
       subject { Path.new(world, points: [world.point(1,1), world.point(1,2), world.point(1,3)]) }
 

@@ -42,10 +42,16 @@ module Draught
         path = subject.simple(points: [p1, p2], metadata: metadata)
         expect(path.metadata).to be(metadata)
       end
+
+      specify "can create a closed path" do
+        path = subject.simple(points: [p1, p2], closed: true)
+
+        expect(path.closed?).to be(true)
+      end
     end
 
     describe "building a path via a DSL" do
-      context "a single subpath" do
+      context "a simple path" do
         let(:expected_path) {
           subject.new(points: [p1, p2])
         }
@@ -84,6 +90,15 @@ module Draught
           end
         end
 
+        specify "can create a closed path" do
+          path = subject.build {
+            points p(1,1), p(2,2)
+            closed
+          }
+
+          expect(path.closed?).to be(true)
+        end
+
         specify "provides a way to access the current last Point in the path" do
           collector = []
           path = subject.build {
@@ -115,7 +130,6 @@ module Draught
 
         expect(collector).to eq([deg_to_rad(90)]) # using spec helper converter method here
       end
-
 
       specify "the World is accessible" do
         collector = []
@@ -255,6 +269,12 @@ module Draught
         path = subject.connect(Path.new(world), horizontal, diagonal, Path.new(world), spaced_horizontal, Path.new(world))
 
         expect(path).to eq(expected)
+      end
+
+      specify "allows marking the resulting path closed" do
+        path = subject.connect(horizontal, diagonal, closed: true)
+
+        expect(path.closed?).to be(true)
       end
 
       context "handling Metadata" do

@@ -81,6 +81,11 @@ module Draught
         end
       end
 
+      # @return [Draught::Path] a new Path with the same points as this Segment::Curve
+      def to_path
+        @path ||= world.path.new(points: points, metadata: metadata)
+      end
+
       def translate(vector)
         transformed_instance(->(arg, point) { [arg, point.translate(vector)] })
       end

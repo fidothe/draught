@@ -16,22 +16,28 @@ module Draught
         Path.new(world, **kwargs)
       end
 
-      # Create a path with a single subpath
-      # @param points [Array<Draught::Point>] the points for the subpath
+      # Create a simple path
+      # @param points [Array<Draught::Point>] the points for the path
+      # @param closed [Boolean] whether this should be a closed path or not
       # @param metadata [Draught::Metadata::Instance] the Path's metadata
-      def simple(points:, metadata: nil)
-        Path.new(world, points: points, metadata: metadata)
+      def simple(points:, closed: false, metadata: nil)
+        Path.new(world, points: points, closed: closed, metadata: metadata)
       end
 
       def build(&block)
         PathDSL.build(world, block)
       end
 
-      def connect(*paths, metadata: nil)
+      # Create a new path by joining several paths last-point-to-first
+      #
+      # @param paths [Array<Draught::Pathlike>] the paths to join
+      # @param closed [Boolean] whether this should be a closed path or not
+      # @param metadata [Draught::Metadata::Instance] the Path's metadata
+      def connect(*paths, closed: false, metadata: nil)
         paths = paths.reject(&:empty?)
-        path_metadata = metadata
         build {
-          metadata(path_metadata) if !path_metadata.nil?
+          self.metadata(metadata) if !metadata.nil?
+          self.closed if closed
           points paths.shift
           paths.inject(last_point) { |point, path|
             translation = world.vector.translation_between(path.first, point)
@@ -55,6 +61,7 @@ module Draught
         def initialize(world)
           @world = world
           @path_points = []
+          @closed = false
           @metadata = Draught::Metadata::Instance.new
         end
 
@@ -88,6 +95,11 @@ module Draught
             end
           }
           path_points.append(*points)
+        end
+
+        # mark the path closed
+        def closed
+          @closed = true
         end
 
         # Returns the last Point added
@@ -142,7 +154,7 @@ module Draught
         protected
 
         def build_path_instance
-          Draught::Path.new(world, metadata: @metadata, points: path_points)
+          Draught::Path.new(world, metadata: @metadata, closed: @closed, points: path_points)
         end
 
         private

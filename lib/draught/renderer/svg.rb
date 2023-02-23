@@ -122,14 +122,14 @@ module Draught
 
       # @param pathlike [Draught::Pathlike] the pathlike to generate a def for
       def path_def_value(pathlike)
-        pathlike.subpaths.flat_map { |subpath_points|
-          first = subpath_points[0]
-          rest = subpath_points[1..-1]
-          path_def = rest.chunk_while { |before, after|
-            before.class === after
-          }.flat_map(&method(:render_pointlike_chunks))
-          ["M", XY.call(first)] + path_def
-        }.join(" ")
+        first = pathlike.points[0]
+        rest = pathlike.points[1..]
+        path_def = rest.chunk_while { |before, after|
+          before.class === after
+        }.flat_map(&method(:render_pointlike_chunks))
+        path_def.prepend("M", XY.call(first))
+        path_def.append("Z") if pathlike.closed?
+        path_def.join(" ")
       end
 
       # @param style [Draught::Style] the style to generate CSS properties for
