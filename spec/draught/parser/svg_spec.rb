@@ -1,5 +1,4 @@
 require 'draught/world'
-require 'draught/subpath'
 require 'draught/parser/svg'
 require 'pathname'
 

@@ -32,19 +32,19 @@ module Draught
 
     describe "creating a simple path" do
       specify "only requires passing points" do
-        path = subject.simple(points: [p1, p2])
+        path = subject.simple(p1, p2)
 
         expect(path.points).to eq([p1, p2])
         expect(path.world).to be(world)
       end
 
       specify "metadata is correctly passed" do
-        path = subject.simple(points: [p1, p2], metadata: metadata)
+        path = subject.simple(p1, p2, metadata: metadata)
         expect(path.metadata).to be(metadata)
       end
 
       specify "can create a closed path" do
-        path = subject.simple(points: [p1, p2], closed: true)
+        path = subject.simple(p1, p2, closed: true)
 
         expect(path.closed?).to be(true)
       end

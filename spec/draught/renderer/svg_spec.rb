@@ -74,7 +74,7 @@ module Draught::Renderer
         end
 
         context "from a multi-point path" do
-          let(:path) { world.path.simple(points: [p(10,20), p(30,10), p(50,20)]) }
+          let(:path) { world.path.simple(p(10,20), p(30,10), p(50,20)) }
           let(:svg_path) { render { |svg| svg.path(path) } }
           let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 
@@ -88,7 +88,7 @@ module Draught::Renderer
         end
 
         context "from a multi-point path containing curves (a spline)" do
-          let(:path) { world.path.simple(points: [p(10,20), c(p(30,10), p(30,50), p(10,50)), c(p(30,20), p(30,60), p(10,60)), p(50,20)]) }
+          let(:path) { world.path.simple(p(10,20), c(p(30,10), p(30,50), p(10,50)), c(p(30,20), p(30,60), p(10,60)), p(50,20)) }
           let(:svg_path) { render { |svg| svg.path(path) } }
           let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 
@@ -102,7 +102,7 @@ module Draught::Renderer
         end
 
         context "from a multi-point closed path" do
-          let(:path) { world.path.simple(points: [p(10,20), p(30,10), p(50,20)], closed: true) }
+          let(:path) { world.path.simple(p(10,20), p(30,10), p(50,20), closed: true) }
           let(:svg_path) { render { |svg| svg.path(path) } }
           let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 
@@ -117,7 +117,7 @@ module Draught::Renderer
 
         context "handling Style properties" do
           context "when all-nil" do
-            let(:path) { world.path.simple(points: [p(10,20), p(30,10), p(50,20)]) }
+            let(:path) { world.path.simple(p(10,20), p(30,10), p(50,20)) }
             let(:svg_path) { render { |svg| svg.path(path) } }
             let(:element) { Nokogiri::XML.fragment(svg_path).children.first }
 

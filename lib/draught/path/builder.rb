@@ -20,7 +20,7 @@ module Draught
       # @param points [Array<Draught::Point>] the points for the path
       # @param closed [Boolean] whether this should be a closed path or not
       # @param metadata [Draught::Metadata::Instance] the Path's metadata
-      def simple(points:, closed: false, metadata: nil)
+      def simple(*points, closed: false, metadata: nil)
         Path.new(world, points: points, closed: closed, metadata: metadata)
       end
 

@@ -230,13 +230,13 @@ module Draught::Segment
     describe "building a Line from a two-item Path" do
       context "given a Path" do
         it "generates the Line correctly" do
-          path = world.path.simple(points: [world.point.zero, world.point(4,4)])
+          path = world.path.simple(world.point.zero, world.point(4,4))
 
           expect(subject.from_path(path)).to eq(path)
         end
 
         it "blows up for a > 2-point Path" do
-          path = world.path.simple(points: [world.point.zero, world.point(4,4), world.point(6,6)])
+          path = world.path.simple(world.point.zero, world.point(4,4), world.point(6,6))
 
           expect {
             subject.from_path(path)
@@ -244,7 +244,7 @@ module Draught::Segment
         end
 
         it "blows up for a < 2-point Path" do
-          path = world.path.simple(points: [world.point.zero])
+          path = world.path.simple(world.point.zero)
 
           expect {
             subject.from_path(path)
@@ -252,14 +252,14 @@ module Draught::Segment
         end
 
         specify "the path's metadata is taken" do
-          path = world.path.simple(points: [world.point.zero, world.point(4,4)], metadata: metadata)
+          path = world.path.simple(world.point.zero, world.point(4,4), metadata: metadata)
           line_segment = subject.from_path(path)
 
           expect(line_segment.metadata).to be(metadata)
         end
 
         specify "metadata can be passed in" do
-          path = world.path.simple(points: [world.point.zero, world.point(4,4)])
+          path = world.path.simple(world.point.zero, world.point(4,4))
           line_segment = subject.from_path(path, metadata: metadata)
 
           expect(line_segment.metadata).to be(metadata)
@@ -272,7 +272,7 @@ module Draught::Segment
       let(:p2) { world.point(4,4) }
 
       it "generates the Line correctly" do
-        path = world.path.simple(points: [p1, p2])
+        path = world.path.simple(p1, p2)
 
         expect(subject.from_to(p1, p2)).to eq(path)
       end

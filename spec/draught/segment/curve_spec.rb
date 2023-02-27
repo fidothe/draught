@@ -45,7 +45,7 @@ module Draught::Segment
     end
 
     specify "can return a Path copy of itself" do
-      expect(subject.to_path).to eq(world.path.simple(points: subject.points))
+      expect(subject.to_path).to eq(world.path.simple(*subject.points))
     end
 
     it_should_behave_like "a pathlike thing" do

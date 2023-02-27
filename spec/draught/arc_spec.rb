@@ -51,10 +51,7 @@ module Draught
       }
 
       context "generating a one-segment curve for a 90º arc" do
-        let(:expected) { world.path.simple(points: [
-          world.point.zero,
-          first_90
-        ]) }
+        let(:expected) { world.path.simple(world.point.zero, first_90) }
 
         it "creates the expected curve" do
           expect(subject.to_path).to eq(expected)
@@ -69,51 +66,34 @@ module Draught
       end
 
       it "generates a two-segment curve for a 180º arc" do
-        path = world.path.simple(points: [
-          world.point.zero,
-          first_90,
-          second_90
-        ])
+        path = world.path.simple(world.point.zero, first_90, second_90)
         arc = described_class.new(world, radius: 100, radians: deg_to_rad(180))
 
         expect(arc.to_path).to eq(path)
       end
 
       it "generates a three-segment curve for a 270º arc" do
-        path = world.path.simple(points: [
-          world.point.zero,
-          first_90,
-          second_90,
-          third_90
-        ])
+        path = world.path.simple(world.point.zero, first_90, second_90, third_90)
         arc = described_class.new(world, radius: 100, radians: deg_to_rad(270))
 
         expect(arc.to_path).to eq(path)
       end
 
       it "generates a four-segment curve for a 360º arc" do
-        path = world.path.simple(points: [
-          world.point.zero,
-          first_90,
-          second_90,
-          third_90,
-          fourth_90
-        ])
+        path = world.path.simple(world.point.zero, first_90, second_90, third_90,fourth_90)
         arc = described_class.new(world, radius: 100, radians: deg_to_rad(360))
 
         expect(arc.to_path).to eq(path)
       end
 
       it "generates a two-segment curve for an arc between 90 and 180º" do
-        path = world.path.simple(points: [
-          world.point.zero,
-          first_90,
+        path = world.path.simple(world.point.zero, first_90,
           CubicBezier.new(world,
             end_point: world.point.new(-117.36482, 98.48078),
             control_point_1: world.point.new( -105.82146, 100),
             control_point_2: world.point.new(-111.63179, 99.49166)
           )
-        ])
+        )
         arc = described_class.new(world, radius: 100, radians: deg_to_rad(100))
 
         expect(arc.to_path).to eq(path)
@@ -139,14 +119,14 @@ module Draught
               control_point_2: world.point.new(0, 55.22847)
             )
           ]
-          path = world.path.simple(points: [world.point.zero] + cubic_beziers)
+          path = world.path.simple(world.point.zero, *cubic_beziers)
           arc = described_class.new(world, radius: 100, radians: deg_to_rad(-360))
 
           expect(arc.to_path).to eq(path)
         end
 
         it "generates correct clockwise arcs when the angle is not a clean right-angle" do
-          path = world.path.simple(points: [
+          path = world.path.simple(
             world.point.zero,
             CubicBezier.new(world,
               end_point: world.point.new(-100, -100), control_point_1: world.point.new(0, -55.22847),
@@ -157,7 +137,7 @@ module Draught
               control_point_1: world.point.new( -105.82146, -100),
               control_point_2: world.point.new(-111.63179, -99.49166)
             )
-          ])
+          )
           arc = described_class.new(world, radius: 100, radians: deg_to_rad(-100))
 
           expect(arc.to_path).to eq(path)
