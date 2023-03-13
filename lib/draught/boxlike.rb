@@ -10,58 +10,6 @@ module Draught
       raise NotImplementedError, "includers of Boxlike must implement #world"
     end
 
-    def lower_left
-      raise NotImplementedError, "includers of Boxlike must implement #lower_left"
-    end
-
-    def width
-      raise NotImplementedError, "includers of Boxlike must implement #width"
-    end
-
-    def height
-      raise NotImplementedError, "includers of Boxlike must implement #height"
-    end
-
-    def box_type
-      raise NotImplementedError, "includers of Boxlike must implement #box_type"
-    end
-
-    def lower_right
-      @lower_right ||= lower_left.translate(world.vector.new(width, 0))
-    end
-
-    def upper_right
-      @upper_right ||= lower_left.translate(world.vector.new(width, height))
-    end
-
-    def upper_left
-      @upper_left ||= lower_left.translate(world.vector.new(0, height))
-    end
-
-    def centre_left
-      @centre_left ||= lower_left.translate(world.vector.new(0, height/2.0))
-    end
-
-    def lower_centre
-      @lower_centre ||= lower_left.translate(world.vector.new(width/2.0, 0))
-    end
-
-    def centre_right
-      @centre_right ||= lower_right.translate(world.vector.new(0, height / 2.0))
-    end
-
-    def upper_centre
-      @upper_centre ||= upper_left.translate(world.vector.new(width/2.0, 0))
-    end
-
-    def centre
-      @centre ||= lower_left.translate(world.vector.new(width/2.0, height/2.0))
-    end
-
-    def corners
-      [lower_left, lower_right, upper_right, upper_left]
-    end
-
     def left_edge
       @left_edge ||= lower_left.x
     end
@@ -106,41 +54,11 @@ module Draught
       raise NotImplementedError
     end
 
-    def overlaps?(other_box)
-      !disjoint?(other_box)
-    end
-
-    def disjoint?(other_box)
-      horizontal_disjoint?(other_box) || vertical_disjoint?(other_box)
-    end
-
-    def include_point?(point)
-      horizontal_extent.include?(point.x) && vertical_extent.include?(point.y)
-    end
-
     def min_gap
       0
     end
 
     private
-
-    def horizontal_disjoint?(other_box)
-      other_box.left_edge == right_edge || other_box.right_edge == left_edge ||
-        other_box.left_edge > right_edge || other_box.right_edge < left_edge
-    end
-
-    def vertical_disjoint?(other_box)
-      other_box.bottom_edge == top_edge || other_box.top_edge == bottom_edge ||
-        other_box.top_edge < bottom_edge || other_box.bottom_edge > top_edge
-    end
-
-    def horizontal_extent
-      @horizontal_extent ||= lower_left.x..upper_right.x
-    end
-
-    def vertical_extent
-      @vertical_extent ||= lower_left.y..upper_right.y
-    end
 
     def invalid_position_method?(method_name)
       !valid_position_method?(method_name)

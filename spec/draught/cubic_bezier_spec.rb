@@ -16,6 +16,10 @@ module Draught
 
     it_behaves_like "a point-like thing"
 
+    specify "returns its end_point for #position_point" do
+      expect(subject.position_point).to be(subject.end_point)
+    end
+
     it "has an end point" do
       expect(subject.end_point).to eq(end_point)
     end

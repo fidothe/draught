@@ -2,43 +2,6 @@ require 'draught/point'
 require 'draught/transformations/affine'
 
 RSpec.shared_examples "a basic rectangular box-like thing" do
-  context "the box's dimensions" do
-    context "basic information" do
-      context "corners" do
-        it "reports the lower-left corner as a Point" do
-          expect(subject.lower_left).to be_a(Draught::Point)
-        end
-
-        it "reports the lower-right corner as a Point" do
-          expect(subject.lower_right).to be_a(Draught::Point)
-        end
-
-        it "reports the upper-right corner as a Point" do
-          expect(subject.upper_right).to be_a(Draught::Point)
-        end
-
-        it "reports the upper-left corner as a Point" do
-          expect(subject.upper_left).to be_a(Draught::Point)
-        end
-
-        it "returns all its corners in an array, anti-clockwise starting lower-left" do
-          expect(subject.corners).to eq([
-            subject.lower_left, subject.lower_right,
-            subject.upper_right, subject.upper_left
-          ])
-        end
-      end
-
-      it "reports its width correctly" do
-        expect(subject.width).to eq(subject.upper_right.x - subject.lower_left.x)
-      end
-
-      it "reports its height correctly" do
-        expect(subject.height).to eq(subject.upper_right.y - subject.lower_left.y)
-      end
-    end
-  end
-
   context "manipulation in space" do
     context "translation" do
       let(:translation) { world.vector.new(5,5) }
@@ -135,14 +98,6 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
   end
 
   context "interface methods it's hard to test generically" do
-    context "overlaps?" do
-      it { is_expected.to respond_to(:overlaps?) }
-
-      specify "overlaps? takes one argument" do
-        expect(subject.method(:overlaps?).arity).to eq(1)
-      end
-    end
-
     it "returns an iterable value for #paths without raising" do
       expect { subject.paths }.not_to raise_error
       expect(subject.paths).to respond_to(:each)
@@ -151,11 +106,6 @@ RSpec.shared_examples "a basic rectangular box-like thing" do
     it "returns an iterable value for #containers without raising" do
       expect { subject.containers }.not_to raise_error
       expect(subject.containers).to respond_to(:each)
-    end
-
-    it "returns a numeric value for #min_gap" do
-      expect { subject.min_gap }.not_to raise_error
-      expect(subject.min_gap).to be_a(Integer)
     end
 
     it "returns an array of box types for #box_type" do

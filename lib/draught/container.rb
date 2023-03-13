@@ -1,14 +1,16 @@
 require_relative 'boxlike'
+require_relative 'extent'
 require 'forwardable'
 
 module Draught
   class Container
     extend Forwardable
     include Boxlike
+    include Extent
 
     attr_reader :world, :box, :min_gap
 
-    def_delegators :box, :lower_left, :width, :height, :containers
+    def_delegators :box, :extent, :containers
 
     def initialize(world, box, opts = {})
       @world = world

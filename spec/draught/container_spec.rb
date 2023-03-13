@@ -1,6 +1,7 @@
 require 'draught/world'
 require 'draught/container'
 require 'draught/boxlike_examples'
+require 'draught/extent_examples'
 require 'draught/spec_box'
 require 'draught/point'
 require 'draught/transformations'
@@ -10,6 +11,11 @@ module Draught
     let(:world) { World.new }
     let(:box) { SpecBox.new(world, lower_left: world.point.zero, width: 200, height: 100) }
     subject { Container.new(world, box, min_gap: 50) }
+
+    it_should_behave_like "it has an extent" do
+      let(:lower_left) { world.point(0,0) }
+      let(:upper_right) { world.point(200,100) }
+    end
 
     it_should_behave_like "a basic rectangular box-like thing"
 

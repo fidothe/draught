@@ -1,9 +1,11 @@
 require 'draught/point'
 require 'draught/boxlike'
+require 'draught/extent'
 
 module Draught
   class SpecBox
     include Boxlike
+    include Extent
 
     attr_reader :world, :lower_left, :min_gap, :width, :height
 
@@ -17,6 +19,10 @@ module Draught
       @width = opts.fetch(:width)
       @height = opts.fetch(:height)
       @min_gap = opts.fetch(:min_gap, 0)
+    end
+
+    def extent
+      @extent ||= Extent::Instance.new(world, items: [lower_left, world.point(lower_left.x + width, lower_left.y + height)])
     end
 
     def translate(point)

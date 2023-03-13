@@ -12,7 +12,7 @@ module Draught
     extend Forwardable
     include Pathlike
     include Boxlike
-    include Extent::InstanceMethods
+    include Extent
 
     CIRCLE_RADIANS = Math::PI * 2
 
@@ -67,7 +67,7 @@ module Draught
     end
 
     def extent
-      @extent ||= Draught::Extent.new(world, items: [
+      @extent ||= Draught::Extent::Instance.new(world, items: [
         center.translate(world.vector(-radius,-radius)), center.translate(world.vector(radius,radius))
       ])
     end

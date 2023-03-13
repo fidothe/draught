@@ -23,7 +23,7 @@ module Draught
   class Path
     include Boxlike
     include Pathlike
-    include Extent::InstanceMethods
+    include Extent
 
     attr_reader :world, :points
     # @!attribute [r] world
@@ -103,9 +103,9 @@ module Draught
       self.class.new(world, points: points, metadata: metadata, closed: true)
     end
 
-    # @return [Extent] the extent of this Path
+    # @return [Extent::Instance] the extent of this Path
     def extent
-      @extent ||= Extent.new(world, items: points)
+      @extent ||= Extent::Instance.new(world, items: points)
     end
 
     def translate(vector)

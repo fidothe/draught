@@ -21,7 +21,7 @@ module Draught
     extend Forwardable
     include Pathlike
     include Boxlike
-    include Extent::InstanceMethods
+    include Extent
 
     attr_reader :world, :radius, :starting_angle, :radians, :start_point
     # @!attribute [r] world
@@ -96,7 +96,7 @@ module Draught
 
     # @return [Draught::Extent] the Extent for this Arc
     def extent
-      @extent ||= Draught::Extent.from_pathlike(world, items: segments)
+      @extent ||= Draught::Extent::Instance.from_pathlike(world, items: segments)
     end
 
     def translate(vector)

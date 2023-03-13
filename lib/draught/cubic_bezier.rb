@@ -27,6 +27,15 @@ module Draught
       end_point.y
     end
 
+    # The position to use when checking to see if the start/end path points of a
+    # path are duplicated when the path is closed. For a CubicBezier, this is
+    # its end_point.
+    #
+    # @return [Point] the point
+    def position_point
+      end_point
+    end
+
     def ==(other)
       other.point_type == point_type &&
         comparison_array(other).all? { |a, b| a == b }

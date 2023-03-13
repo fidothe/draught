@@ -3,10 +3,10 @@ require 'forwardable'
 
 module IntersectionHelper
   class Harness
-    attr_reader :checker, :fixture_name, :segment_1_id, :segment_2_id
+    attr_reader :checker, :fixture_name, :input_1_id, :input_2_id, :input_mapper_class
 
-    def initialize(checker, fixture_name, segment_1_id, segment_2_id)
-      @checker, @fixture_name, @segment_1_id, @segment_2_id = checker, fixture_name, segment_1_id, segment_2_id
+    def initialize(checker, fixture_name, input_1_id, input_2_id, input_mapper_class)
+      @checker, @fixture_name, @input_1_id, @input_2_id, @input_mapper_class = checker, fixture_name, input_1_id, input_2_id, input_mapper_class
     end
 
     def world
@@ -14,7 +14,7 @@ module IntersectionHelper
     end
 
     def id_patterns
-      @id_patterns ||= {expected: /^expected$/, segment_1: Regexp.new("^#{segment_1_id}$"), segment_2: Regexp.new("^#{segment_2_id}$")}
+      @id_patterns ||= {expected: /^expected$/, input_1: Regexp.new("^#{input_1_id}$"), input_2: Regexp.new("^#{input_2_id}$")}
     end
 
     def loader
@@ -26,12 +26,12 @@ module IntersectionHelper
         }
     end
 
-    def segment_1
-      @segment_1 ||= loader.found[:segment_1]
+    def input_1
+      @input_1 ||= loader.found[:input_1]
     end
 
-    def segment_2
-      @segment_2 ||= loader.found[:segment_2]
+    def input_2
+      @input_2 ||= loader.found[:input_2]
     end
 
     def expected
@@ -39,7 +39,7 @@ module IntersectionHelper
     end
 
     def actual
-      @actual ||= checker.intersections(segment_1, segment_2)
+      @actual ||= checker.intersections(input_1, input_2)
     end
 
     def sorted_expected
@@ -58,13 +58,17 @@ module IntersectionHelper
       expected_style = Draught::Style.new(stroke_width: '10px', stroke_color: 'rgb(255,107,1)', fill: 'none')
       actual_style = Draught::Style.new(stroke_width: '1px', stroke_color: 'rgb(2,171,255)', fill: 'none')
 
-      expected_path = world.path.simple(points: sorted_expected).with_style(expected_style).with_name('expected')
-      actual_path = world.path.simple(points: sorted_actual).with_style(actual_style).with_name('actual')
-      box = Draught::BoundingBox.new(world, [segment_1.with_style(curve_style), segment_2.with_style(curve_style), expected_path, actual_path])
+      expected_path = world.path.simple(*sorted_expected).with_style(expected_style).with_name('expected')
+      actual_path = world.path.simple(*sorted_actual).with_style(actual_style).with_name('actual')
+      box = Draught::BoundingBox.new(world, [input_1.with_style(curve_style), input_2.with_style(curve_style), expected_path, actual_path])
       Draught::Renderer::SVG.render_to_file(path, box)
     end
 
     private
+
+    def input_mapper
+      @input_mapper ||= input_mapper_class.new(world)
+    end
 
     def sort
       ->(a, b) {
@@ -74,16 +78,8 @@ module IntersectionHelper
       }
     end
 
-    def path_is_line?(path)
-      path.points.all? { |point| point.point_type == :point }
-    end
-
-    def path_is_curve?(path)
-      !path_is_line?(path)
-    end
-
     def pathlike_mapper(world, pathlike)
-      pathlike.name == 'expected' ? normalize_expected(pathlike) : build_segment(pathlike)
+      pathlike.name == 'expected' ? normalize_expected(pathlike) : input_mapper.map_input(pathlike)
     end
 
     def build_segment(path)
@@ -107,6 +103,38 @@ module IntersectionHelper
           pointlike
         end
       }
+    end
+  end
+
+  class SegmentInputMapper
+    attr_reader :world
+
+    def initialize(world)
+      @world = world
+    end
+
+    def path_is_line?(path)
+      path.points.all? { |point| point.point_type == :point }
+    end
+
+    def path_is_curve?(path)
+      !path_is_line?(path)
+    end
+
+    def map_input(path)
+      builder = path_is_curve?(path) ? world.curve_segment : world.line_segment
+      builder.from_path(path)
+    end
+  end
+
+
+  class PathInputMapper
+    def initialize(world)
+      @world = world
+    end
+
+    def map_input(path)
+      path
     end
   end
 
@@ -148,11 +176,12 @@ module IntersectionHelper
   end
 
   class IntersectionMatcher
-    attr_reader :actual, :expected, :segment_1_id, :segment_2_id, :fixture_name, :checker
-    private :segment_1_id, :segment_2_id, :fixture_name, :checker
+    attr_reader :actual, :expected, :input_1_id, :input_2_id, :input_mapper_class, :fixture_name, :checker
+    private :input_1_id, :input_2_id, :input_mapper_class, :fixture_name, :checker
 
-    def initialize(segment_1_id, segment_2_id)
-      @segment_1_id, @segment_2_id = segment_1_id, segment_2_id
+    def initialize(input_1_id, input_2_id)
+      @input_1_id, @input_2_id = input_1_id, input_2_id
+      @input_mapper_class = SegmentInputMapper
     end
 
     def matches?(checker)
@@ -176,6 +205,11 @@ module IntersectionHelper
       self
     end
 
+    def as_paths
+      @input_mapper_class = PathInputMapper
+      self
+    end
+
     def debug_output(path)
       @debug = true
       @debug_output_path = path
@@ -188,7 +222,7 @@ module IntersectionHelper
     end
 
     def description
-      "find that '#{segment_1_id}' intersects '#{segment_2_id}' #{@expected_length} times"
+      "find that '#{input_1_id}' intersects '#{input_2_id}' #{@expected_length} times"
     end
 
     def failure_message
@@ -206,7 +240,7 @@ module IntersectionHelper
     private
 
     def harness
-      @harness ||= Harness.new(checker, fixture_name, segment_1_id, segment_2_id)
+      @harness ||= Harness.new(checker, fixture_name, input_1_id, input_2_id, input_mapper_class)
     end
 
     def has_correct_number_of_intersections?
@@ -237,8 +271,8 @@ module IntersectionHelper
   end
 
   module Matchers
-    def find_intersections_of(segment_1_id, segment_2_id)
-      IntersectionMatcher.new(segment_1_id, segment_2_id)
+    def find_intersections_of(input_1_id, input_2_id)
+      IntersectionMatcher.new(input_1_id, input_2_id)
     end
   end
 end

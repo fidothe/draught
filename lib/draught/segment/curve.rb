@@ -19,7 +19,7 @@ module Draught
       include Boxlike
       include Pathlike
       include Segmentlike
-      include Extent::InstanceMethods
+      include Extent
 
       class << self
         def build(world, args = {})
@@ -96,7 +96,7 @@ module Draught
 
       # @return [Draught::Extent] the Extent for this Segment
       def extent
-        @extent ||= Draught::Extent.new(world, items: extrema_points)
+        @extent ||= Draught::Extent::Instance.new(world, items: extrema_points)
       end
 
       def line?

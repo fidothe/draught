@@ -49,5 +49,54 @@ module Draught
         end
       end
     end
+
+    describe "greater/less than" do
+      context "checking greater-than" do
+        specify "when significantly greater than the other reports > is true" do
+          expect(subject > 0.999).to be(true)
+        end
+
+        specify "when greater than the value, but within tolerance, reports > is false" do
+          expect(subject > 0.999999).to be(false)
+        end
+      end
+
+      context "checking less-than" do
+        specify "when significantly less than the other reports < is true" do
+          expect(subject < 1.001).to be(true)
+        end
+
+        specify "when less than the value, but within tolerance, reports < is false" do
+          expect(subject < 1.0000001).to be(false)
+        end
+      end
+
+      context "checking greater-than-or-equal" do
+        specify "when significantly greater than the other reports >= is true" do
+          expect(subject >= 0.999).to be(true)
+        end
+
+        specify "a value greater than the subject, but within tolerance, reports >= is true" do
+          expect(subject >= 1.0000001).to be(true)
+        end
+      end
+
+      context "checking less-than-or-equal" do
+        specify "when significantly less than the other reports <= is true" do
+          expect(subject <= 1.001).to be(true)
+        end
+
+        specify "a value less than the subject, but within tolerance, reports <= is false" do
+          expect(subject <= 0.999999).to be(true)
+        end
+      end
+    end
+
+    describe "to_f" do
+      specify "returns the value, as a Float" do
+        expect(subject.to_f).to be_a(Float)
+        expect(subject.to_f).to eq(1.0)
+      end
+    end
   end
 end

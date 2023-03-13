@@ -1,4 +1,5 @@
 require 'draught/boxlike_examples'
+require 'draught/extent_examples'
 require 'draught/bounding_box'
 require 'draught/world'
 require 'draught/transformations'
@@ -10,6 +11,11 @@ module Draught
     let(:zeroed_path) { world.path.simple(world.point.zero, world.point.new(4,4)) }
     let(:zeroed) { BoundingBox.new(world, [zeroed_path]) }
     subject { BoundingBox.new(world, [input_path]) }
+
+    it_should_behave_like "it has an extent" do
+      let(:lower_left) { world.point(-1,-1) }
+      let(:upper_right) { world.point(3,3) }
+    end
 
     it_should_behave_like "a basic rectangular box-like thing"
 
