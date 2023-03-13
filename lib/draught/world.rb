@@ -1,5 +1,6 @@
 require_relative './tolerance'
 require_relative './point_builder'
+require_relative './cubic_bezier_builder'
 require_relative './vector_builder'
 require_relative './arc_builder'
 require_relative './circle_builder'
@@ -58,6 +59,19 @@ module Draught
     #   @param y [Number] The point's Y coord.
     #   @return [Point] the Point
     create_builder :point, PointBuilder
+
+    # Create CubicBeziers
+    #
+    # @overload cubic_bezier()
+    #   Return the CubicBezierBuilder
+    #   @return [CubicBezierBuilder] the builder for producing CubicBezier objects
+    # @overload cubic_bezier(control_point_1:, control_point_2:, end_point:)
+    #   Create a new CubicBezier directly
+    #   @param control_point_1 [Point] The first control point of the CubicBezier.
+    #   @param control_point_2 [Point] The second control point of the CubicBezier.
+    #   @param end_point [Point] The CubicBezier's end point.
+    #   @return [CubicBezier] the CubicBezier
+    create_builder :cubic_bezier, CubicBezierBuilder
 
     # Create Vectors
     #

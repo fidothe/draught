@@ -45,6 +45,26 @@ module Draught
         end
       end
 
+      describe "Cubics" do
+        let(:end_point) { subject.point(4,0) }
+        let(:control_1) { subject.point(1,2) }
+        let(:control_2) { subject.point(3,2) }
+
+        specify "calling #cubic_bezier with args delegates to CubicBezierBuilder#build" do
+          expect(subject.cubic_bezier(
+            end_point: end_point,
+            control_point_1: control_1,
+            control_point_2: control_2)
+          ).to be_a(CubicBezier)
+        end
+
+        specify "provides a CubicBezierBuilder" do
+          builder = subject.cubic_bezier
+          expect(builder).to be_a(CubicBezierBuilder)
+          expect(builder.world).to be(subject)
+        end
+      end
+
       describe "Vectors" do
         specify "calling #vector with args delegates to VectorBuilder#build" do
           expect(subject.vector(1,2)).to be_a(Vector)
@@ -112,18 +132,6 @@ module Draught
           expect(builder.world).to be(subject)
         end
       end
-
-      # specify "provides an ArcBuilder" do
-      #   builder = subject.arc
-      #   expect(builder).to be_an(ArcBuilder)
-      #   expect(builder.world).to be(subject)
-      # end
-
-      # specify "provides a CircleBuilder" do
-      #   builder = subject.circle
-      #   expect(builder).to be_an(CircleBuilder)
-      #   expect(builder.world).to be(subject)
-      # end
 
       describe "Curve Segments" do
         specify "calling #curve_segment with args delegates to Segment::Curve::Builder#build" do
