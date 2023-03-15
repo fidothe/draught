@@ -20,6 +20,16 @@ module Draught
       include Segmentlike
       include Extent
 
+      # @return [false] Arcs are not closeable.
+      def self.closeable?
+        false
+      end
+
+      # @return [false] Arcs are openable.
+      def self.openable?
+        true
+      end
+
       def self.build(world, **args)
         builder_class = args.has_key?(:end_point) ? FromPoint : FromAngles
         line_segment_args = builder_class.build(world, args)

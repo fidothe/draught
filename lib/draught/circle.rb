@@ -16,6 +16,17 @@ module Draught
 
     CIRCLE_RADIANS = Math::PI * 2
 
+
+    # @return [false] Circles are closeable.
+    def self.closeable?
+      true
+    end
+
+    # @return [false] Circles are not openable.
+    def self.openable?
+      false
+    end
+
     attr_reader :world, :radius
     # @!attribute [r] world
     #   @return [World] the World
@@ -37,7 +48,7 @@ module Draught
 
     # @return [Path]
     def to_path
-      @path ||= arc.to_path
+      @path ||= arc.to_path.closed
     end
 
     # @return [Point] the centre of the circle
@@ -50,10 +61,21 @@ module Draught
       true
     end
 
+    # @return [true] Circles are not openable.
+    def openable?
+      true
+    end
+
     # Circles are inherently closed, return self.
     # @return [Circle] return self
     def closed
       self
+    end
+
+    # Circles cannot be opened. Always raises an error.
+    # @raise [TypeError] Circles cannot be closed.
+    def opened
+      raise TypeError, "Cannot open a circle"
     end
 
     # @return [true] Circles are never open.

@@ -1,14 +1,41 @@
 module Draught
   module Segmentlike
+    module ClassMethods
+      # @return [false] Segments are not closeable.
+      def closeable?
+        false
+      end
+
+      # @return [true] Segments are openable.
+      def openable?
+        true
+      end
+    end
+
+    def self.included(base)
+      base.extend ClassMethods
+    end
+
     # @return [false] Segments are not closeable.
     def closeable?
       false
+    end
+
+    # @return [true] Segments are openable.
+    def openable?
+      true
     end
 
     # Close an open path, but segments cannot be closed. Always raises an error.
     # @raise [TypeError] Segments cannot be closed.
     def closed
       raise TypeError, "Cannot close a segment"
+    end
+
+    # Open an open path, which just returns self.
+    # @return [Segmentlike] itself.
+    def opened
+      self
     end
 
     # @return [true] Segments are always open.

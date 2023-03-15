@@ -15,6 +15,15 @@ module Draught
       LUT_SIZE = 100
       LUT_STEP_SIZE = 1.0/LUT_SIZE
 
+      # @return [false] Arcs are not closeable.
+      def self.closeable?
+        false
+      end
+
+      # @return [false] Arcs are openable.
+      def self.openable?
+        true
+      end
 
       include Boxlike
       include Pathlike

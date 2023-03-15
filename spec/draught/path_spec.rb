@@ -78,6 +78,12 @@ module Draught
 
           expect(path.metadata).to be(metadata)
         end
+
+        specify "appending preserves closedness" do
+          path = subject.closed.append(world.point(2,2))
+
+          expect(path.closed?).to be(true)
+        end
       end
 
       context "prepending" do
@@ -106,14 +112,32 @@ module Draught
 
           expect(path.metadata).to be(metadata)
         end
+
+        specify "prepending preserves closedness" do
+          path = subject.closed.prepend(world.point(2,2))
+
+          expect(path.closed?).to be(true)
+        end
       end
     end
 
     describe "closed/open paths" do
       subject { described_class.new(world, points: [world.point(1,1), world.point(1,2), world.point(2,1)]) }
 
-      specify "a Path is closeable" do
+      specify "all Paths are closeable" do
+        expect(described_class.closeable?).to be(true)
+      end
+
+      specify "all Paths are openable" do
+        expect(described_class.openable?).to be(true)
+      end
+
+      specify "a Path instance is closeable" do
         expect(subject.closeable?).to be(true)
+      end
+
+      specify "a Path instance is openable" do
+        expect(subject.openable?).to be(true)
       end
 
       specify "is open by default" do
@@ -134,6 +158,7 @@ module Draught
         path = described_class.new(world, points: [world.point(1,1), world.point(1,2), world.point(2,1)], closed: true)
 
         expect(path.closed?).to be(true)
+        expect(path.open?).to be(false)
       end
     end
 
@@ -161,11 +186,19 @@ module Draught
           expect(subject == path).to be(true)
         end
 
-        it "compares two Paths unequal if one has different Subpaths" do
+        it "compares two Paths unequal if one has different Points" do
           path = Path.new(world, points: [world.point(1,1)])
 
           expect(subject == path).to be(false)
         end
+      end
+    end
+
+    describe "subpaths" do
+      subject { Path.new(world, points: [world.point(1,1), world.point(3,1), world.point(2,3)]) }
+
+      specify "a standard path is not a compound path, so it returns an array of itself for #subpaths" do
+        expect(subject.subpaths).to eq([subject])
       end
     end
 

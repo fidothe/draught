@@ -23,6 +23,16 @@ module Draught
     include Boxlike
     include Extent
 
+    # @return [false] Arcs are not closeable.
+    def self.closeable?
+      false
+    end
+
+    # @return [false] Arcs are openable.
+    def self.openable?
+      true
+    end
+
     attr_reader :world, :radius, :starting_angle, :radians, :start_point
     # @!attribute [r] world
     #   @return [World] the World
@@ -70,10 +80,21 @@ module Draught
       false
     end
 
+    # @return [true] Arcs are openable.
+    def openable?
+      true
+    end
+
     # Close an open path, but Arcs cannot be closed. Always raises an error.
     # @raise [TypeError] Arcs cannot be closed.
     def closed
       raise TypeError, "Cannot close an Arc"
+    end
+
+    # Return an opened Arc, but since arcs are always open, returns itself.
+    # @return [Arc] itself.
+    def opened
+      self
     end
 
     # @return [true] Arcs are always open.

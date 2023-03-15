@@ -2,7 +2,31 @@ require_relative 'metadata'
 
 module Draught
   module Pathlike
+    module ClassMethods
+      # Can all Pathlikes of this class be closed (where the last point connects
+      # back to the first point)? Segments, for example, are two-point open
+      # paths, and are not closeable...
+      #
+      # @return [Boolean] true if pathlikes of this class are closeable, false if they are not
+      def closeable?
+        raise NotImplementedError, "Pathlike classes must implement .closeable?, reporting whether they can be closed (first point connected to last point)"
+      end
+
+      # Can this Pathlike be opened (where the last point no longer connects back
+      # to the first point)? Circles, for example, are not circles if they are not
+      # closed, so they are not openable...
+      #
+      # @return [Boolean] true if pathlikes of this class are openable, false if they are not
+      def openable?
+        raise NotImplementedError, "Pathlike classes must implement .openable?, reporting whether they can be opened (first point not connected to last point)"
+      end
+    end
+
     include Metadata::Methods
+
+    def self.included(base)
+      base.extend(ClassMethods)
+    end
 
     def points
       raise NotImplementedError, "Pathlike objects must implement #points to return any Points they contain"
@@ -23,6 +47,10 @@ module Draught
 
     def [](index_start_or_range, length = nil)
       raise NotImplementedError, "Pathlike objects must implement [] access on their points, returning a new instance"
+    end
+
+    def each(&block)
+      points.each(&block)
     end
 
     def number_of_points
@@ -50,6 +78,15 @@ module Draught
       raise NotImplementedError, "Pathlike objects must implement #closeable?, reporting whether they can be closed"
     end
 
+    # Can this Pathlike be opened (where the last point no longer connects back
+    # to the first point)? Circles, for example, are not circles if they are not
+    # closed, so they are not openable...
+    #
+    # @return [Boolean] true if the pathlike is openable, false if it is not
+    def openable?
+      raise NotImplementedError, "Pathlike objects must implement #openable?, reporting whether they can be opened (first point not connected to last point)"
+    end
+
     # Is this pathlike open?
     #
     # @return [Boolean] true if the pathlike is open, false if it is not
@@ -70,6 +107,14 @@ module Draught
     # @raise [TypeError] if the pathlike is not closeable
     def closed
       raise NotImplementedError, "Pathlike objects must implement #closed, which returns a closed copy of themself."
+    end
+
+    # Return a copy of this pathlike which has been opened
+    #
+    # @return [Draught::Pathlike] an opened copy of this pathlike
+    # @raise [TypeError] if the pathlike is not openable
+    def opened
+      raise NotImplementedError, "Pathlike objects must implement #opened, which returns an opened copy of themself."
     end
 
     def ==(other)

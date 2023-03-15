@@ -25,6 +25,20 @@ module Draught
     include Pathlike
     include Extent
 
+    # Can this Path be closed? (yes, all paths can technically be closed)
+    #
+    # @return [Boolean] true
+    def self.closeable?
+      true
+    end
+
+    # Can this Path be opened? (yes, all paths can technically be open)
+    #
+    # @return [Boolean] true
+    def self.openable?
+      true
+    end
+
     attr_reader :world, :points
     # @!attribute [r] world
     #   @return [World] the World
@@ -69,14 +83,14 @@ module Draught
       if length.nil?
         case index_start_or_range
         when Range
-          new_instance_with_points(points[index_start_or_range])
+          new_instance_with_points(points[index_start_or_range], closed: false)
         when Numeric
           points[index_start_or_range]
         else
           raise TypeError, "requires a Range or Numeric in single-arg form"
         end
       else
-        new_instance_with_points(points[index_start_or_range, length])
+        new_instance_with_points(points[index_start_or_range, length], closed: false)
       end
     end
 
@@ -94,13 +108,26 @@ module Draught
     #
     # @return [Boolean] true
     def closeable?
-      true
+      self.class.closeable?
+    end
+
+    # Can this Path be opened? (yes, all paths can technically be open)
+    #
+    # @return [Boolean] true
+    def openable?
+      self.class.closeable?
     end
 
     # Create a closed copy of this Path, if it's open. Returns itself if it's already closed.
     def closed
       return self if closed?
       self.class.new(world, points: points, metadata: metadata, closed: true)
+    end
+
+    # Create an open copy of this Path, if it's closed. Returns itself if it's already open.
+    def opened
+      return self if open?
+      self.class.new(world, points: points, metadata: metadata, closed: false)
     end
 
     # @return [Extent::Instance] the extent of this Path
@@ -160,8 +187,8 @@ module Draught
       new_instance_with_points(new_points)
     end
 
-    def new_instance_with_points(points)
-      self.class.new(world, points: points, metadata: metadata)
+    def new_instance_with_points(points, closed: @closed)
+      self.class.new(world, points: points, closed: closed, metadata: metadata)
     end
   end
 end
