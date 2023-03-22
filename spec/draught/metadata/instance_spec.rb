@@ -116,5 +116,32 @@ module Draught::Metadata
         expect(annotated.annotation).to eq(annotation)
       end
     end
+
+    describe "equality comparison" do
+      let(:style) { Draught::Style.new(stroke_color: 'hot pink') }
+      subject { described_class.new(style: style, annotation: ['score'], name: 'name') }
+
+      specify "instances with the same attributes compare equal" do
+        other = described_class.new(style: style, annotation: ['score'], name: 'name')
+
+        expect(subject).to eq(other)
+      end
+
+      specify "instances with the comparing-equal attributes compare equal" do
+        other = described_class.new(style: Draught::Style.new(stroke_color: 'hot pink'), annotation: ['score'], name: 'name')
+
+        expect(subject).to eq(other)
+      end
+
+      specify "instances with differing attributes do not compare equal" do
+        other = described_class.new(annotation: ['score'], name: 'name')
+
+        expect(subject).to_not eq(other)
+      end
+
+      specify "instances compare equal to themselves" do
+        expect(subject).to eq(subject)
+      end
+    end
   end
 end

@@ -1,7 +1,9 @@
 module Draught
   class ValueWithTolerance
+    include Comparable
+
     def initialize(value, tolerance)
-      @value, @tolerance = value, tolerance
+      @value, @tolerance = value.to_f, tolerance
     end
 
     def <=>(other)
@@ -11,6 +13,10 @@ module Draught
 
     def ==(other)
       @tolerance.within?(@value, other)
+    end
+
+    def to_f
+      @value
     end
   end
 end

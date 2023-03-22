@@ -14,8 +14,8 @@ module Draught
       def initialize(world, args)
         @world = world
         @radius = args.fetch(:radius)
-        @incoming = args.fetch(:incoming)
-        @outgoing = args.fetch(:outgoing)
+        @incoming = args.fetch(:incoming).to_path
+        @outgoing = args.fetch(:outgoing).to_path
         @metadata = args.fetch(:metadata, nil)
       end
 
@@ -71,7 +71,7 @@ module Draught
       end
 
       def corner_arc_path
-        arc_builder.radians(angle: join_angles.arc_sweep, radius: radius, starting_angle: starting_angle).path
+        arc_builder.radians(angle: join_angles.arc_sweep, radius: radius, starting_angle: starting_angle).to_path
       end
 
       def starting_angle

@@ -28,6 +28,17 @@ RSpec.configure do |config|
   config.extend SVGFixtureHelper::Helpers, :svg_fixture
 end
 
+RSpec::Matchers.define :be_boolean do
+  match do |actual|
+    case actual
+    when TrueClass, FalseClass
+      true
+    else
+      false
+    end
+  end
+end
+
 RSpec::Matchers.define :approximate do |expected|
   match do |actual|
     if @delta.nil?

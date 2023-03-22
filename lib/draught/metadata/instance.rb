@@ -50,9 +50,15 @@ module Draught
       # return a copy of this object with a name, replacing any existing name
       #
       # @param name [String] the name to use
-      # @return [CurveSegment] the copy of this Metadata::Instance with new name
+      # @return [Metadata::Instance] the copy of this Metadata::Instance with new name
       def with_name(name)
         self.class.new(style: style, annotation: annotation, name: name)
+      end
+
+      # @param other [Metadata::Instance]
+      # @return [Boolean] whether this instance has the same values as other
+      def ==(other)
+        self.equal?(other) || self.class === other && [:style, :annotation, :name].all? { |meth| self.public_send(meth) == other.public_send(meth) }
       end
     end
 

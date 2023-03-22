@@ -1,5 +1,6 @@
 require 'draught/circle'
 require 'draught/world'
+require 'draught/extent_examples'
 require 'draught/pathlike_examples'
 require 'draught/boxlike_examples'
 
@@ -24,17 +25,42 @@ module Draught
       end
 
       specify "leaves path generation to the arc" do
-        expect(subject.path).to eq(subject.arc.path)
+        expect(subject.to_path).to eq(subject.arc.to_path)
       end
 
       specify "the generated path is in the right place" do
-        expect(subject.path.upper_left).to eq(subject.upper_left)
-        expect(subject.path.width).to eq(subject.width)
+        expect(subject.to_path.upper_left).to eq(subject.upper_left)
+        expect(subject.to_path.width).to eq(subject.width)
+      end
+    end
+
+    describe "closed/open paths" do
+      subject { described_class.new(world, radius: 100) }
+
+      specify "an Circle is closeable" do
+        expect(subject.closeable?).to be(true)
+      end
+
+      specify "is not open" do
+        expect(subject.open?).to be(false)
+      end
+
+      specify "is closed" do
+        expect(subject.closed?).to be(true)
+      end
+
+      specify "calling closed returns itself" do
+        expect(subject.closed).to be(subject)
       end
     end
 
     it_should_behave_like "a pathlike thing" do
-      let(:points) { subject.path.points }
+      let(:points) { subject.points }
+    end
+
+    it_should_behave_like "it has an extent" do
+      let(:lower_left) { world.point(0,0) }
+      let(:upper_right) { world.point(200,200) }
     end
 
     it_should_behave_like "a basic rectangular box-like thing"

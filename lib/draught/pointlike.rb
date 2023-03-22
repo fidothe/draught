@@ -12,6 +12,16 @@ module Draught
       raise NotImplementedError, "including classes must return a Symbol with their point type"
     end
 
+    # @return [Point] the position of the point, for path-closedness-duplicate-point
+    def position_point
+      raise NotImplementedError, "including classes must return a Draught::Point that returns the position to use when checking for first and last points of a path being at the same position"
+    end
+
+    # @return [Point] the position of the point, for path-closedness-duplicate-point
+    def position_equal?(other)
+      other.is_a?(Pointlike) && position_point == other.position_point
+    end
+
     def ==(other)
       raise NotImplementedError, "including classes must implement equality checking. It's assumed other point_types are always unequal"
     end

@@ -73,7 +73,27 @@ module SVGFixtureHelper
       match = pattern.match(pathlike.name)
       if !match.nil?
         check!(pathlike)
-        result[pattern_name] = result_path_mapper.call(world, pathlike)
+        (result[pattern_name] ||= {})[pathlike.name] = result_path_mapper.call(world, pathlike)
+      end
+    end
+  end
+
+  class ArrayFixture
+    include FixtureFinder
+
+    def each(&block)
+      found.each do |name, path|
+        block.call(world, path, name)
+      end
+    end
+
+    private
+
+    def finder(result, pathlike, pattern_name, pattern)
+      match = pattern.match(pathlike.name)
+      if !match.nil?
+        check!(pathlike)
+        result[pathlike.name] = result_path_mapper.call(world, pathlike)
       end
     end
   end
@@ -107,7 +127,6 @@ module SVGFixtureHelper
       @world, @fixture_name = world, fixture_name
       @map_paths = ->(world, path) { path }
       @id_patterns = {}
-      @grouped = false
     end
 
     def fixture_dir
@@ -126,11 +145,17 @@ module SVGFixtureHelper
     end
 
     def fetch_grouped(**id_patterns)
-      @grouped = true
+      @fixture_class = GroupedFixture
       @id_patterns = id_patterns
     end
 
     def fetch(**id_patterns)
+      @fixture_class = FlatFixture
+      @id_patterns = id_patterns
+    end
+
+    def fetch_all(**id_patterns)
+      @fixture_class = ArrayFixture
       @id_patterns = id_patterns
     end
 
@@ -140,13 +165,10 @@ module SVGFixtureHelper
 
     def call(&block)
       instance_exec(&block) if block_given?
-      if @grouped
-        GroupedFixture.new(world: world, parsed_fixture: parsed_fixture, fixture_path: fixture_path,
-          id_patterns: id_patterns, result_path_mapper: @map_paths)
-      else
-        FlatFixture.new(world: world, parsed_fixture: parsed_fixture, fixture_path: fixture_path,
-          id_patterns: id_patterns, result_path_mapper: @map_paths)
-      end
+
+      raise ArgumentError, "Must call fetch, fetch_all, or fetch_grouped in the svg_fixture block" if @fixture_class.nil?
+      @fixture_class.new(world: world, parsed_fixture: parsed_fixture, fixture_path: fixture_path,
+        id_patterns: id_patterns, result_path_mapper: @map_paths)
     end
   end
 end

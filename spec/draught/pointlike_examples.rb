@@ -35,7 +35,7 @@ RSpec.shared_examples "a point-like thing" do
         expect(subject == duplicate).to be(true)
       end
 
-      specify "one is not equal to another if the other has been translated even a little bit outsode tolerance" do
+      specify "one is not equal to another if the other has been translated even a little bit outside tolerance" do
         duplicate = subject.translate(pointlike_world.vector.new(0, pointlike_world.tolerance.delta * 2))
 
         expect(subject == duplicate).to be(false)
@@ -71,6 +71,20 @@ RSpec.shared_examples "a point-like thing" do
         ringer.define_singleton_method(:point_type, &ringer_point_type)
 
         expect(subject.approximates?(ringer, 0.1)).to be(false)
+      end
+    end
+
+    context "occupying the same position" do
+      specify "returns a point value for position_point" do
+        position_point = subject.position_point
+        expect(position_point.x).to eq(subject.x)
+        expect(position_point.y).to eq(subject.y)
+      end
+
+      specify "one is position_equal? to another if they have equal position_points" do
+        duplicate = subject.translate(pointlike_world.vector.null)
+
+        expect(subject.position_equal?(duplicate)).to be(true)
       end
     end
   end

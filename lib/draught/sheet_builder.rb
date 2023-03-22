@@ -5,26 +5,18 @@ module Draught
   class SheetBuilder
     attr_reader :world, :max_height, :max_width, :outer_gap, :boxes
 
-    def self.sheet(world, args)
-      new(world, args).sheet
+    def self.sheet(world, **args)
+      new(world, **args).sheet
     end
 
-    def initialize(world, opts = {})
+    def initialize(world, max_width:, max_height:, outer_gap: 0, boxes:)
       @world = world
-      @max_width = opts.fetch(:max_width)
-      @max_height = opts.fetch(:max_height)
-      @outer_gap = opts.fetch(:outer_gap, 0)
-      @boxes = opts.fetch(:boxes)
+      @max_width, @max_height, @outer_gap, @boxes = max_width, max_height, outer_gap, boxes
     end
 
     def sheet
       containers = nested
-      Sheet.new(world, {
-        lower_left: world.point.zero,
-        containers: containers,
-        width: width(containers),
-        height: height(containers)
-      })
+      Sheet.new(world, lower_left: world.point.zero, containers: containers, width: width(containers), height: height(containers))
     end
 
     def ==(other)
@@ -59,11 +51,11 @@ module Draught
     end
 
     def width(boxes)
-      edge_length(boxes, :left_edge, :right_edge)
+      edge_length(boxes, :x_min, :x_max)
     end
 
     def height(boxes)
-      edge_length(boxes, :bottom_edge, :top_edge)
+      edge_length(boxes, :y_min, :y_max)
     end
 
     def edge_length(boxes, min_method, max_method)
@@ -109,9 +101,9 @@ module Draught
     def offset_translation(gap, reference_point_method)
       case reference_point_method
       when :lower_right
-        world.vector.new(gap, 0)
+        world.vector(gap, 0)
       when :upper_left
-        world.vector.new(0, gap)
+        world.vector(0, gap)
       end
     end
 

@@ -51,8 +51,15 @@ module Draught
       end
 
       def path(element)
-        points = parse_path_d(element['d'])
-        world.path.new(points: points, metadata: parse_metadata(element))
+        parsed_subpaths = parse_path_d(element['d'])
+        parsed_metadata = parse_metadata(element)
+        raise ArgumentError, "Cannot parse Paths containing Subpaths" if parsed_subpaths.length > 1
+
+        world.path.build {
+          metadata parsed_metadata
+          points parsed_subpaths.first[:points]
+          closed if parsed_subpaths.first[:closed]
+        }
       end
 
       def dispatch(element)
@@ -91,7 +98,7 @@ module Draught
 
       # Parse the d attr from a path
       class DParser
-        D_TOKENIZER = /([MLC])([0-9., -]+)/
+        D_TOKENIZER = /(?:([MLC])([0-9., -]+)|([Zz]))/
         POINTS_TOKENIZER = /(-?[0-9][0-9.]*),(-?[0-9][0-9.]*)/
         CMD_MAP = {
           'M' => :m,
@@ -99,49 +106,72 @@ module Draught
           'L' => :l,
           'l' => :l,
           'C' => :c,
-          'c' => :c
+          'c' => :c,
+          'Z' => :z,
+          'z' => :z
         }
 
         def self.parse!(world, d)
           new(world, d).parse!
         end
 
-        attr_reader :world, :d
+        attr_reader :world, :d, :subpaths
 
         def initialize(world, d)
           @world, @d = world, d
+          @subpaths = []
+        end
+
+        def current_subpath
+          subpaths.last
+        end
+
+        def current_subpath_points
+          subpaths.last[:points]
+        end
+
+        def add_subpath!
+          @subpaths << {points: []}
         end
 
         def parse!
-          points = []
-          d.scan(D_TOKENIZER) { |cmd, points_str|
-            points += send(CMD_MAP[cmd], points_str)
+          d.scan(D_TOKENIZER) { |cmd, points_str, closed|
+            if !closed.nil?
+              z
+            else
+              send(CMD_MAP[cmd], points_str)
+            end
           }
-          points
+          subpaths
         end
 
+        # The M/m commands move to a point without drawing and start a Subpath
         def m(points_str)
-          points = []
+          add_subpath!
           points_str.scan(POINTS_TOKENIZER) { |x, y|
-            points << world.point.new(x.to_f, y.to_f)
+            current_subpath_points << world.point.new(x.to_f, y.to_f)
           }
-          points
         end
 
+        # L/l draw a line between two points
         def l(points_str)
-          points = []
           points_str.scan(POINTS_TOKENIZER) { |x, y|
-            points << world.point.new(x.to_f, y.to_f)
+            current_subpath_points << world.point.new(x.to_f, y.to_f)
           }
-          points
         end
 
+        # C/c draw a cubic bezier curve
         def c(points_str)
           points = []
           points_str.scan(POINTS_TOKENIZER) { |x, y|
             points << world.point.new(x.to_f, y.to_f)
           }
-          [Draught::CubicBezier.new(world, control_point_1: points[0], control_point_2: points[1], end_point: points[2])]
+          current_subpath_points << Draught::CubicBezier.new(world, control_point_1: points[0], control_point_2: points[1], end_point: points[2])
+        end
+
+        # Z/z closes the current Subpath
+        def z
+          current_subpath[:closed] = true
         end
       end
     end

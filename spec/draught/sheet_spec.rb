@@ -14,6 +14,11 @@ module Draught
 
     it_should_behave_like "a basic rectangular box-like thing"
 
+    it_should_behave_like "it has an extent" do
+      let(:lower_left) { world.point(0,0) }
+      let(:upper_right) { world.point(1000,600) }
+    end
+
     it "returns [:container] for #box_type" do
       expect(subject.box_type).to eq([:container])
     end

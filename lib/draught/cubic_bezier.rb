@@ -6,7 +6,7 @@ module Draught
   # curve beginning at whatever the previous point in a path was.
   #
   # To represent an entire Cubic Bezier curve standalone, you can use
-  # {CurveSegment}, which defers to this class when needed.
+  # {Segment::Curve}, which defers to this class when needed.
   class CubicBezier
     include Pointlike
 
@@ -25,6 +25,15 @@ module Draught
 
     def y
       end_point.y
+    end
+
+    # The position to use when checking to see if the start/end path points of a
+    # path are duplicated when the path is closed. For a CubicBezier, this is
+    # its end_point.
+    #
+    # @return [Point] the point
+    def position_point
+      end_point
     end
 
     def ==(other)

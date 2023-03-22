@@ -1,4 +1,5 @@
 require 'draught/boxlike_examples'
+require 'draught/extent_examples'
 require 'draught/bounding_box'
 require 'draught/world'
 require 'draught/transformations'
@@ -6,10 +7,15 @@ require 'draught/transformations'
 module Draught
   RSpec.describe BoundingBox do
     let(:world) { World.new }
-    let(:input_path) { world.path.new(points: [world.point.new(-1, -1), world.point.new(3,3)]) }
-    let(:zeroed_path) { world.path.new(points: [world.point.zero, world.point.new(4,4)]) }
+    let(:input_path) { world.path.simple(world.point.new(-1, -1), world.point.new(3,3)) }
+    let(:zeroed_path) { world.path.simple(world.point.zero, world.point.new(4,4)) }
     let(:zeroed) { BoundingBox.new(world, [zeroed_path]) }
     subject { BoundingBox.new(world, [input_path]) }
+
+    it_should_behave_like "it has an extent" do
+      let(:lower_left) { world.point(-1,-1) }
+      let(:upper_right) { world.point(3,3) }
+    end
 
     it_should_behave_like "a basic rectangular box-like thing"
 
@@ -22,31 +28,31 @@ module Draught
     end
 
     describe "equality" do
+      subject { BoundingBox.new(world, [input_path, zeroed_path]) }
+
       it "compares equal if the other box has the same paths in the same order" do
-        expect(BoundingBox.new(world, [input_path])).to eq(subject)
+        expect(BoundingBox.new(world, [input_path, zeroed_path])).to eq(subject)
       end
 
       it "does not compare equal if the other box has the same paths in a different order" do
-       reversed_path = world.path.new(points: input_path.points.reverse)
-        reversed = BoundingBox.new(world, [reversed_path])
+        reversed = BoundingBox.new(world, [zeroed_path, input_path])
 
         expect(reversed).to_not eq(subject)
       end
 
       it "does not compare equal if the other box does not have the same paths" do
-        truncated_path = world.path.new(points: input_path.points[0..0])
-        truncated = BoundingBox.new(world, [truncated_path])
+        truncated = BoundingBox.new(world, [zeroed_path])
 
         expect(truncated).to_not eq(subject)
       end
     end
 
     describe "manipulations in space" do
-      let(:input_path) { world.path.new(points: [world.point.new(-1, -1), world.point.new(3,3)]) }
+      let(:input_path) { world.path.simple(world.point.new(-1, -1), world.point.new(3,3)) }
       subject { BoundingBox.new(world, [input_path]) }
 
       it "can be translated" do
-        expected = BoundingBox.new(world, [world.path.new(points: [world.point.new(0,-1), world.point.new(4,3)])])
+        expected = BoundingBox.new(world, [world.path.simple(world.point.new(0,-1), world.point.new(4,3))])
 
         translated = subject.translate(world.vector.new(1,0))
 
@@ -57,7 +63,7 @@ module Draught
         transformation = Draught::Transformations::Affine.new(
           Matrix[[2,0,0],[0,2,0],[0,0,1]]
         )
-        expected = BoundingBox.new(world, [world.path.new(points: [world.point.new(-2,-2), world.point.new(6,6)])])
+        expected = BoundingBox.new(world, [world.path.simple(world.point.new(-2,-2), world.point.new(6,6))])
 
         transformed = subject.transform(transformation)
 

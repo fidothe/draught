@@ -36,7 +36,7 @@ Create a simple straight line and add it to a sheet, then generate an SVG with i
 
 ```ruby
 require 'draught/world'
-require 'draught/line_segment'
+require 'draught/segment/line'
 require 'draught/bounding_box'
 require 'draught/sheet'
 require 'draught/renderer/svg'
