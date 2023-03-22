@@ -5,15 +5,13 @@ module Draught
         attr_reader :world, :start_point, :end_point, :metadata
         private :start_point, :end_point, :metadata
 
-        def self.build(world, args)
-          new(world, args).line_segment_args
+        def self.build(...)
+          new(...).line_segment_args
         end
 
-        def initialize(world, args)
+        def initialize(world, start_point: world.point.zero, end_point:, metadata: nil)
           @world = world
-          @start_point = args.fetch(:start_point, world.point.zero)
-          @end_point = args.fetch(:end_point)
-          @metadata = args.fetch(:metadata, Metadata::BLANK)
+          @start_point, @end_point, @metadata = start_point.position_point, end_point.position_point, metadata
         end
 
         def line_segment_args

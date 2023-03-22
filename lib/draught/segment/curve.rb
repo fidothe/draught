@@ -116,6 +116,11 @@ module Draught
         true
       end
 
+      # @return [Symbol] (:curve) the type of the segment, :curve
+      def segment_type
+        :curve
+      end
+
       # Turn a t value into its Point value
       #
       # @param t [Float] the value of t on the curve

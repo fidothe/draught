@@ -157,6 +157,37 @@ module Draught
       self
     end
 
+    # return the segments between the points of the path
+    #
+    # @return [Array<Segmentlike>]
+    def segments
+      @segments ||= generate_segments
+    end
+
+    def generate_segments
+      segments = []
+      points.inject { |last_point, point|
+        segments << segment_builder(point).call(last_point, point)
+        point
+      }
+      if closed? && !start_end_point_duplication?
+        segments << segment_builder(points.first).call(points.last, points.first)
+      end
+      segments
+    end
+
+    def segment_builder(point)
+      case point.point_type
+      when :cubic_bezier
+        world.curve_segment.method(:from_to)
+      else
+        world.line_segment.method(:from_to)
+      end
+    end
+
+    def start_end_point_duplication?
+      points.first.position_equal?(points.last)
+    end
 
     # return a copy of this object with a new Metadata attached
     #

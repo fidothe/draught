@@ -73,7 +73,7 @@ module SVGFixtureHelper
       match = pattern.match(pathlike.name)
       if !match.nil?
         check!(pathlike)
-        result[pattern_name] = result_path_mapper.call(world, pathlike)
+        (result[pattern_name] ||= {})[pathlike.name] = result_path_mapper.call(world, pathlike)
       end
     end
   end

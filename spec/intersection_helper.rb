@@ -1,12 +1,13 @@
 require 'svg_fixture_helper'
+require 'draught/path_intersection_point'
 require 'forwardable'
 
 module IntersectionHelper
   class Harness
-    attr_reader :checker, :fixture_name, :input_1_id, :input_2_id, :input_mapper_class
+    attr_reader :checker, :fixture_name, :input_ids, :input_mapper_class, :expected_mapper
 
-    def initialize(checker, fixture_name, input_1_id, input_2_id, input_mapper_class)
-      @checker, @fixture_name, @input_1_id, @input_2_id, @input_mapper_class = checker, fixture_name, input_1_id, input_2_id, input_mapper_class
+    def initialize(checker, fixture_name, input_ids, input_mapper_class, expected_mapper)
+      @checker, @fixture_name, @input_ids, @input_mapper_class, @expected_mapper = checker, fixture_name, input_ids, input_mapper_class, expected_mapper
     end
 
     def world
@@ -14,32 +15,36 @@ module IntersectionHelper
     end
 
     def id_patterns
-      @id_patterns ||= {expected: /^expected$/, input_1: Regexp.new("^#{input_1_id}$"), input_2: Regexp.new("^#{input_2_id}$")}
+      @id_patterns ||= {"expected" => /^expected/}.merge(input_ids.each_with_index.map { |id, n| ["input_#{n}", Regexp.new("^#{id}$")] }.to_h)
     end
 
     def loader
       patterns = id_patterns
-      mapper = method(:pathlike_mapper)
       @loader ||= SVGFixtureHelper::FixtureLoader.new(world, fixture_name).call {
           fetch **patterns
-          map_paths &mapper
         }
     end
 
-    def input_1
-      @input_1 ||= loader.found[:input_1]
+    def inputs
+      @inputs ||= extract_inputs
     end
 
-    def input_2
-      @input_2 ||= loader.found[:input_2]
+    def extract_inputs
+      loader.found.select { |k, v|
+        k.start_with?("input_")
+      }.values.flat_map { |name_plus_matches|
+        name_plus_matches.values.map(&input_mapper)
+      }
     end
 
     def expected
-      @expected ||= loader.found[:expected]
+      @expected ||= loader.found["expected"].flat_map { |name, pathlike|
+        expected_mapper.call(pathlike, inputs)
+      }
     end
 
     def actual
-      @actual ||= checker.intersections(input_1, input_2)
+      @actual ||= checker.intersections(*inputs)
     end
 
     def sorted_expected
@@ -78,31 +83,8 @@ module IntersectionHelper
       }
     end
 
-    def pathlike_mapper(world, pathlike)
-      pathlike.name == 'expected' ? normalize_expected(pathlike) : input_mapper.map_input(pathlike)
-    end
-
-    def build_segment(path)
-      builder = path_is_curve?(path) ? world.curve_segment : world.line_segment
-      builder.from_path(path)
-    end
-
-    # I use Affinity Designer to create the fixtures and it automatically
-    # simplifies paths on export, which means that a three-point path which is
-    # also a line (like the path for expectec 3-point intersection of a line and
-    # a curve) will be turned into a 2-point path. To get around this, I use a
-    # cubic point on the path, which prevents it being simplifed, but means this
-    # normalization process is required where any cubics get their end point
-    # taken and used instead.
     def normalize_expected(pathlike)
-      pathlike.points.map { |pointlike|
-        case pointlike
-        when Draught::CubicBezier
-          pointlike.end_point
-        else
-          pointlike
-        end
-      }
+      pathlike.points.map(&:position_point)
     end
   end
 
@@ -121,20 +103,46 @@ module IntersectionHelper
       !path_is_line?(path)
     end
 
-    def map_input(path)
+    def call(path)
       builder = path_is_curve?(path) ? world.curve_segment : world.line_segment
       builder.from_path(path)
     end
+
+    def to_proc
+      method(:call).to_proc
+    end
   end
 
+  # I use Affinity Designer to create the fixtures and it automatically
+  # simplifies paths on export, which means that a three-point path which is
+  # also a line (like the path for expected 3-point intersection of a line and
+  # a curve) will be turned into a 2-point path. To get around this, I use a
+  # cubic point on the path, which prevents it being simplifed, but means this
+  # normalization process is required where any cubics get their end point
+  # taken and used instead.
+  SEGMENT_CHECKER_EXPECTED_MAPPER = ->(pathlike, inputs) {
+    pathlike.points.map(&:position_point)
+  }
+
+  PATH_CHECKER_EXPECTED_MAPPER = ->(pathlike, inputs) {
+    # path name is 'expected_id-1_id-2'
+    input_ids = pathlike.name.sub('expected-', '').split('_')
+    intersections = pathlike.points.map { |point|
+      Draught::PathIntersectionPoint.new(point.world, point.position_point, inputs.select { |pathlike| input_ids.include?(pathlike.name) })
+    }
+  }
 
   class PathInputMapper
     def initialize(world)
       @world = world
     end
 
-    def map_input(path)
+    def call(path)
       path
+    end
+
+    def to_proc
+      method(:call).to_proc
     end
   end
 
@@ -176,12 +184,11 @@ module IntersectionHelper
   end
 
   class IntersectionMatcher
-    attr_reader :actual, :expected, :input_1_id, :input_2_id, :input_mapper_class, :fixture_name, :checker
-    private :input_1_id, :input_2_id, :input_mapper_class, :fixture_name, :checker
+    attr_reader :input_1_id, :input_2_id, :fixture_name, :checker
+    private :input_1_id, :input_2_id, :fixture_name, :checker
 
     def initialize(input_1_id, input_2_id)
       @input_1_id, @input_2_id = input_1_id, input_2_id
-      @input_mapper_class = SegmentInputMapper
     end
 
     def matches?(checker)
@@ -202,11 +209,6 @@ module IntersectionHelper
 
     def in(fixture_name)
       @fixture_name = fixture_name
-      self
-    end
-
-    def as_paths
-      @input_mapper_class = PathInputMapper
       self
     end
 
@@ -240,7 +242,7 @@ module IntersectionHelper
     private
 
     def harness
-      @harness ||= Harness.new(checker, fixture_name, input_1_id, input_2_id, input_mapper_class)
+      @harness ||= Harness.new(checker, fixture_name, [input_1_id, input_2_id], SegmentInputMapper, SEGMENT_CHECKER_EXPECTED_MAPPER)
     end
 
     def has_correct_number_of_intersections?
@@ -270,9 +272,32 @@ module IntersectionHelper
     end
   end
 
+  class PathIntersectionMatcher < IntersectionMatcher
+    attr_reader :input_ids, :fixture_name, :checker
+    private :input_ids, :fixture_name, :checker
+
+    def initialize(input_ids)
+      @input_ids = input_ids
+    end
+
+    def description
+      "find that #{input_ids.join(' ')} intersect #{@expected_length} times"
+    end
+
+    private
+
+    def harness
+      @harness ||= Harness.new(checker, fixture_name, input_ids, PathInputMapper, PATH_CHECKER_EXPECTED_MAPPER)
+    end
+  end
+
   module Matchers
     def find_intersections_of(input_1_id, input_2_id)
       IntersectionMatcher.new(input_1_id, input_2_id)
+    end
+
+    def find_path_intersections_between(*input_ids)
+      PathIntersectionMatcher.new(input_ids)
     end
   end
 end

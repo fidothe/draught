@@ -14,7 +14,7 @@ module Draught::Segment
       end_point: end_point, control_point_1: control_point_1,
       control_point_2: control_point_2
     } }
-    let(:cubic_bezier) { Draught::CubicBezier.new(world, **cubic_opts) }
+    let(:cubic_bezier) { world.cubic_bezier(**cubic_opts) }
     let(:expected_curve_segment) {
       Curve.new(world, start_point: start_point, cubic_bezier: cubic_bezier)
     }
@@ -32,6 +32,12 @@ module Draught::Segment
           control_point_1: control_point_1,
           control_point_2: control_point_2
         )).to eq(expected_curve_segment)
+      end
+
+      specify "if handed a CubicBezier as a start point, use its position point" do
+        cubic_start = world.cubic_bezier(end_point: start_point, control_point_1: world.point(1,0), control_point_2: world.point(0,1))
+
+        expect(subject.build(start_point: cubic_start, cubic_bezier: cubic_bezier)).to eq(expected_curve_segment)
       end
 
       context "handling Metadata" do
@@ -112,6 +118,13 @@ module Draught::Segment
         }.to raise_error(ArgumentError)
       end
 
+      specify "if handed a CubicBezier as a start point, use its position point" do
+        cubic_start = world.cubic_bezier(end_point: start_point, control_point_1: world.point(1,0), control_point_2: world.point(0,1))
+        path = world.path.simple(cubic_start, cubic_bezier)
+
+        expect(subject.from_path(path)).to eq(expected_curve_segment)
+      end
+
       context "handling Metadata" do
         let(:metadata) { Draught::Metadata::Instance.new(name: 'name') }
         let(:path) { world.path.simple(start_point, cubic_bezier, metadata: metadata) }
@@ -119,6 +132,25 @@ module Draught::Segment
 
         specify "produces a Curve Segment with the correct Metadata" do
           expect(built_curve_segment.metadata).to be(metadata)
+        end
+      end
+
+      describe "building a Curve from two points" do
+        it "generates the Line correctly" do
+          expect(subject.from_to(start_point, cubic_bezier)).to eq(subject.build(start_point: start_point, cubic_bezier: cubic_bezier))
+        end
+
+        specify "metadata can be passed too" do
+          metadata = Draught::Metadata::Instance.new(name: 'name')
+          curve_segment = subject.from_to(start_point, cubic_bezier, metadata: metadata)
+
+          expect(curve_segment.metadata).to be(metadata)
+        end
+
+        specify "if the first point is a CubicBezier, use its position point" do
+          cubic_start = world.cubic_bezier(end_point: start_point, control_point_1: world.point(1,0), control_point_2: world.point(0,1))
+
+          expect(subject.from_to(cubic_start, cubic_bezier)).to eq(expected_curve_segment)
         end
       end
     end

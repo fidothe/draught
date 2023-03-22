@@ -20,8 +20,8 @@ module Draught
           build(end_point: world.point.new(0, height), metadata: metadata)
         end
 
-        def build(**kwargs)
-          Line.build(world, **kwargs)
+        def build(...)
+          Line.build(world, ...)
         end
 
         def from_to(p1, p2, metadata: nil)
@@ -33,12 +33,6 @@ module Draught
             raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
           end
           build(start_point: path.first, end_point: path.last, metadata: metadata || path.metadata)
-        end
-
-        private
-
-        def build_args(required_args, optional_args)
-          required_args.merge(optional_args.select { |k,_| k == :metadata })
         end
       end
     end

@@ -48,6 +48,16 @@ module Draught
       false
     end
 
+    # @return [Symbol] the kind of segment this is
+    def segment_type(t)
+      raise NotImplementedError, "Implementors of SegmentLike must implement #segment_type"
+    end
+
+    # Is this segmentlike the same as another? This is true if the other has the same points and same segment_type.
+    def ==(other)
+      other.segment_type == segment_type && other.points.zip(points).all? { |a,b| a == b }
+    end
+
     # Split the segment at the given value of t
     # @return [Array<Draught::SegmentLike>] the two segments resulting from the split
     def split(t)

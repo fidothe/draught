@@ -14,13 +14,13 @@ module Draught
 
         def build(start_point:, cubic_bezier: nil, control_point_1: nil, control_point_2: nil, end_point: nil, metadata: nil)
           if !control_point_1.nil?
-            Curve.new(world, start_point: start_point,
+            Curve.new(world, start_point: start_point.position_point,
               cubic_bezier: Draught::CubicBezier.new(world,
                 control_point_1: control_point_1, control_point_2: control_point_2, end_point: end_point
               ), metadata: metadata
             )
           else
-            Curve.new(world, start_point: start_point, cubic_bezier: cubic_bezier, metadata: metadata)
+            Curve.new(world, start_point: start_point.position_point, cubic_bezier: cubic_bezier, metadata: metadata)
           end
         end
 
@@ -28,14 +28,15 @@ module Draught
           if path.number_of_points != 2
             raise ArgumentError, "path must contain exactly 2 points, this contained #{path.number_of_points}"
           end
-          unless path.first.is_a?(Point)
-            raise ArgumentError, "the first point on the path must be a Point instance, this was #{path.first.inspect}"
-          end
           unless path.last.is_a?(CubicBezier)
             raise ArgumentError, "the last point on the path must be a CubicBezier instance, this was #{path.last.inspect}"
           end
 
           build(start_point: path.first, cubic_bezier: path.last, metadata: path.metadata)
+        end
+
+        def from_to(start_point, cubic_bezier, metadata: nil)
+          build(start_point: start_point, cubic_bezier: cubic_bezier, metadata: metadata)
         end
       end
     end

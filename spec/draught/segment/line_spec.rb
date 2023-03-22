@@ -1,6 +1,7 @@
 require 'draught/world'
 require 'draught/extent_examples'
 require 'draught/pathlike_examples'
+require 'draught/segmentlike_examples'
 require 'draught/boxlike_examples'
 require 'draught/segment/line'
 require 'draught/parser/svg'
@@ -180,8 +181,12 @@ module Draught::Segment
       let(:upper_right) { world.point(1,2) }
     end
 
+    it_should_behave_like "a segmentlike thing" do
+      subject { described_class.build(world, end_point: world.point.new(4,4)) }
+    end
+
     it_should_behave_like "a basic rectangular box-like thing" do
-      subject { Line.build(world, end_point: world.point.new(4,4)) }
+      subject { described_class.build(world, end_point: world.point.new(4,4)) }
     end
 
     describe "pretty printing" do

@@ -19,6 +19,10 @@ module Draught
       expect(subject.y).to eq(2)
     end
 
+    specify "returns itself for #position_point" do
+      expect(subject.position_point).to be(subject)
+    end
+
     describe "manipulations in space" do
       specify "a Point can be translated using a Vector to produce a new Point" do
         translation = world.vector.new(1,2)

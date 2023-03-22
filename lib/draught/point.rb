@@ -19,6 +19,14 @@ module Draught
       :point
     end
 
+    # The position to use when checking to see if the start/end path points of a
+    # path are duplicated when the path is closed. For a Point, this is itself.
+    #
+    # @return [Point] the point
+    def position_point
+      self
+    end
+
     def compare_compatible?(other)
       other.point_type == point_type
     end

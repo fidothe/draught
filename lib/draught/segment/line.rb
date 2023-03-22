@@ -20,20 +20,10 @@ module Draught
       include Segmentlike
       include Extent
 
-      # @return [false] Arcs are not closeable.
-      def self.closeable?
-        false
-      end
-
-      # @return [false] Arcs are openable.
-      def self.openable?
-        true
-      end
-
-      def self.build(world, **args)
-        builder_class = args.has_key?(:end_point) ? FromPoint : FromAngles
-        line_segment_args = builder_class.build(world, args)
-        new(world, line_segment_args)
+      def self.build(world, **kwargs)
+        builder_class = kwargs.has_key?(:end_point) ? FromPoint : FromAngles
+        line_segment_args = builder_class.build(world, **kwargs)
+        new(world, **line_segment_args)
       end
 
       attr_reader :world, :start_point, :end_point, :length, :radians
@@ -158,6 +148,11 @@ module Draught
 
       def curve?
         false
+      end
+
+      # @return [Symbol] (:line) the type of the segment, :line
+      def segment_type
+        :line
       end
 
       def split(t)

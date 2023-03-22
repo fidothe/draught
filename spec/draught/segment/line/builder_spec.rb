@@ -20,6 +20,10 @@ module Draught::Segment
         expect(line_segment.radians).to be_within(0.0001).of(deg_to_rad(45))
       end
 
+      specify "has a segment_type if :line" do
+        expect(line_segment.segment_type).to eq(:line)
+      end
+
       it "knows it's a line" do
         expect(line_segment.line?).to be(true)
       end
@@ -124,7 +128,7 @@ module Draught::Segment
       specify "a line_segment of width N is like a Path with points at (0,0) and (N,0)" do
         expected = world.path.build { points p(0,0), p(10, 0) }
 
-        expect(subject.horizontal(10)).to eq(expected)
+        expect(subject.horizontal(10).to_path).to eq(expected)
       end
 
       specify "metadata can be passed too" do
@@ -138,7 +142,7 @@ module Draught::Segment
       specify "a line_segment of height N is like a Path with points at (0,0) and (0,N)" do
         expected = world.path.build { points p(0,0), p(0, 10) }
 
-        expect(subject.vertical(10)).to eq(expected)
+        expect(subject.vertical(10).to_path).to eq(expected)
       end
 
       specify "metadata can be passed too" do
@@ -162,7 +166,7 @@ module Draught::Segment
         map_paths { |world, path| world.line_segment.from_path(path) }
       }.each do |world, angle, expected|
         specify "correctly builds a line of angle #{angle}º" do
-          expect(subject.build(length: 100, radians: deg_to_rad(angle))).to eq(expected)
+          expect(subject.build(length: 100, radians: deg_to_rad(angle)).to_path).to eq(expected)
         end
       end
 
@@ -223,16 +227,36 @@ module Draught::Segment
       it "can generate a Line from angle/length and start point" do
         line_segment = subject.build(start_point: world.point(1,1), radians: Math::PI/4, length: 5.656854)
 
-        expect(line_segment).to eq(world.path.build { points p(1,1), p(5,5) })
+        expect(line_segment.to_path).to eq(world.path.build { points p(1,1), p(5,5) })
+      end
+    end
+
+    describe "when passed non-Point Pointlikes" do
+      let(:start_point) { world.point(0,0) }
+      let(:end_point) { world.point(10,0) }
+      let(:expected) { subject.build(start_point: start_point, end_point: end_point) }
+      let(:cubic_start) {
+        world.cubic_bezier(end_point: start_point, control_point_1: world.point(1,0), control_point_2: world.point(0,1))
+      }
+      let(:cubic_end) {
+        world.cubic_bezier(end_point: end_point, control_point_1: world.point(11,0), control_point_2: world.point(10,1))
+      }
+
+      specify "if handed a CubicBezier at the start, use its position point" do
+        expect(subject.build(start_point: cubic_start, end_point: end_point)).to eq(expected)
+      end
+
+      specify "if handed a CubicBezier at the end, use its position point" do
+        expect(subject.build(start_point: start_point, end_point: cubic_end)).to eq(expected)
       end
     end
 
     describe "building a Line from a two-item Path" do
       context "given a Path" do
         it "generates the Line correctly" do
-          path = world.path.simple(world.point.zero, world.point(4,4))
+          line = subject.build(start_point: world.point.zero, end_point: world.point(4,4))
 
-          expect(subject.from_path(path)).to eq(path)
+          expect(subject.from_path(line.to_path)).to eq(line)
         end
 
         it "blows up for a > 2-point Path" do
@@ -272,9 +296,7 @@ module Draught::Segment
       let(:p2) { world.point(4,4) }
 
       it "generates the Line correctly" do
-        path = world.path.simple(p1, p2)
-
-        expect(subject.from_to(p1, p2)).to eq(path)
+        expect(subject.from_to(p1, p2)).to eq(subject.build(start_point: p1, end_point: p2))
       end
 
       specify "metadata can be passed too" do

@@ -202,6 +202,72 @@ module Draught
       end
     end
 
+    describe "generating segments" do
+      context "a polyline path" do
+        subject { Path.new(world, points: [world.point(1,1), world.point(3,1), world.point(2,3)]) }
+
+        context "an open path" do
+          specify "returns two line segments" do
+            expect(subject.segments).to eq([
+              world.line_segment.from_to(world.point(1,1), world.point(3,1)),
+              world.line_segment.from_to(world.point(3,1), world.point(2,3))
+            ])
+          end
+        end
+
+        context "a closed path" do
+          let(:closed) { subject.closed }
+
+          specify "returns three line segments" do
+            expect(closed.segments).to eq([
+              world.line_segment.from_to(world.point(1,1), world.point(3,1)),
+              world.line_segment.from_to(world.point(3,1), world.point(2,3)),
+              world.line_segment.from_to(world.point(2,3), world.point(1,1))
+            ])
+          end
+        end
+      end
+
+      context "a path containing beziers" do
+        let(:cubic) {
+          world.cubic_bezier(
+            end_point: world.point(2,3),
+            control_point_1: world.point(1,1),
+            control_point_2: world.point(3,1)
+          )
+        }
+        let(:curve_segment) {
+          world.curve_segment(start_point: world.point(3,1), cubic_bezier: cubic)
+        }
+        subject {
+          Path.new(world, points: [
+            world.point(1,1), world.point(3,1), cubic
+          ])
+        }
+
+        context "an open path" do
+          specify "returns two segments" do
+            expect(subject.segments).to eq([
+              world.line_segment.from_to(world.point(1,1), world.point(3,1)),
+              curve_segment
+            ])
+          end
+        end
+
+        context "a closed path" do
+          let(:closed) { subject.closed }
+
+          specify "returns three segments" do
+            expect(closed.segments).to eq([
+              world.line_segment.from_to(world.point(1,1), world.point(3,1)),
+              curve_segment,
+              world.line_segment.from_to(world.point(2,3), world.point(1,1))
+            ])
+          end
+        end
+      end
+    end
+
     describe "an empty path" do
       context "extent" do
         subject { Path.new(world) }

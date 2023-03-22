@@ -2,6 +2,7 @@ require 'draught/world'
 require 'draught/segment/curve'
 require 'draught/extent_examples'
 require 'draught/pathlike_examples'
+require 'draught/segmentlike_examples'
 require 'draught/boxlike_examples'
 require 'svg_fixture_helper'
 
@@ -49,18 +50,22 @@ module Draught::Segment
     end
 
     it_should_behave_like "a pathlike thing" do
-      subject { described_class.build(world, segment_opts) }
+      subject { described_class.build(world, **segment_opts) }
       let(:points) { subject.points }
     end
 
     it_should_behave_like "it has an extent" do
-      subject { described_class.build(world, segment_opts) }
+      subject { described_class.build(world, **segment_opts) }
       let(:lower_left) { world.point.zero }
       let(:upper_right) { world.point(4,1.5) }
     end
 
+    it_should_behave_like "a segmentlike thing" do
+      subject { described_class.build(world, **segment_opts) }
+    end
+
     it_should_behave_like "a basic rectangular box-like thing" do
-      subject { Curve.build(world, segment_opts) }
+      subject { described_class.build(world, **segment_opts) }
     end
 
     it "knows it's not a line" do
